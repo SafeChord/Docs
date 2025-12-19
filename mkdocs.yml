@@ -1,0 +1,51 @@
+site_name: SafeChord Docs
+
+theme:
+  name: material
+  language: zh
+  features:
+    - navigation.tabs
+    - navigation.indexes
+    - content.code.copy
+    - content.action.edit
+    - navigation.footer
+  custom_dir: overrides
+  palette:
+  - scheme: default
+    primary: indigo
+    toggle:
+      icon: material/weather-night
+      name: 切換至深色模式
+  - scheme: slate
+    primary: indigo
+    toggle:
+      icon: material/weather-sunny
+      name: 切換至淺色模式
+
+nav:
+  - Home: index.md
+  - SafeZone:
+      - Overview: knwl/safechord.safezone.md
+      - CI/CD: knwl/safechord.safezone.ci-cd.md
+      - Deployment:
+          - Overview: knwl/safechord.safezone.deployment.md
+          - SafeZone-Infra: knwl/safechord.safezone.deployment.safezone-infra.md
+          - SafeZone-Core: knwl/safechord.safezone.deployment.safezone-core.md
+          - SafeZone-Init: knwl/safechord.safezone.deployment.safezone-init.md
+          - SafeZone-UI: knwl/safechord.safezone.deployment.safezone-ui.md
+      - Service:
+          - Overview: knwl/safechord.safezone.service.md
+          - DataSimulator: knwl/safechord.safezone.service.datasimulator.md
+          - DataIgestor: knwl/safechord.safezone.service.dataingestor.md
+          - AnalyticsAPI: knwl/safechord.safezone.service.analyticsapi.md
+          - Dashboard: knwl/safechord.safezone.service.dashboard.md
+          - SafeZone-CLI: knwl/safechord.safezone.service.safezone-cli.md
+  - Chorde:
+      - K3han:
+          - Overview: knwl/safechord.chorde.k3han.md
+          - Cluster: knwl/safechord.chorde.k3han.cluster.md
+          - Build: knwl/safechord.chorde.k3han.build.md
+          - Monitoring: knwl/safechord.chorde.k3han.monitoring.md
+          - Scheduling: knwl/safechord.chorde.k3han.scheduling.md
+  - Document Map: knwl/safechord.tree.md
+  - Reference: knwl/safechord.reference.md
