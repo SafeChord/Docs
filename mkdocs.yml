@@ -23,29 +23,33 @@ theme:
       name: 切換至淺色模式
 
 nav:
-  - Home: index.md
+  - Home: safechord.md
   - SafeZone:
-      - Overview: knwl/safechord.safezone.md
-      - CI/CD: knwl/safechord.safezone.ci-cd.md
+      - Overview:
+          - Concept: safechord.safezone.md
+          - ChangeLog: safechord.safezone.changelog.md
+      - CI/CD: safechord.safezone.ci-cd.md
       - Deployment:
-          - Overview: knwl/safechord.safezone.deployment.md
-          - SafeZone-Infra: knwl/safechord.safezone.deployment.safezone-infra.md
-          - SafeZone-Core: knwl/safechord.safezone.deployment.safezone-core.md
-          - SafeZone-Init: knwl/safechord.safezone.deployment.safezone-init.md
-          - SafeZone-UI: knwl/safechord.safezone.deployment.safezone-ui.md
+          - Overview: safechord.safezone.deployment.md
+          - SafeZone-Infra: safechord.safezone.deployment.safezone-infra.md
+          - SafeZone-Core: safechord.safezone.deployment.safezone-core.md
+          - SafeZone-Init: safechord.safezone.deployment.safezone-init.md
+          - SafeZone-UI: safechord.safezone.deployment.safezone-ui.md
       - Service:
-          - Overview: knwl/safechord.safezone.service.md
-          - DataSimulator: knwl/safechord.safezone.service.datasimulator.md
-          - DataIgestor: knwl/safechord.safezone.service.dataingestor.md
-          - AnalyticsAPI: knwl/safechord.safezone.service.analyticsapi.md
-          - Dashboard: knwl/safechord.safezone.service.dashboard.md
-          - SafeZone-CLI: knwl/safechord.safezone.service.safezone-cli.md
+          - Overview: safechord.safezone.service.md
+          - DataSimulator: safechord.safezone.service.pandemicsimulator.md
+          - DataIgestor: safechord.safezone.service.dataingestor.md
+          - AnalyticsAPI: safechord.safezone.service.analyticsapi.md
+          - Dashboard: safechord.safezone.service.dashboard.md
+      - Toolkit:
+          - SafeZone-CLI: safechord.safezone.toolkit.cli.md
+          - Time-Server: safechord.safezone.toolkit.timeserver.md
   - Chorde:
       - K3han:
-          - Overview: knwl/safechord.chorde.k3han.md
-          - Cluster: knwl/safechord.chorde.k3han.cluster.md
-          - Build: knwl/safechord.chorde.k3han.build.md
-          - Monitoring: knwl/safechord.chorde.k3han.monitoring.md
-          - Scheduling: knwl/safechord.chorde.k3han.scheduling.md
-  - Document Map: knwl/safechord.tree.md
-  - Reference: knwl/safechord.reference.md
+          - Overview: safechord.chorde.k3han.md
+          - Cluster: safechord.chorde.k3han.cluster.md
+          - Build: safechord.chorde.k3han.build.md
+          - Monitoring: safechord.chorde.k3han.monitoring.md
+          - Scheduling: safechord.chorde.k3han.scheduling.md
+  - Document Map: safechord.knowledgetree.md
+  - Reference: safechord.reference.md
