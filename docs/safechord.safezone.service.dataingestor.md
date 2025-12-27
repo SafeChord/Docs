@@ -7,7 +7,7 @@ authors:
   - bradyhau
   - Gemini 2.5 Pro
 last_updated: "2025-09-12"
-summary: "Data Ingestor 是 SafeZone 系統的資料入口閘道 (Gateway)。它提供 RESTful API 接收外部事件，並將其轉換為標準化的 Kafka 訊息，實現資料寫入與處理的非同步解耦。"
+summary: "Data Ingestor 是 SafeZone 系統的資料入口閘道 (Gateway)。它提供 RESTful API 接收外部事件，並將其封裝為標準化的 Kafka 訊息 (CovidContract)，實現資料寫入與處理的非同步解耦。"
 keywords:
   - Data Ingestor
   - Kafka Producer
@@ -17,13 +17,13 @@ keywords:
 logical_path: "SafeChord.SafeZone.Service.DataIngestor"
 related_docs:
   - "safechord.safezone.changelog.md"
-  - "safechord.safezone.service.datasimulator.md"
+  - "safechord.safezone.service.pandemicsimulator.md"
   - "safechord.safezone.service.worker.md"
 parent_doc: "safechord.safezone.service"
 tech_stack:
   - Python 3.13
-  - FastAPI
-  - Kafka (aiokafka)
+  - FastAPI 0.115
+  - Kafka (aiokafka 0.12)
   - Pydantic
 ---
 
@@ -31,7 +31,7 @@ tech_stack:
 
 ## 📌 服務定位
 Data Ingestor 是系統的 **寫入閘道 (Ingestion Gateway)**。
-*   **角色**: Producer (Kafka)。它不負責資料持久化 (Persistence)，僅負責資料驗證與事件發布。
+*   **角色**: Producer (Kafka)。它不負責資料持久化 (Persistence)，僅負責資料驗證、結構封裝與事件發布。
 *   **特性**: Stateless, High-Throughput。設計目標是快速接收大量 HTTP 請求並卸載至 Kafka，以應對突發流量 (Spike Traffic)。
 
 ---
@@ -40,15 +40,30 @@ Data Ingestor 是系統的 **寫入閘道 (Ingestion Gateway)**。
 
 ### 1. API 接口與資料契約
 本服務作為資料入口，對資料格式有嚴格驗證要求。
-*   **Input (HTTP)**: `CovidDataModel` (參見 `utils/pydantic_model/request.py`)。
-*   **Output (Kafka)**: 
-    *   Topic: 由環境變數 `KAFKA_TOPIC` 決定 (Default: `covid.case.data`)。
-    *   Schema: JSON 序列化物件，包含 `payload` (原始數據), `trace_id`, `event_time`。
+
+*   **Input (HTTP)**: `POST /covid_event`
+    *   **Body**: `CovidDataModel` (包含 `date`, `city`, `region`, `cases` 等)。
+    *   **Validation**: 若 `cases <= 0` 或日期格式錯誤，回傳 `422 Unprocessable Entity`。
+
+*   **Output (Kafka)**:
+    *   **Topic**: `covid.raw.data` (Default, via `KAFKA_TOPIC`)。
+    *   **Partition Key**: `"{city}-{region}"` (確保同一區域的數據進入同一 Partition，保證順序性)。
+    *   **Schema (CovidContract)**:
+        ```json
+        {
+          "event_type": "covid_event",
+          "event_time": 1679000000000,
+          "trace_id": "uuid-v4",
+          "payload": { ...CovidDataModel... },
+          "version": "0.1.0"
+        }
+        ```
 
 ### 2. 外部依賴與控制 (Dependencies & Control)
-*   **Control Plane (Trigger)**: 被動接收來自 [Pandemic Simulator](safechord.safezone.service.datasimulator.md) 的 HTTP POST 請求。
+*   **Control Plane (Trigger)**: 被動接收來自 [Pandemic Simulator](safechord.safezone.service.pandemicsimulator.md) 的 HTTP POST 請求。
 *   **Downstream**: [Kafka Cluster]。
-    *   *Note*: 服務啟動時會建立 `AIOKafkaProducer` 連線池。
+    *   **Connection**: 啟動時建立 `AIOKafkaProducer` 連線池。
+    *   **Reliability**: 設定 `acks="all"` 與 `enable_idempotence=True` 確保訊息不丟失。
 
 ---
 
@@ -58,26 +73,25 @@ Data Ingestor 是系統的 **寫入閘道 (Ingestion Gateway)**。
 
 | 範疇 | 規格檔路徑 (Source of Truth) | 業務意圖 (Business Intent) |
 | :--- | :--- | :--- |
-| **整合行為** | `test/cases.json` | 定義了所有 API 場景，包含：<br>1. **正常寫入**: 接收有效 JSON -> 回傳 200 OK。<br>2. **格式驗證**: 日期格式錯誤、欄位缺失 -> 回傳 422 Unprocessable Entity。<br>3. **業務規則**: `cases` 數量 <= 0 -> 回傳 422。<br>4. **健康檢查**: `/health` 端點回傳服務狀態。 |
-
-> **注意**: 目前測試套件使用 `AsyncMock` 模擬 Kafka Producer 行為，側重於 API 層與資料驗證邏輯的測試。
+| **API 行為** | `test/cases.json` | 定義所有 API 場景：<br>1. **正常寫入**: 接收有效 JSON -> 回傳 200 OK。<br>2. **格式驗證**: 日期格式錯誤 (`YYYY/MM/DD`) -> 回傳 422。<br>3. **業務規則**: 欄位缺失 -> 回傳 422。<br>4. **健康檢查**: `/health` 端點回傳 `{"status": {"ingestor": "healthy"}}`。 |
 
 ---
 
 ## 🧩 設計權衡 (Design Trade-offs)
 
-### 1. 為什麼從直接寫入 DB (v0.1) 改為寫入 Kafka (v0.2)？
-*   **削峰填谷 (Peak Shaving)**: 當 Simulator 進行壓力測試時，瞬間流量可能超過 PostgreSQL 的連線數上限。引入 Kafka 作為緩衝，允許 Ingestor 以極高的吞吐量接收請求，而 Worker 可以依照 DB 的處理能力慢慢消化。
-*   **解耦 (Decoupling)**: Ingestor 不再需要知道 DB Schema，只需關注資料格式。這讓後端儲存架構的變更（如換 DB）不會影響到資料入口。
+### 1. 為什麼選擇 `aiokafka`？
+*   **Async I/O**: 配合 FastAPI 的非同步特性，`aiokafka` 允許在單一 Event Loop 中處理大量併發請求，避免因等待 Kafka ACK 而阻塞 HTTP 執行緒。
 
-### 2. 資料一致性考量
-*   **Producer Acks**: 配置 `acks="all"` 與 `enable_idempotence=True`，確保訊息在 Kafka 端被持久化後才回傳 HTTP 200 給客戶端，防止資料丟失。
+### 2. 分區策略 (Partitioning Strategy)
+*   **Natural Key**: 使用 `city-region` 作為 Key，而非隨機 Round-Robin。
+*   **Trade-off**: 這可能導致 Partition 熱點 (Skew)，例如「台北市」的數據量遠大於偏鄉。但為了確保後端 Consumer 在計算累積數據時的順序正確性 (Ordering)，這是必要的犧牲。
 
 ---
 
 ## 🚀 部署與維運
 *   **Docker Image**: `safezone-data-ingestor`
 *   **環境變數**:
-    *   `KAFKA_BOOTSTRAP`: Kafka 連線地址
-    *   `KAFKA_TOPIC`: 目標 Topic
+    *   `KAFKA_BOOTSTRAP`: Kafka 連線地址 (Default: `localhost:9092`)
+    *   `KAFKA_TOPIC`: 目標 Topic (Default: `covid.raw.data`)
+    *   `LOG_LEVEL`: 日誌級別 (Default: `DEBUG`)
 *   **Health Check**: `GET /health`

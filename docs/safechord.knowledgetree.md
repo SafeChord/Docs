@@ -1,14 +1,14 @@
 ---
 title: SafeChord Knowledge Tree Structure (Optimized)
 doc_id: safechord.knowledgetree
-version: 0.3.1
-last_updated: "2025-12-25"
+version: 0.3.2
+last_updated: "2025-12-27"
 status: active
 authors:
   - bradyhau
   - Gemini 3 Pro (PM Role)
 context_scope: "Project Root"
-summary: "SafeChord 專案的全域知識地圖。本版本(v0.3.1) 針對雙倉策略 (Twin-Repo Strategy) 進行結構優化，明確區分應用開發 (App) 與交付運維 (Deploy) 的邊界，並整合 KDD 方法論。"
+summary: "SafeChord 專案的全域知識地圖。本版本(v0.3.2) 針對雙倉策略 (Twin-Repo Strategy) 進行結構優化，明確區分應用開發 (App) 與交付運維 (Deploy) 的邊界，並整合 KDD 方法論。"
 keywords:
   - SafeChord
   - Knowledge Graph
@@ -20,7 +20,7 @@ related_docs:
   - "safechord.md"
 ---
 
-# SafeChord 知識地圖 (Knowledge Map) v0.3.1
+# SafeChord 知識地圖 (Knowledge Map) v0.3.2
 
 ## 🗺️ 導航指南 (Navigation Guide)
 
@@ -53,15 +53,15 @@ related_docs:
             *   [📄 safechord.safezone.changelog.md](safechord.safezone.changelog.md) (🔄 版本演進與 API 變更)
         *   **服務模組 (Microservices)**
             *   [📄 safechord.safezone.service.md](safechord.safezone.service.md) (服務邊界定義)
-            *   [📄 safechord.safezone.service.pandemicsimulator.md](safechord.safezone.service.pandemicsimulator.md) (Simulator: AsyncIO Data Gen)
-            *   [📄 safechord.safezone.service.dataingestor.md](safechord.safezone.service.dataingestor.md) (Ingestor: Kafka Producer)
-            *   [📄 safechord.safezone.service.worker.md](safechord.safezone.service.worker.md) [🚧] (Worker: Go Consumer)
-            *   [📄 safechord.safezone.service.analyticsapi.md](safechord.safezone.service.analyticsapi.md) (API: Read Layer)
-            *   [📄 safechord.safezone.service.dashboard.md](safechord.safezone.service.dashboard.md) (UI: Visualization)
+            *   [📄 safechord.safezone.service.pandemicsimulator.md](safechord.safezone.service.pandemicsimulator.md) (Simulator: AsyncIO Data Source)
+            *   [📄 safechord.safezone.service.dataingestor.md](safechord.safezone.service.dataingestor.md) (Ingestor: Kafka Producer Gateway)
+            *   [📄 safechord.safezone.service.worker.md](safechord.safezone.service.worker.md) (Worker: Golang High-Perf Consumer)
+            *   [📄 safechord.safezone.service.analyticsapi.md](safechord.safezone.service.analyticsapi.md) (API: Cache-Aside Aggregator)
+            *   [📄 safechord.safezone.service.dashboard.md](safechord.safezone.service.dashboard.md) (UI: Time-Aware Visualization)
         *   **工具與共享組件 (Toolkit & Shared)**
-            *   [📄 safechord.safezone.toolkit.timeserver.md](safechord.safezone.toolkit.timeserver.md) (Time Server: 集中式時間控制)
-            *   [📄 safechord.safezone.toolkit.cli.md](safechord.safezone.toolkit.cli.md) [🚧] (SZCLI: 運維與除錯工具)
-            *   [📄 safechord.safezone.toolkit.cli.reference.md](safechord.safezone.toolkit.cli.reference.md) [🚧] (SZCLI: 使用手冊)
+            *   [📄 safechord.safezone.toolkit.timeserver.md](safechord.safezone.toolkit.timeserver.md) (Time Server: Time Control Tower)
+            *   [📄 safechord.safezone.toolkit.cli.md](safechord.safezone.toolkit.cli.md) (SZCLI: Client-Relay Ops Tool)
+            *   [📄 safechord.safezone.toolkit.cli.reference.md](safechord.safezone.toolkit.cli.reference.md) (SZCLI: Command Reference)
         *   **開發流程 (Dev Workflow)**
             *   [📄 safechord.safezone.ci.md](safechord.safezone.ci.md) (CI Pipeline: Build & Smoke Test)
 
