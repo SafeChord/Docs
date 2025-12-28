@@ -2,7 +2,7 @@
 title: SafeZone Helm Chart Architecture
 doc_id: safechord.safezone.deployment.charts
 version: 0.2.0
-last_updated: "2025-12-26"
+last_updated: "2025-12-28"
 status: active
 authors:
   - bradyhau
@@ -15,6 +15,7 @@ keywords:
   - Kubernetes
   - Architecture
   - Configuration
+  - KEDA
 logical_path: "SafeChord.SafeZone.Deployment.Charts"
 related_docs:
   - "safechord.safezone.deployment.workflow.md"
@@ -42,12 +43,12 @@ helm-charts/
 ├── 🔴 safezone-infra/        # [Umbrella] 基礎設施層 (Infrastructure Layer)
 │   ├── cache/                # Redis Service (應用層快取)
 │   ├── timeServer/           # Global Time Service (時間控制)
-│   └── cliRelay/             # CLI Gateway (指令中繼站)
+│   └── cliRelay/             # CLI Gateway (指令中繼站 & Auth)
 ├── 🟢 safezone-core/         # [Umbrella] 核心業務層 (Core Layer)
 │   ├── writePipeline/        # 寫入路徑 Subchart
 │   │   ├── pandemic-simulator
 │   │   ├── ingestor
-│   │   └── worker            # 整合 KEDA 自動擴展
+│   │   └── worker            # [Auto-Scaling] 整合 KEDA 監聽 Kafka Lag
 │   └── readPipeline/         # 讀取路徑 Subchart
 │       └── analytics-api
 ├── 🟡 safezone-ui/           # [Umbrella] 前端層 (UI Layer)
@@ -71,7 +72,7 @@ helm-charts/
 *   **包含子 Charts**：
     *   `cache`: 包裝 `bitnami/redis`，提供應用層快取。
     *   `timeServer`: 全域時間控制服務 (支援 Time-Travel 測試)。
-    *   `cliRelay`: 處理 CLI 指令的 API Gateway，連接後端資料庫與 Auth。
+    *   `cliRelay`: **API Gateway**。作為 `szcli` 進入叢集內部的安全通道，處理 Google OAuth 驗證並轉發指令。
 *   **關鍵產出**：
     *   **Global ConfigMap (`safezone-config`)**：將上述服務的連線資訊匯總，供 Core 與 UI 層掛載使用。
 
@@ -81,7 +82,8 @@ helm-charts/
     *   `writePipeline`: 負責數據寫入路徑。
         *   `pandemic-simulator`: 模擬數據生成器 (掛載 PVC)。
         *   `ingestor`: 接收數據並轉發至 Kafka。
-        *   `worker`: Kafka 消費者，負責寫入 DB (整合 **KEDA** 進行自動擴展)。
+        *   `worker`: Kafka 消費者，負責寫入 DB。
+            *   **KEDA Integration**: 定義 `ScaledObject`，監控 Kafka Topic Lag。當堆積量超過閾值時，自動水平擴展 Pod 數量，消化突發流量。
     *   `readPipeline`: 負責數據讀取路徑。
         *   `analytics-api`: 提供數據查詢 API。
 

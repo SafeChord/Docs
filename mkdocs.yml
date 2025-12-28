@@ -24,32 +24,39 @@ theme:
 
 nav:
   - Home: safechord.md
-  - SafeZone:
+  - 🌍 Environment: safechord.environment.md
+  - 🟦 SafeZone:
       - Overview:
           - Concept: safechord.safezone.md
           - ChangeLog: safechord.safezone.changelog.md
-      - CI/CD: safechord.safezone.ci-cd.md
-      - Deployment:
-          - Overview: safechord.safezone.deployment.md
-          - SafeZone-Infra: safechord.safezone.deployment.safezone-infra.md
-          - SafeZone-Core: safechord.safezone.deployment.safezone-core.md
-          - SafeZone-Init: safechord.safezone.deployment.safezone-init.md
-          - SafeZone-UI: safechord.safezone.deployment.safezone-ui.md
-      - Service:
-          - Overview: safechord.safezone.service.md
-          - DataSimulator: safechord.safezone.service.pandemicsimulator.md
-          - DataIgestor: safechord.safezone.service.dataingestor.md
-          - AnalyticsAPI: safechord.safezone.service.analyticsapi.md
+      - Services:
+          - Architecture: safechord.safezone.service.md
+          - Pandemic Simulator: safechord.safezone.service.pandemicsimulator.md
+          - Data Ingestor: safechord.safezone.service.dataingestor.md
+          - Worker (Golang): safechord.safezone.service.worker.md
+          - Analytics API: safechord.safezone.service.analyticsapi.md
           - Dashboard: safechord.safezone.service.dashboard.md
       - Toolkit:
-          - SafeZone-CLI: safechord.safezone.toolkit.cli.md
-          - Time-Server: safechord.safezone.toolkit.timeserver.md
-  - Chorde:
-      - K3han:
+          - CLI (szcli): safechord.safezone.toolkit.cli.md
+          - Command Ref: safechord.safezone.toolkit.cli.reference.md
+          - Time Server: safechord.safezone.toolkit.timeserver.md
+      - CI/CD: safechord.safezone.ci.md
+  - 🟨 Deployment:
+      - Overview: safechord.safezone.deployment.md
+      - Helm Architecture: safechord.safezone.deployment.charts.md
+      - GitOps Workflow: safechord.safezone.deployment.workflow.md
+  - 🟥 Chorde Hub:
+      - Framework Overview: safechord.chorde.md
+      - K3han Cluster:
           - Overview: safechord.chorde.k3han.md
-          - Cluster: safechord.chorde.k3han.cluster.md
-          - Build: safechord.chorde.k3han.build.md
-          - Monitoring: safechord.chorde.k3han.monitoring.md
+          - Topology: safechord.chorde.k3han.cluster.md
+          - Ingress: safechord.chorde.k3han.ingress.md
           - Scheduling: safechord.chorde.k3han.scheduling.md
-  - Document Map: safechord.knowledgetree.md
-  - Reference: safechord.reference.md
+          - Monitoring: safechord.chorde.k3han.monitoring.md
+          - ChangeLog: safechord.chorde.k3han.changelog.md
+  - ⬜ Methodology (KDD):
+      - Introduction: safechord.kdd.introduction.md
+      - Practice: safechord.kdd.practice.md
+      - Workflow: safechord.kdd.workflow.md
+  - 🛡️ Security: safechord.security.md
+  - 🗺️ Knowledge Tree: safechord.knowledgetree.md

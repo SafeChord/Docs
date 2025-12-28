@@ -6,8 +6,8 @@ status: active
 authors:
   - "bradyhau"
   - "Gemini 2.5 Pro"
-last_updated: "2025-09-12"
-summary: "本文檔詳細描述 SafeZone v0.2.1 的服務架構。區分了核心業務服務與工具組件，並特別強調 szcli 作為系統觸發者與驗證者在數據流中的核心作用。"
+last_updated: "2025-12-28"
+summary: "本文檔詳細描述 SafeZone v0.2.1 的服務架構。區分了核心業務服務與工具組件，並特別強調 szcli (Client-Relay) 與 Time Server 在非同步資料流與驗證中的核心作用。"
 keywords:
   - SafeZone
   - service architecture
@@ -16,6 +16,7 @@ keywords:
   - smoke-test
   - kafka
   - pandemic-simulator
+  - cache versioning
 logical_path: "SafeChord.SafeZone.Service"
 related_docs:
   - "safechord.knowledgetree.md"
@@ -40,19 +41,19 @@ tech_stack:
 ## 🧪 服務模組與工具分類
 
 ### 🧩 核心服務 (Core Services) - 負責資料的生命週期
-| 服務名稱 | 職責類型 | 核心職責 |
-| :--- | :--- | :--- |
-| **pandemic-simulator** | **Source** | **資料產地**。接收觸發指令後，依據模擬時間產生災情事件。 |
-| **data-ingestor** | **Producer** | **資料入口**。驗證資料結構並推送到 Kafka Topic (`covid-data`)。 |
-| **worker-golang** | **Consumer** | **資料落盤**。高效消費 Kafka 訊息，確保資料寫入 PostgreSQL。 |
-| **analytics-api** | **Reader** | **資料出口**。提供具備 Redis 快取機制的查詢介面。 |
-| **dashboard** | **Visualizer** | **視覺化前端**。呈現疫情曲線圖與統計資訊。 |
+| 服務名稱 | 職責類型 | 核心職責 | 關鍵技術特性 |
+| :--- | :--- | :--- | :--- |
+| **pandemic-simulator** | **Source** | **資料產地**。接收觸發指令後，依據模擬時間產生災情事件。 | **AsyncIO**, Passive-Triggered |
+| **data-ingestor** | **Producer** | **資料入口**。寫入閘道 (Gateway)，驗證結構並推送 Kafka。 | **FastAPI**, High-Throughput |
+| **worker-golang** | **Consumer** | **資料落盤**。高效消費 Kafka 訊息，確保資料寫入 PostgreSQL。 | **Franz-Go**, Batch Insert, Idempotent |
+| **analytics-api** | **Reader** | **資料出口**。提供查詢介面，整合進階快取策略。 | **Cache Versioning**, Global Invalidation |
+| **dashboard** | **Visualizer** | **視覺化前端**。呈現疫情曲線圖與統計資訊。 | **Plotly Dash**, Time-Aware |
 
 ### 🛠️ 工具與控制 (Toolkit & Controllers) - 負責系統運作與觸發
-| 服務名稱 | 職責類型 | 核心職責 |
-| :--- | :--- | :--- |
-| **szcli** | **Orchestrator** | **發令槍與裁判**。觸發模擬 (`simulate`)、種子資料植入 (`seed`) 與數據驗證 (`verify`)。 |
-| **time-server** | **Controller** | **時間塔**。維持全系統唯一的「模擬時間 (System Date)」。 |
+| 服務名稱 | 職責類型 | 核心職責 | 關鍵技術特性 |
+| :--- | :--- | :--- | :--- |
+| **szcli** | **Orchestrator** | **發令槍與裁判**。觸發模擬、植入種子資料與驗證數據。 | **Client-Relay Pattern**, OAuth 2.0 |
+| **time-server** | **Controller** | **時間塔**。維持全系統唯一的「模擬時間 (System Date)」。 | **Time Travel**, Redis Backend |
 
 ---
 
@@ -63,21 +64,22 @@ tech_stack:
 ### 1. 觸發與生成 (Trigger & Generate)
 1.  **指令下達**：`User` 或 `CI` 執行 `szcli dataflow simulate --days=30`。
 2.  **時間同步**：`szcli` 取得 `time-server` 的當前系統時間以決定模擬區間。
-3.  **任務委派**：`szcli` 呼叫 `pandemic-simulator` 啟動非同步生成任務。
+3.  **任務委派**：`szcli` (Relay) 呼叫 `pandemic-simulator` 啟動非同步生成任務。
 
 ### 2. 非同步注入 (Async Ingestion)
-4.  **事件發送**：`simulator` 將生成數據發送至 `data-ingestor`。
-5.  **進入緩衝**：`data-ingestor` 將數據寫入 Kafka。
-6.  **持久化**：`worker-golang` 監聽 Kafka 並寫入 PostgreSQL。
+4.  **事件發送**：`simulator` 使用 **AsyncIO** 高併發將生成數據發送至 `data-ingestor`。
+5.  **進入緩衝**：`data-ingestor` 將數據寫入 Kafka Topic (`covid.raw.data`)。
+6.  **持久化**：`worker-golang` 使用 **Franz-Go** 批次消費並執行 **Batch Insert** 寫入 PostgreSQL。
 
 ### 3. 驗證與觀測 (Verify & Observe)
-7.  **主動驗證**：`szcli dataflow verify` 呼叫 `analytics-api` 檢查資料是否已落盤且正確。
-8.  **快取驗證**：在 Smoke Test 中，`szcli` 會連續執行兩次 verify，透過 Trace ID 檢查 `analytics-api` 是否正確觸發了 **Cache Hit/Miss** 機制。
+7.  **快取失效**：模擬結束時，CLI 觸發 `analytics-api` 的 **Global Invalidation** (更新 Cache Version)。
+8.  **主動驗證**：`szcli dataflow verify` 呼叫 `analytics-api` 檢查資料是否已落盤。
+9.  **快取行為**：在 Smoke Test 中，`szcli` 連續執行驗證，透過 Trace ID 檢查 **Cache Miss** (第一次) 與 **Cache Hit** (第二次) 的行為。
 
 ### 4. 使用者瀏覽 (User Journey)
-9.  **圖表請求**：使用者開啟瀏覽器，`dashboard` 前端向 `analytics-api` 請求聚合數據。
-10. **快取優先**：`analytics-api` 查詢 Redis。若 Miss 則查詢 PostgreSQL 並回填 Redis (Cache-Aside)。
-11. **視覺呈現**：`dashboard` 接收 JSON 響應，繪製熱力圖與趨勢線。
+10. **圖表請求**：使用者開啟瀏覽器，`dashboard` 向 `analytics-api` 請求數據。
+11. **版本檢查**：`analytics-api` 檢查 Redis 中的 `cache_version`，確保不回傳過期數據 (Cache-Aside)。
+12. **視覺呈現**：`dashboard` 接收 JSON 響應，繪製熱力圖與趨勢線。
 
 ---
 
