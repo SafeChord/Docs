@@ -24,11 +24,9 @@ theme:
 
 nav:
   - Home: safechord.md
-  - 🌍 Environment: safechord.environment.md
+  - 🗺️ Knowledge Tree: safechord.knowledgetree.md
   - 🟦 SafeZone:
-      - Overview:
-          - Concept: safechord.safezone.md
-          - ChangeLog: safechord.safezone.changelog.md
+      - Overview: safechord.safezone.md
       - Services:
           - Architecture: safechord.safezone.service.md
           - Pandemic Simulator: safechord.safezone.service.pandemicsimulator.md
@@ -40,23 +38,22 @@ nav:
           - CLI (szcli): safechord.safezone.toolkit.cli.md
           - Command Ref: safechord.safezone.toolkit.cli.reference.md
           - Time Server: safechord.safezone.toolkit.timeserver.md
-      - CI/CD: safechord.safezone.ci.md
+      - Workflow: safechord.safezone.workflow.md
+      - ChangeLog: safechord.safezone.changelog.md
   - 🟨 Deployment:
       - Overview: safechord.safezone.deployment.md
       - Helm Architecture: safechord.safezone.deployment.charts.md
-      - GitOps Workflow: safechord.safezone.deployment.workflow.md
-  - 🟥 Chorde Hub:
-      - Framework Overview: safechord.chorde.md
-      - K3han Cluster:
-          - Overview: safechord.chorde.k3han.md
-          - Topology: safechord.chorde.k3han.cluster.md
-          - Ingress: safechord.chorde.k3han.ingress.md
-          - Scheduling: safechord.chorde.k3han.scheduling.md
-          - Monitoring: safechord.chorde.k3han.monitoring.md
-          - ChangeLog: safechord.chorde.k3han.changelog.md
+      - Workflow: safechord.safezone.deployment.workflow.md
+  - 🟥 K3han Cluster:
+      - Overview: safechord.chorde.k3han.md
+      - Topology: safechord.chorde.k3han.cluster.md
+      - Ingress: safechord.chorde.k3han.ingress.md
+      - Scheduling: safechord.chorde.k3han.scheduling.md
+      - Monitoring: safechord.chorde.k3han.monitoring.md
+      - ChangeLog: safechord.chorde.k3han.changelog.md
+  - 🌍 Environment: safechord.environment.md
+  - 🛡️ Security: safechord.security.md
   - ⬜ Methodology (KDD):
       - Introduction: safechord.kdd.introduction.md
       - Practice: safechord.kdd.practice.md
       - Workflow: safechord.kdd.workflow.md
-  - 🛡️ Security: safechord.security.md
-  - 🗺️ Knowledge Tree: safechord.knowledgetree.md

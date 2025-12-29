@@ -85,7 +85,5 @@ tech_stack:
 1. [cluster](safechord.chorde.k3han.cluster.md)：理解節點、網路、Tailscale 拓撲與跨區延遲策略
 2. [scheduling](safechord.chorde.k3han.scheduling.md)：設定節點各種標籤以及部署策略
 3. [monitoring](safechord.chorde.k3han.monitoring.md)：設定監控流程與視覺化資料串接手法
-4. [IaC](safechord.chorde.k3han.IaC.md)：學習如何讓一切基礎建設程式化（GitOps / Declarative 管理）
-5. [build](safechord.chorde.k3han.build.md)：參考建置手順與常見錯誤排除策略
 
 ---

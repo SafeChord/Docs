@@ -91,4 +91,4 @@ CI 是品質的守門員。我們使用 GitHub Actions 來執行此流程，定�
 
 *   **單元測試**: `make test-all` (執行 Python/Go 的 Unit Tests)。
 *   **本地整合**: `make dev-up` (啟動 Docker Compose 環境)。
-    *   請參考 [環境演進論](../safechord.environment.md) 了解如何使用 Profiles (infra/core) 來加速開發。
+    *   請參考 [環境演進論](safechord.environment.md) 了解如何使用 Profiles (infra/core) 來加速開發。
