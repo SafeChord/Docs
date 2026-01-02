@@ -1,25 +1,26 @@
 ---
 title: Security Architecture & Governance
 doc_id: safechord.security
-version: 0.1.0
-last_updated: "2025-12-26"
+version: 0.2.0
+last_updated: "2026-01-02"
 status: active
 authors:
   - bradyhau
   - Gemini 3 Pro
 context_scope: "Global"
-summary: "定義 SafeChord 全域的安全架構準則。涵蓋 GitOps 機密管理 (SecretOps)、身分存取控制 (IAM)、網路邊界防護與供應鏈安全策略。"
+summary: "定義 SafeChord 的安全治理準則。涵蓋基於 SealedSecrets 的機密管理、最小權限控制 (RBAC) 以及基於 Google OAuth2 的 API 安全接入策略。"
 keywords:
   - Security
   - SecretOps
   - SealedSecrets
-  - RBAC
+  - OAuth2
   - IAM
   - NetworkPolicy
 logical_path: "SafeChord.Security"
 related_docs:
   - "safechord.environment.md"
   - "safechord.safezone.deployment.charts.md"
+  - "safechord.chorde.k3han.ingress.md"
 parent_doc: "safechord"
 ---
 
@@ -27,65 +28,83 @@ parent_doc: "safechord"
 
 > *"Security is not an afterthought; it is the foundation of trust."*
 
-本文件定義了 SafeChord 生態系中跨 Repo (App & Infra) 共同遵守的安全準則。我們的目標是建立一個 **Security-by-Design** 的系統，在保持開發速度的同時，確保「機密不外洩」與「權限最小化」。
+在 SafeChord 的開發流程中，安全不是外掛的功能，而是架構的基石。我們的目標是落實 **Security-by-Design**，在混合雲環境的資源限制下，構建一套符合 **縱深防禦 (Defense in Depth)** 原則的安全體系，專注於解決「機密生命週期管理」與「零信任存取控制」兩大核心議題。
 
 ---
 
 ## 🔐 1. 機密管理 (SecretOps Strategy)
 
-我們採用 **GitOps 友善** 的機密管理策略，解決 "如何在公開/私有的 Git 倉庫中安全地儲存密碼" 這一經典難題。
+我們採用 **GitOps 原生** 的機密管理策略，解決將敏感憑證納入版本控制 (Version Control) 的安全挑戰。
 
-### 核心技術: SealedSecrets
-*   **工具**: Bitnami SealedSecrets
-*   **機制**: 非對稱加密 (Asymmetric Encryption)。
-    *   **公鑰 (Public Key)**: 開放給所有開發者。用於將敏感資訊 (Secret) 加密成 `SealedSecret` CRD。
-    *   **私鑰 (Private Key)**: 僅存在於 K8s Cluster 的 Controller 內部。用於解密並還原 Secret。
+### 核心技術：SealedSecrets
+我們選用 Bitnami SealedSecrets 實作非對稱加密機制，確保機密僅在叢集內部可見：
+*   **公鑰 (Public Key)**：公開分發。開發者使用公鑰將原始 Secret 封裝為 `SealedSecret` CRD，此過程不可逆。
+*   **私鑰 (Private Key)**：僅存於 K8s 控制平面的 Controller 內部，負責在運行時解密並還原 Secret。
 
-### 操作流程
-1.  **加密**: 開發者在本地使用 `kubeseal` 工具將 `db-password.yaml` 加密為 `sealed-db-secret.yaml`。
-2.  **提交**: 將 `sealed-db-secret.yaml` 提交至 Git 倉庫 (`SafeZone-Deploy` 或 `Chorde`)。
-3.  **部署**: ArgoCD 同步 CRD 到叢集。
-4.  **解密**: 叢集內的 SealedSecrets Controller 自動解密並建立原生的 Kubernetes Secret。
+### 部署流程 (Deployment Flow)
+為降低自動化帶來的潛在曝露風險，我們採取 **受控注入 (Controlled Injection)** 模式：
+1.  **加密 (Seal)**：開發者於本地環境使用 `kubeseal` 加密敏感配置。
+2.  **提交 (Commit)**：將加密後的 `SealedSecret` 資源提交至 Git 倉庫。
+3.  **注入 (Inject)**：透過 GitHub Actions 執行部署腳本，將 `SealedSecret` 一次性應用至目標 Namespace。
+4.  **還原 (Unseal)**：叢集內的 Controller 自動解密並建立原生的 Kubernetes Secret 供應用程式掛載。
 
-### 環境差異
-*   **Preview 環境**: 使用開發專用的 Key Pair (安全性較低，方便輪替)。
-*   **Staging 環境**: 使用嚴格管控的 Key Pair (僅由管理員持有私鑰備份)。
+### 環境差異策略
+*   **Preview 環境**：使用開發專用的 Key Pair，優先考量開發效率與輪替 (Rotation) 的便利性。
+*   **Staging 環境**：實施嚴格的密鑰管控（私鑰不離群）。此外，我們在此環境強制實施 **額外的使用者帳號隔離**，確保即便基礎設施層遭受滲透，業務資料層仍保有最後一道防線。
 
 ---
 
 ## 👤 2. 身分與存取控制 (IAM & RBAC)
 
-我們遵循 **最小權限原則 (Principle of Least Privilege)**，嚴格限制「人」與「程式」的權限。
+我們嚴格遵循 **最小權限原則 (Principle of Least Privilege)**，並透過細緻的 RBAC 策略落實於 CI/CD 流水線中。
 
-### Workload Identity (程式的權限)
-*   **預設關閉**: 所有 Helm Chart 的 `automountServiceAccountToken` 預設設為 `false`。應用程式不應無故取得 K8s API 存取權。
-*   **例外管理**: 僅有特定的管理工具 (如 `cli-relay`) 會被賦予明確定義的 RBAC Role (例如 `edit` 或 `view` 特定 Namespace)。
+### CI/CD 權限隔離 (Scoped Workload Identity)
+我們摒棄將 Admin 權限授予 CI 系統的做法，而是為每個環境建立專用的 ServiceAccount (`*-ci-sa`)，並嚴格限制其作用域：
 
-### Human Access (人的權限)
-*   **No Direct Access**: 原則上，開發者不直接操作 Staging Cluster。所有的變更都必須透過 Git PR 經由 ArgoCD 同步。
-*   **Emergency Access**:
-    *   **Level 1**: 透過 `cli-relay` 提供的受限 API 進行操作。
-    *   **Level 2**: 透過 Tailscale VPN 進行 Break-glass (緊急破窗) 操作，所有操作皆留有 Audit Log。
+*   **Preview Deployer (`safezone-preview-ci-sa`)**：
+    *   `gitops` Namespace：僅允許管理 ArgoCD 的 `Application` CRD。
+    *   `safezone-preview` Namespace：僅允許寫入 `SealedSecret`。
+    *   **權限邊界**：嚴格禁止跨 Namespace 存取或修改 Cluster 層級配置。
+
+*   **Staging Deployer (`safezone-ci-sa`)**：
+    *   `safezone` Namespace：僅允許 **讀取** `Job` 狀態（用於確認遷移任務完成），嚴禁直接修改部署配置。
+
+### 動態憑證管理 (On-Demand Credentials)
+為消除長期憑證 (Long-lived Credentials) 的洩漏風險，我們實作了動態憑證機制：
+*   **即時生成**：CI 流程執行時，動態請求短時效 Token。
+*   **自動過期**：Token 有效期限制為 2 小時，任務結束後憑證即刻失效。
+*   **受限上下文**：生成的 Kubeconfig 僅綁定上述受限的 ServiceAccount，即使外洩，攻擊者也無法進行破壞性操作。
+
+### 人員存取控制 (Human Access)
+*   **禁止直連**：開發者原則上不直接存取 Staging Cluster。所有的變更必須透過 PR，經由代碼審查後自動化部署。
+*   **緊急破窗 (Emergency Access)**：
+    *   **Level 1**：透過 `cli-relay` 進行受控操作，強制要求 **Google OAuth2** 身分驗證。
+    *   **Level 2**：極端情況下透過 Tailscale VPN 進行，所有操作均保留完整的 Audit Log 以供稽核。
 
 ---
 
 ## 🌐 3. 網路安全 (Network Security)
 
-### 邊界防護 (Perimeter)
-*   **Ingress**: 僅暴露必要的 HTTP/HTTPS 入口 (如 Dashboard)。所有 Ingress 資源必須綁定 TLS Certificate。
-*   **API Gateway**: `cli-relay` 作為內網服務的統一入口，負責驗證請求者的身分 (Authentication)。
+我們採用 **雙層邊界 (Dual Perimeter)** 策略，在網路層實現物理隔離。具體的 IngressClass 配置與測試矩陣，請參閱 **[K3Han Ingress Configuration](safechord.chorde.k3han.ingress.md)**。
 
-### 內部隔離 (Internal Segmentation)
-*   **Namespace Isolation**: Preview 環境透過動態生成的 Namespace 進行完全隔離。
-*   **Service Discovery**: 應用程式僅能透過 K8s DNS 解析同一 Namespace 或明確允許的 External Name 服務。
+### 邊界防護策略 (Perimeter Policy)
+*   **公網層 (Public Zone)**：
+    *   僅暴露面向終端使用者的必要入口（如 Dashboard）。
+    *   強制流量經過 Cloudflare Proxy 進行 DDoS 防護與 SSL 卸載。
+    *   **實作對應**：`IngressClass: nginx-public`
+
+*   **內網層 (Private Zone)**：
+    *   所有管理介面（ArgoCD, Grafana, Prometheus）嚴禁直接暴露於公網。
+    *   存取必須經過 **Tailscale Overlay VPN** 或經由 **Cloudflare Tunnel** 驗證的通道。
+    *   **實作對應**：`IngressClass: nginx-private`
+
+### 內部網段隔離 (Internal Segmentation)
+*   **Namespace 隔離**：Preview 環境使用動態生成的 Namespace，確保測試過程的資源隔離。
+*   **服務發現限制**：應用程式僅能存取當前 Namespace 內的資源，或經由 `ExternalName` 明確定義的平台級服務。
 
 ---
 
 ## ⛓️ 4. 供應鏈安全 (Supply Chain Security)
 
-### 映像檔來源 (Image Provenance)
-*   **Trusted Registry**: 僅信任 **GitHub Container Registry (GHCR)**。
-*   **CI Build**: 所有 Docker Image 必須由 GitHub Actions 自動建置，禁止開發者從本地電腦直接 Push Image 到生產倉庫。
-
-### 依賴管理
-*   **Helm Dependencies**: 所有的 Chart 依賴 (如 Redis, Kafka) 均鎖定版本號 (Pinned Version)，防止上游更新導致供應鏈攻擊。
+*   **映像檔誠信 (Image Provenance)**：僅信任 **GitHub Container Registry (GHCR)**。所有 Image 必須由受信任的 CI 流程自動建置，嚴禁開發者從本地環境直接推送至生產倉庫。
+*   **相依性鎖定 (Dependency Pinning)**：所有的 Helm 依賴（如 Redis, Kafka）均需鎖定確切版本號，防止上游意外更新引入的潛在風險或供應鏈攻擊。
