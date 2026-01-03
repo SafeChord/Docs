@@ -1,7 +1,7 @@
 ---
 title: SafeZone Helm Chart Architecture
 doc_id: safechord.safezone.deployment.charts
-version: 0.2.0
+version: 0.2.1
 last_updated: "2025-12-28"
 status: active
 authors:
@@ -19,7 +19,7 @@ keywords:
 logical_path: "SafeChord.SafeZone.Deployment.Charts"
 related_docs:
   - "safechord.safezone.deployment.workflow.md"
-  - "safechord.safezone.md"
+  - "safechord.safezone.service.md"
 parent_doc: "safechord.safezone"
 ---
 
@@ -75,6 +75,7 @@ helm-charts/
     *   `cliRelay`: **API Gateway**。作為 `szcli` 進入叢集內部的安全通道，處理 Google OAuth 驗證並轉發指令。
 *   **關鍵產出**：
     *   **Global ConfigMap (`safezone-config`)**：將上述服務的連線資訊匯總，供 Core 與 UI 層掛載使用。
+    *   **Ingress**：預先設定服務的對外曝光路徑與連線方式。
 
 ### 3. 🟢 Core Layer: `safezone-core`
 包含核心業務邏輯與數據流處理。
@@ -83,7 +84,8 @@ helm-charts/
         *   `pandemic-simulator`: 模擬數據生成器 (掛載 PVC)。
         *   `ingestor`: 接收數據並轉發至 Kafka。
         *   `worker`: Kafka 消費者，負責寫入 DB。
-            *   **KEDA Integration**: 定義 `ScaledObject`，監控 Kafka Topic Lag。當堆積量超過閾值時，自動水平擴展 Pod 數量，消化突發流量。
+                        *   **KEDA Integration**: 定義 `ScaledObject`，監控 Kafka Topic Lag。
+                        *   **架構意義**: 作為 **速率緩衝橋樑 (Rate Buffering Bridge)**。Worker 負責調節 Kafka 高速吞吐量與遠端 Primary DB 寫入限制之間的速率差異 (Impedance Mismatch)，保護資料庫不被瞬間流量壓垮。
     *   `readPipeline`: 負責數據讀取路徑。
         *   `analytics-api`: 提供數據查詢 API。
 
@@ -96,47 +98,39 @@ helm-charts/
 負責系統初始化與數據填充的短暫任務 (Jobs)。
 *   **用途**：
     *   `safezone-seed-init`: 初始化資料庫 Schema。
-    *   `safezone-seed-data`: 寫入測試或預覽用的種子數據。
-*   **機制**：通常配合 ArgoCD Hooks 或 CI Pipeline 觸發。
+    *   `safezone-seed-data`: 寫入測試或預覽用的種子數據，以及 **生產環境冷啟動 (Cold Start) 數據**。
+        *   **目的**：預先注入 30 天的歷史數據窗口，確保前端 Dashboard 在系統剛上線時即可呈現完整趨勢圖表，避免視覺上的空窗期。
+*   **機制**：透過 **CI Pipeline (GitHub Actions)** 觸發，通常在部署流程的初始化階段執行。
 
 ---
 
-## 🔧 配置介面 (Configuration Interface)
+## 💡 架構決策：為什麼採用分層 Chart 設計？
 
-我們使用 **Global Values** 模式來管理跨 Chart 的共用設定。這使得在 `values-preview.yaml` 或 `values-staging.yaml` 中切換環境變得非常容易。
+本專案不使用單一巨大的 Helm Chart，而是採用 **Umbrella Chart (分層依賴)** 模式，主要解決以下工程問題：
 
-### 關鍵全域變數 (`global`)
+### 1. 解決依賴與啟動順序 (DAG Resolution)
+服務之間存在嚴格的有向無環圖 (DAG) 依賴關係，分層設計能強制 GitOps (ArgoCD) 依循正確順序部署 (Sync Waves)：
 
-在任何上層 `values.yaml` 中，您通常會看到以下結構：
+*   **Stage 1: Infra (`safezone-infra`)**
+    *   建立 ConfigMap, Secret, Ingress Controller 與 `cli-relay`。
+    *   **目標**: 確保地基穩固，所有連線字串與基礎設施就緒。
+*   **Stage 2: Bootstrap (`safezone-seed-init`)**
+    *   執行 `szcli db init` (Schema Migration) 與 `szcli system time set` (Mock Time 設定)。
+    *   **目標**: 確保 Core 服務啟動時，資料庫結構與全域時間服務已就緒，避免 CrashLoop。
+*   **Stage 3: Core (`safezone-core`)**
+    *   啟動 Ingestor, Worker, Analytics API 等核心服務。
+    *   **目標**: 建立完整的數據處理 Pipeline。
+*   **Stage 4: Data Warming (`safezone-seed-data`)**
+    *   執行 `szcli dataflow simulate`，注入過去 33 天的歷史模擬數據。
+    *   **依賴**: **必須在 Core 啟動後執行**，因為它依賴運作中的 Ingestion Pipeline 進行數據流轉。
+*   **Stage 5: Experience (`safezone-ui`)**
+    *   啟動 Dashboard 前端。
+    *   **目標**: 確保使用者首次登入時，已有完整的歷史圖表可供瀏覽。
 
-```yaml
-global:
-  # 環境標識 (影響 Log Level, Debug 模式等)
-  environment: "staging" 
-
-  # 容器映像庫憑證
-  ghcr:
-    imagePullSecrets: "ghcr-pull-secret"
-
-  # 外部服務連線 (Infrastructure dependencies)
-  # 這些通常指向由 Terraform 或 Cloud Provider 提供的資源
-  database:
-    existingSecret: "k3han-db-secrets" # DB 連線字串
-  redis:
-    host: "bitnami-redis-master..."    # System Redis Host
-    existingSecret: "k3han-redis-secrets"
-  kafka:
-    brokers: "kafka.svc..."            # Kafka Brokers
-```
-
-### 配置流轉機制
-1.  **定義**：使用者在 Umbrella Chart (如 `safezone-core`) 的 `values.yaml` 中定義 `global.*`。
-2.  **傳遞**：Helm 自動將 `global` 區塊傳遞給所有 Subcharts。
-3.  **使用**：Subchart 的 Template (如 `deployment.yaml`) 讀取 `global.database.existingSecret` 並將其注入為 Pod 的環境變數 (`envFrom` / `valueFrom`)。
-
----
-
-## 🧭 開發指南
+### 2. 資料生命週期編排 (Lifecycle Orchestration)
+分離 `safezone-seed` 的不同子任務允許我們精細控制環境狀態：
+*   **冷啟動防護**: 透過 `seed-init` 確保資料庫 Schema 優先於應用程式就緒。
+*   **真實流量模擬**: `seed-data` 不僅是寫入靜態資料，而是透過 `szcli` 實際發送請求穿過系統 (Traffic Simulation)，這同時驗證了 Ingestor -> Kafka -> Worker -> DB 的完整路徑功能正常。
 
 ### 如何新增一個微服務？
 1.  在 `SafeZone-Deploy/helm-charts` 下建立新的 Chart (或加入現有 Subchart)。
