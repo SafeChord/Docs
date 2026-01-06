@@ -5,8 +5,8 @@ version: "0.2.1"
 status: active
 authors:
   - bradyhau
-  - Gemini 2.5 Pro
-last_updated: "2025-09-12"
+  - Gemini 3 Pro
+last_updated: "2026-01-04"
 summary: "Dashboard 是 SafeZone 的使用者互動介面，基於 Plotly Dash 構建。它具備「時光旅行」感知能力，能透過 Time Server 同步模擬時間，並將 Analytics API 的數據轉化為動態的疫情地圖與趨勢圖表。"
 keywords:
   - Dashboard
@@ -20,6 +20,9 @@ related_docs:
   - "safechord.safezone.service.analyticsapi.md"
   - "safechord.safezone.toolkit.timeserver.md"
 parent_doc: "safechord.safezone.service"
+archetype: blueprint
+code_paths:
+  - "SafeZone/services/dashboard"
 tech_stack:
   - Python 3.13
   - Plotly Dash 2.18
@@ -28,61 +31,92 @@ tech_stack:
   - Requests (Sync)
 ---
 
-# Dashboard (v0.2.1)
+# Dashboard (Service Blueprint)
 
-## 📌 服務定位
-Dashboard 是系統的 **視覺化呈現層 (Presentation Layer)**。
-*   **角色**: Client / Consumer。
-*   **特性**: Time-Aware, Stateless。
-*   **職責**: 不直接連接資料庫，完全依賴 [Analytics API](safechord.safezone.service.analyticsapi.md) 獲取業務數據，並依賴 [Time Server](safechord.safezone.toolkit.timeserver.md) 獲取時間上下文。
+> ⚠️ **Scope Warning**: This blueprint defines the `dashboard` microservice.
+> *繼承自 `archetype.blueprint.microservice.md`*
 
----
+## 1. 職責與定位 (Responsibility)
+*   **角色**: Client / Visualizer
+*   **特性**: Stateless, Time-Aware, Component-Based
+*   **核心目標**: 作為使用者的可視化窗口。它將複雜的時序數據轉化為直觀的熱力圖 (Heatmap) 與趨勢線 (Trend Line)。系統的一個關鍵特性是 **「時間感知 (Time Awareness)」**：Dashboard 不依賴瀏覽器本地時間，而是根據 `Time Server` 的全域時鐘動態渲染過去或未來的模擬狀態。
 
-## 🛠️ 核心規格 (Specifications)
+## 2. 檔案結構 (File Structure)
+```text
+SafeZone/services/dashboard/
+├── app/
+│   ├── main.py                   # Entry Point (Dash App Initialization)
+│   ├── layout/
+│   │   └── dashboard_layout.py   # Global Layout Container
+│   ├── components/               # [UI] Reusable UI Components
+│   │   ├── map_chart.py          # Interactive Risk Map (Dash Leaflet/Mapbox)
+│   │   ├── trend_chart.py        # Time Series Plot (Plotly Graph Object)
+│   │   └── card.py               # Stat Cards
+│   ├── callbacks/                # [Logic] Event Handlers
+│   │   ├── register.py           # Callback Registry
+│   │   ├── timer_callbacks.py    # Time Sync & Auto-Refresh Logic
+│   │   └── risk_map_callbacks.py # Map Interaction Logic
+│   ├── services/                 # [Infrastructure] External Communication
+│   │   ├── api_caller.py         # HTTP Client for Analytics API (Traceable)
+│   │   └── time_manager.py       # Time Sync Client with Fallback
+│   └── config/
+│       └── settings.py           # Env Loader
+├── test/
+│   ├── manual_test/              # UI Integration Scripts
+│   └── unit_test/                # Logic Verification
+├── Dockerfile                    # Production Environment Builder
+├── Dockerfile.test               # CI/CD Test Environment Builder
+├── requirements.txt              # Production Dependencies
+└── requirements.test.txt         # Testing Dependencies
+```
 
-### 1. 頁面佈局與互動
-*   **核心組件**:
-    *   **Risk Map**: 基於 `dash_leaflet` (或 Plotly Mapbox) 的互動式熱力圖，支援行政區層級下鑽。
-    *   **Trend Chart**: 顯示當前模擬日期的前 7/14/30 天趨勢。
-    *   **Global Timer**: 背景輪詢組件，負責同步系統時間。
+## 3. 接口規範 (Interfaces)
 
-### 2. 時間同步機制 (Time Sync)
-Dashboard 不使用 `datetime.now()`，而是實作了「模擬時間同步」：
-1.  **Polling**: 前端 `dcc.Interval` 每隔數秒觸發 Callback。
-2.  **Sync**: 後端 `TimeManager` 呼叫 Time Server 的 `GET /now` 接口。
-3.  **Update**: 若發現模擬時間變更（例如從 Day 1 跳轉至 Day 10），自動觸發所有圖表的數據重抓 (Re-fetch)。
+### 輸入 (Ingress)
+*   **User Interaction**: 瀏覽器事件 (Clicks, Hover, Interval Ticks)。
+*   **Endpoint**: `HTTP :8050` (Dash Default)。
 
-### 3. 外部依賴與控制
-*   **Upstream**: 
-    *   [Analytics API](safechord.safezone.service.analyticsapi.md): 數據來源。
-    *   [Time Server](safechord.safezone.toolkit.timeserver.md): 時間來源。
-*   **Traceability**: 每次 API 呼叫皆會生成新的 `X-Trace-ID` (UUID v4)，以利全鏈路除錯。
+### 輸出 (Egress)
+*   **Analytics API**: `GET /cases/{national,city,region}`
+    *   **Behavior**: 使用 `X-Trace-ID` 標記每個請求鏈路。
+*   **Time Server**: `GET /now`
+    *   **Behavior**: 每隔 N 秒 (可配置) 輪詢一次以同步系統時間。
 
----
+## 4. 依賴與控制 (Dependencies & Control)
 
-## 🧪 行為驗證 (Behavior Verification)
-
-| 範疇 | 測試策略 | 業務意圖 (Business Intent) |
+| 依賴對象 | 類型 | 說明 |
 | :--- | :--- | :--- |
-| **API 整合** | `Integration Test` | 驗證 `api_caller.py` 能正確處理 Pydantic Model 的序列化與反序列化，並妥善處理 API 錯誤 (非 200 狀態)。 |
-| **時間同步** | `Manual/E2E` | 在 CLI 執行 `time accelerate` 後，觀察 Dashboard 上的日期是否自動加速推進。 |
+| **Analytics API** | Upstream | 數據來源。Dashboard 對其進行同步 HTTP 呼叫。 |
+| **Time Server** | Upstream | 時間來源。若 Time Server 不可用，Dashboard 會 **Fallback** 至本地時間 (Resilience)。 |
+| **User Browser** | Client | 負責渲染 Plotly.js 圖表並維持 WebSocket/HTTP 連線。 |
 
----
+## 5. 行為驗證 (Behavior Verification)
 
-## 🧩 設計權衡 (Design Trade-offs)
+| 範疇 | 驗證策略 | 業務意圖 (Business Intent) |
+| :--- | :--- | :--- |
+| **API 整合** | `unit_test/test_service/` | 驗證 `api_caller.py` 能正確序列化 Pydantic Request 並解析 API Response，包含錯誤處理。 |
+| **時間同步** | `Manual/E2E` | 在 CLI 執行 `szcli time set` 後，觀察 Dashboard 右上角的日期顯示是否同步更新，且圖表數據隨之重繪。 |
 
-### 1. 為什麼選擇 Plotly Dash？
-*   **Python 全端體驗**: 允許資料科學家或後端工程師直接使用 Python 定義 UI 與互動邏輯 (`app/layout` + `app/callbacks`)，大幅降低了開發「資料密集型」儀表板的門檻。
-*   **Pandas 整合**: API 回傳的 JSON 數據可直接轉為 DataFrame 進行二次處理（如計算移動平均），再送給 Plotly 繪圖。
+## 6. 實作決策 (Implementation Decisions)
 
-### 2. 同步 API 呼叫 (`requests`)
-*   **簡化邏輯**: Dash 的 Callback 預設是多執行緒 (Threaded) 的。使用同步 `requests` 雖然會阻塞單一執行緒，但在目前併發量下（主要為 Demo 用途），相比引入 `aiohttp` 與非同步 Callback 的複雜度，同步模式更易於維護。
+*   **Plotly Dash Framework**:
+    *   **Decision**: 選擇 Dash 而非 React/Vue 等前端框架。
+    *   **Rationale**:
+        *   **Backend-Centric Efficiency**: 讓後端工程師能使用熟悉的 Python 堆疊快速構建可視化介面，將精力集中於核心資料流與系統穩定性。
+        *   **Unified Stack**: 前後端共用 Python 生態系與 Docker 基礎映像檔，顯著簡化了 CI/CD Pipeline 與依賴管理。
+*   **Time-Aware Polling Architecture**:
+    *   **Decision**: 前端使用 `dcc.Interval` 觸發 Callback，後端 `TimeManager` 查詢 Time Server。
+    *   **Why**: 為了支援「歷史回放」與「快進模擬」。系統必須與物理時間解耦，讓 Dashboard 成為一個可控時間軸的視窗。
+*   **Resilience Strategy (Time Fallback)**:
+    *   **Decision**: 當 `Time Server` 連線超時或錯誤時，自動降級使用 `date.today()`。
+    *   **Why**: 確保即使輔助服務故障，核心展示功能 (針對真實日期) 仍然可用。
 
----
+## 7. 部署與維運 (Deployment & Ops)
 
-## 🚀 部署與維運
 *   **Docker Image**: `safezone-dashboard`
-*   **環境變數**:
-    *   `API_URL`: Analytics API 地址
-    *   `TIME_SERVER_URL`: Time Server 地址
 *   **Health Check**: `GET /` (檢查 HTML 回應)
+*   **Configuration**:
+    *   **關鍵環境變數**:
+        *   `API_URL`: Analytics API 地址。
+        *   `TIME_SERVER_URL`: Time Server 地址。
+        *   `UPDATE_INTERVAL`: 前端輪詢頻率 (ms)。

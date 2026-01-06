@@ -5,8 +5,8 @@ version: "0.2.1"
 status: active
 authors:
   - bradyhau
-  - Gemini 2.5 Pro
-last_updated: "2025-09-12"
+  - Gemini 3 Pro
+last_updated: "2026-01-04"
 summary: "Data Ingestor 是 SafeZone 系統的資料入口閘道 (Gateway)。它提供 RESTful API 接收外部事件，並將其封裝為標準化的 Kafka 訊息 (CovidContract)，實現資料寫入與處理的非同步解耦。"
 keywords:
   - Data Ingestor
@@ -20,6 +20,9 @@ related_docs:
   - "safechord.safezone.service.pandemicsimulator.md"
   - "safechord.safezone.service.worker.md"
 parent_doc: "safechord.safezone.service"
+archetype: blueprint
+code_paths:
+  - "SafeZone/services/data-ingestor"
 tech_stack:
   - Python 3.13
   - FastAPI 0.115
@@ -27,71 +30,89 @@ tech_stack:
   - Pydantic
 ---
 
-# Data Ingestor (v0.2.1)
+# Data Ingestor (Service Blueprint)
 
-## 📌 服務定位
-Data Ingestor 是系統的 **寫入閘道 (Ingestion Gateway)**。
-*   **角色**: Producer (Kafka)。它不負責資料持久化 (Persistence)，僅負責資料驗證、結構封裝與事件發布。
-*   **特性**: Stateless, High-Throughput。設計目標是快速接收大量 HTTP 請求並卸載至 Kafka，以應對突發流量 (Spike Traffic)。
+> ⚠️ **Scope Warning**: This blueprint defines the `data-ingestor` microservice.
+> *繼承自 `archetype.blueprint.microservice.md`*
 
----
+## 1. 職責與定位 (Responsibility)
+*   **角色**: Gateway / Producer (Kafka)
+*   **特性**: Stateless, High-Throughput, Event-Driven
+*   **核心目標**: 作為系統的資料寫入入口。它不負責資料的長期存儲，而是專注於接收 HTTP 請求、執行結構化驗證，並將其快速卸載至 Kafka 緩衝區。這為系統提供了強大的削峰填谷 (Load Leveling) 能力。
 
-## 🛠️ 核心規格 (Specifications)
+## 2. 檔案結構 (File Structure)
+```text
+SafeZone/services/data-ingestor/
+├── app/
+│   ├── main.py                   # Entry Point (FastAPI Lifespan for Producer)
+│   ├── api/
+│   │   └── endpoints.py          # Route Handlers (/covid_event, /health)
+│   └── config/
+│       ├── kafka.py              # Kafka Producer Lifecycle (aiokafka)
+│       └── settings.py           # App Settings & Env Loader
+├── test/
+│   ├── cases.json                # JSON Spec for API Behavior Verification
+│   └── test_main.py              # Integration Tests
+├── Dockerfile                    # Production Environment Builder
+├── Dockerfile.test               # CI/CD Test Environment Builder
+├── requirements.txt              # Production Dependencies
+└── requirements.test.txt         # Testing Framework (pytest)
+```
 
-### 1. API 接口與資料契約
-本服務作為資料入口，對資料格式有嚴格驗證要求。
+## 3. 接口規範 (Interfaces)
 
-*   **Input (HTTP)**: `POST /covid_event`
-    *   **Body**: `CovidDataModel` (包含 `date`, `city`, `region`, `cases` 等)。
-    *   **Validation**: 若 `cases <= 0` 或日期格式錯誤，回傳 `422 Unprocessable Entity`。
+### 資料契約 (Contracts)
+*   **Input (CovidDataModel)**: 定義於 `utils/pydantic_model/request.py`。
+*   **Internal (CovidContract)**: 封裝層，包含 `event_type`, `event_time`, `trace_id`, `payload`, `version`。
 
-*   **Output (Kafka)**:
-    *   **Topic**: `covid.raw.data` (Default, via `KAFKA_TOPIC`)。
-    *   **Partition Key**: `"{city}-{region}"` (確保同一區域的數據進入同一 Partition，保證順序性)。
-    *   **Schema (CovidContract)**:
-        ```json
-        {
-          "event_type": "covid_event",
-          "event_time": 1679000000000,
-          "trace_id": "uuid-v4",
-          "payload": { ...CovidDataModel... },
-          "version": "0.1.0"
-        }
-        ```
+### 輸入 (Ingress)
+*   **Type**: API (HTTP POST)
+*   **Source**:
+    *   `POST /covid_event`: 接收疫情事件數據。
+    *   `GET /health`: 健康檢查。
 
-### 2. 外部依賴與控制 (Dependencies & Control)
-*   **Control Plane (Trigger)**: 被動接收來自 [Pandemic Simulator](safechord.safezone.service.pandemicsimulator.md) 的 HTTP POST 請求。
-*   **Downstream**: [Kafka Cluster]。
-    *   **Connection**: 啟動時建立 `AIOKafkaProducer` 連線池。
-    *   **Reliability**: 設定 `acks="all"` 與 `enable_idempotence=True` 確保訊息不丟失。
+### 輸出 (Egress)
+*   **Dest**: Kafka Cluster (Producer)
+*   **Topic**: `covid.raw.data` (可透過 `KAFKA_TOPIC` 配置)
+*   **Partition Key**: `city-region` (確保同區域事件的時序一致性)
 
----
+## 4. 依賴與控制 (Dependencies & Control)
 
-## 🧪 行為驗證 (Behavior Verification)
+| 依賴對象 | 類型 | 說明 |
+| :--- | :--- | :--- |
+| **Upstream** | Source | Pandemic Simulator 或 CLI 工具。 |
+| **Kafka Cluster** | Downstream | 訊息中繼站。Ingestor 依賴 Kafka 的可用性來完成資料卸載。 |
+| **Control Plane** | N/A | 本服務為被動接收請求的 Gateway。 |
 
-本服務的驗證邏輯集中管理於單一規格檔中。
+## 5. 行為驗證 (Behavior Verification)
+本服務採用 **Spec-as-Code** 策略。業務邏輯的正確性由 JSON 測試案例嚴格定義。
 
 | 範疇 | 規格檔路徑 (Source of Truth) | 業務意圖 (Business Intent) |
 | :--- | :--- | :--- |
-| **API 行為** | `test/cases.json` | 定義所有 API 場景：<br>1. **正常寫入**: 接收有效 JSON -> 回傳 200 OK。<br>2. **格式驗證**: 日期格式錯誤 (`YYYY/MM/DD`) -> 回傳 422。<br>3. **業務規則**: 欄位缺失 -> 回傳 422。<br>4. **健康檢查**: `/health` 端點回傳 `{"status": {"ingestor": "healthy"}}`。 |
+| **API 行為** | `test/cases.json` | 驗證正常寫入、格式錯誤 (422) 與服務健康狀態。 |
+| **傳輸契約** | `app/api/endpoints.py` | 驗證 `CovidContract` 的封裝邏輯是否符合後端 Consumer 的預期。 |
 
----
+## 6. 實作決策 (Implementation Decisions)
 
-## 🧩 設計權衡 (Design Trade-offs)
+*   **Asynchronous Production (aiokafka)**:
+    *   **Why**: 為了不阻塞 HTTP 請求的執行緒。`aiokafka` 允許 Ingestor 在極短時間內完成請求接收並返回 ACK，將真正的寫入壓力交給 Kafka。
+*   **Natural Key Partitioning**:
+    *   **Why**: 使用 `city-region` 作為 Partition Key 而非 Round-Robin。
+    *   **Trade-off**: 雖然這可能導致數據分區傾斜 (Skew)，但能保證同一地理區域的數據在 Kafka 中是有序的，這對於後續 Worker 計算累積數據至關重要。
+*   **Lifespan Management**:
+    *   **Why**: 使用 FastAPI 的 `lifespan` 來管理 Kafka Producer 的啟動與優雅停機 (Graceful Shutdown)，確保連接池在服務關閉時能正確釋放。
+*   **Architecture Evolution**:
+    *   詳見 [ADR: From Sync DB to Event-Driven Ingestion](safechord.safezone.ingestor_evolution.md)。(簡述：為了解耦寫入壓力，於 v0.2.0 重構為 Kafka Producer。)
+*   **Potential Bottleneck & Scaling Plan**:
+    *   **Observation**: 目前 Python (FastAPI) 實作在高併發場景下可能成為 CPU 瓶頸，因此在 Upstream (Simulator) 實施了限流 (`Semaphore`)。
+    *   **Future Plan**: 詳見 [Issue #22: Refactor Data Ingestor to Golang](https://github.com/SafeChord/SafeZone/issues/22)。規劃在預見效能瓶頸時遷移至 Golang 並整合 KEDA。
 
-### 1. 為什麼選擇 `aiokafka`？
-*   **Async I/O**: 配合 FastAPI 的非同步特性，`aiokafka` 允許在單一 Event Loop 中處理大量併發請求，避免因等待 Kafka ACK 而阻塞 HTTP 執行緒。
+## 7. 部署與維運 (Deployment & Ops)
 
-### 2. 分區策略 (Partitioning Strategy)
-*   **Natural Key**: 使用 `city-region` 作為 Key，而非隨機 Round-Robin。
-*   **Trade-off**: 這可能導致 Partition 熱點 (Skew)，例如「台北市」的數據量遠大於偏鄉。但為了確保後端 Consumer 在計算累積數據時的順序正確性 (Ordering)，這是必要的犧牲。
-
----
-
-## 🚀 部署與維運
 *   **Docker Image**: `safezone-data-ingestor`
-*   **環境變數**:
-    *   `KAFKA_BOOTSTRAP`: Kafka 連線地址 (Default: `localhost:9092`)
-    *   `KAFKA_TOPIC`: 目標 Topic (Default: `covid.raw.data`)
-    *   `LOG_LEVEL`: 日誌級別 (Default: `DEBUG`)
-*   **Health Check**: `GET /health`
+*   **Health Check**: `GET /health` (回傳 `{"status": {"ingestor": "healthy"}}`)
+*   **Configuration**:
+    *   **關鍵環境變數**:
+        *   `KAFKA_BOOTSTRAP`: Kafka 連線地址。
+        *   `KAFKA_TOPIC`: 目標 Topic。
+        *   `LOG_LEVEL`: 調節日誌詳細度 (預設為 DEBUG)。
