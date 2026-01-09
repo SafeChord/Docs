@@ -1,94 +1,135 @@
 ---
-title: "K3Han: Ingress Configuration" 
+title: "K3han: Ingress Configuration" 
 doc_id: safechord.chorde.k3han.ingress 
-version: "0.2.0" 
+version: "0.2.1" 
 status: active
 authors:
   - "bradyhau"
-  - "Gemini 2.5 Pro"
-last_updated: "2025-05-16"
-summary: "本文檔詳細描述 K3Han 系統中用於構建 SafeZone 對內與對外網路邊界的兩個核心 IngressClass 通道：'nginx-private' 和 'nginx-public'。內容包括它們的功能定位、部署位置、網絡模式、安全性考量、存取方式以及使用建議與維運原則。"
+  - "Gemini 3 Pro"
+last_updated: "2026-01-09"
+summary: "定義 K3han 叢集的雙通道入口策略 (Dual-Channel Ingress)。詳述 `nginx-private` (內網/VPN) 與 `nginx-public` (公網) 的隔離機制、部署位置與安全性配置。"
 keywords:
-  - K3Han
+  - K3han
   - Ingress
   - IngressClass
-  - nginx-private 
-  - nginx-public 
-  - network boundary
-  - network access
-  - Kubernetes networking
-  - Tailscale 
-  - Cloudflare Tunnel 
-  - Cloudflare Proxy 
-  - SafeZone
-  - SafeChord
-logical_path: "SafeChord.Chorde.K3Han.Networking.Ingress"
+  - Dual-Channel
+  - Tailscale
+  - Cloudflare
+logical_path: "SafeChord.Chorde.K3han.Networking.Ingress"
 related_docs:
-  - "safechord.knowledgetree.md"
   - "safechord.chorde.k3han.md"
   - "safechord.chorde.k3han.cluster.md"
 parent_doc: "safechord.chorde.k3han"
+archetype: blueprint
+code_paths:
+  - "Chorde/cluster/k3han/v0.2.0/infra-charts/ingress-nginx"
 tech_stack:
-  - Kubernetes (k3s)
+  - Kubernetes (K3s)
   - Ingress Nginx
   - Tailscale
-  - Cloudflare
+  - Cloudflare Tunnel
 ---
-# K3han Ingress 總覽
+# K3han Ingress 策略 (Blueprint)
 
-本系統以兩個獨立的 IngressClass 通道「`nginx-private`」與「`nginx-public`」構建 SafeZone 的對內與對外網路邊界。兩者功能與存取方式明確劃分，作為後續所有外部接入與內部模組通訊的基礎。
+> **Blueprint (藍圖型)**：定義 K3han 叢集的流量入口控制規範。
+> *重點：雙通道隔離、邊緣安全、Tailscale 整合。*
+
+## 1. 策略總覽 (Strategy Overview)
+
+系統採用 **雙通道入口策略 (Dual-Channel Ingress Strategy)**，透過兩個獨立的 Ingress Controller 實體，在物理與邏輯層面上嚴格隔離「公網流量」與「內網管理流量」。
+
+*   **Public Channel**: 服務一般使用者，追求高吞吐與低延遲。
+*   **Private Channel**: 服務維運人員，追求零信任安全 (Zero Trust) 與隱密性。
+
+### 流量路徑圖 (Traffic Flow)
+
+```mermaid
+graph LR
+    %% 樣式
+    classDef public fill:#e3f2fd,stroke:#1565c0;
+    classDef private fill:#e8f5e9,stroke:#2e7d32;
+    classDef k8s fill:#fff,stroke:#333;
+
+    User(User):::public
+    Admin(Admin):::private
+    
+    subgraph K3han [K3han Cluster]
+        direction TB
+        
+        subgraph Agent ["GCE Node (TW)"]
+            PubIng["nginx-public<br/>HostPort: 80/443"]:::public
+        end
+
+        subgraph Master ["Contabo Node (JP)"]
+            PrivIng["nginx-private<br/>Tailscale IP Only"]:::private
+        end
+        
+        App(SafeZone App):::k8s
+        Ops(ArgoCD / Grafana):::k8s
+    end
+
+    User -->|"Cloudflare Proxy"| PubIng
+    PubIng -->|"Route"| App
+    
+    Admin -->|"Tailscale / Tunnel"| PrivIng
+    PrivIng -->|"Route"| Ops
+```
 
 ---
 
-## 1️⃣ ingress-private (`IngressClass: nginx-private`)
+## 2. 通道規格 (Channel Specifications)
 
-| 項目 | 說明 |
-| --- | ------------------------------------------------------------------------------------------- |
-| 🌟 功能定位 | 內部專用通道，代理 prometheus、 grafana、argocd |
-| 🛠 部署位置 | control-plane 節點（Contabo `ct-serv-jp`）|
-| 🌐 網路模式 | 使用 `hostNetwork: true`，續接 Tailscale VPN 網卡（100.x.x.x）|
-| 🔐 安全性 | 僅能由 overlay VPN 內節點或 Cloudflare tunnel 存取 localhost，完全不曝露於公網 |
-| 🚪 存取方式 | Cloudflare Tunnel 指向 Tailscale IP ，使用 DNS hostname ：`k3han.omh.idv.tw` |
+### 2.1 Public Channel (`nginx-public`)
+負責處理所有面向使用者的業務流量 (North-South Traffic)。
 
----
+| 屬性 | 規格定義 | 設計決策 (Trade-off) |
+| :--- | :--- | :--- |
+| **Ingress Class** | `nginx-public` | 獨立 Class 以避免與管理流量爭搶資源。 |
+| **部署位置** | `gce-agent-tw` | **邊緣優先**。部署於台灣節點以利用 Google 骨幹網路優化亞洲區延遲。 |
+| **監聽模式** | `HostPort: 80/443` | 繞過 K3s Service IP，直接綁定節點公網介面，減少一層 NAT 開銷。 |
+| **SSL 策略** | **Edge Termination** | TLS 於 Cloudflare 邊緣終止。**叢集內部流量雖為 HTTP，但全程封裝於 Tailscale WireGuard 加密通道內**，確保零信任網路 (Zero Trust) 安全，同時卸載節點加解密負擔。 |
+| **安全性** | Basic Hardening | 啟用 Rate Limit，隱藏 Server Header。 |
 
-## 2️⃣ ingress-public (`IngressClass: nginx-public`)
+### 2.2 Private Channel (`nginx-private`)
+負責暴露叢集內部的管理介面與監控儀表板。
 
-| 項目 | 說明 |
-| --- |--------------------------------------------------------------------------------------------- |
-| 🌟 功能定位  | 對外公開服務的唯一入口，處理 UI、API、用戶互動，也包括 CLI relay 內部 OAuth 簽証流程|
-| 🛠 部署位置 | agent 節點（GCE VM instance `gce-agent-tw`）|
-| 🌐 網路模式  | 使用 `hostPort: 80/443`，續接 GCP 公網 IP|
-| 🔐 安全性 | 啟用限速、隱藏 headers 等 basic hardening |
-| 🔐 SSL 簽署 | Ingress 本身未啟用 TLS。TLS 由 Cloudflare proxy 結等通道轉導、DNS CNAME 等設定轉接 |
-| 🚪存取方式 | 由 Cloudflare proxy 結等通道轉導、DNS CNAME 等設定轉接 |
+| 屬性 | 規格定義 | 設計決策 (Trade-off) |
+| :--- | :--- | :--- |
+| **Ingress Class** | `nginx-private` | 預設不對外暴露，需明確指定 Class 才能被此 Controller 捕獲。 |
+| **部署位置** | `ct-serv-jp` | **控制面親和**。部署於 Master 節點，與 ArgoCD/Prometheus 等管理組件物理鄰近。 |
+| **監聽模式** | `HostNetwork + Tailscale` | 僅綁定 Tailscale 虛擬網卡 (100.x.x.x)，**實體公網 IP 無法存取**。 |
+| **存取方式** | Tunnel / VPN Only | 必須透過 Cloudflare Tunnel 或連接 Tailscale VPN 才能訪問。 |
 
----
+## 3. 隔離驗證紀錄 (Isolation Verification)
 
-## ✅ 使用建議與維運原則
-
-| 通道 | 適用情境 | 使用建議 |
-| --------------- | ---------------------------- | ----------------------------------------- |
-| ingress-private | 內部各項服務（如 Grafana、ArgoCD 等） | 用於 VPN 內節點或 cloudflared tunnel 存取 |
-| ingress-public  | 外部存取服務（如 SAFEZONE-Dashboard、SAFEZONE-CLI 等） | 請給予合法 Host header，優先給 Cloudflare Proxy 認證 |
-
----
-## 🧪 Ingress 通道隔離測試紀錄表
+本表記載了雙通道隔離政策的實測結果，用於確保網路邊界符合預期。
 
 | 測試來源 | 網路狀態 | URL | 預期行為 | 實際 HTTP Code | 備註 |
-|---------|----------|-----|---------|----------------|------|
-| ct-serv-jp | tailscale | http://localhost/nginx | ✅ 回傳 nginx-private 內容 | 200 | |
-| ct-serv-jp | tailscale | http://gce-agent-tw-ip/echo | ✅ 正常回傳 echo | 200 | |
-| ct-serv-jp | tailscale | http://gce-agent-tw-vpn-ip/echo | ✅ 正常回傳 echo | 200 | |
-| gce-agent-tw | tailscale | http://localhost/echo | ✅ 回傳 nginx-public 內容 | 200 | |
-| gce-agent-tw | tailscale | http://ct-serv-jp-ip/nginx | ❌ 不應該觸發 private backend | null, curl Couldn't connect to server | 內部服務不應該可以透過公網 IP 存取 |
-| gce-agent-tw | tailscale | http://ct-serv-jp-vpn-ip/nginx | ✅ 回傳 nginx-private 內容 | 200 | |
-| gce-agent-tw | tailscale | http://localhost/nginx | ❌ 不應該觸發 private backend | 404 | 測試 class 隔離正確性 |
-| HP Dev 無痕 | 公網直連 | http://k3han.omh.idv.tw/nginx | ❌ 預期失敗（若 Tunnel 限制來源）| 401  | 進入登入畫面，沒有簽署不能存取 |
-| HP Dev 無痕 | 公網直連 | http://www.omh.idv.tw/echo | ✅ 可觸發 ingress-public | 200 | |
-| HP Dev 無痕 | 公網直連 | http://www.omh.idv.tw/nginx | ❌ 不應該觸發 private backend | 404 | 測試誤導防線 |
-| HP Dev 無痕 + warp | cloudflare tunnel | http://k3han.omh.idv.tw/nginx | ✅ 可觸發 ingress-private | 200 | |
-| HP Dev 無痕 + warp | cloudflare tunnel | http://www.omh.idv.tw/echo | ✅ 可觸發 ingress-public | 200 | |
-| HP Dev 無痕 + warp | cloudflare tunnel | http://www.omh.idv.tw/nginx | ❌ 不應該觸發 private backend |404 | 防止誤導 class 行為 |
-- cloudflare tunnel 網路連線狀態為擴張公網能力，類似 VPN
-- 測試用部屬文件請參考 testing/
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **ct-serv-jp** | Tailscale | `http://localhost/nginx` | ✅ 回傳 private 內容 | 200 | 內部管理入口正常 |
+| **ct-serv-jp** | Tailscale | `http://gce-agent-tw-ip/echo` | ✅ 正常回傳 echo | 200 | 跨節點內網互通正常 |
+| **gce-agent-tw** | Tailscale | `http://localhost/echo` | ✅ 回傳 public 內容 | 200 | 業務入口正常 |
+| **gce-agent-tw** | Tailscale | `http://ct-serv-jp-ip/nginx` | ❌ 不應觸發 private backend | Conn Refused | **安全防線**：嚴禁透過公網 IP 存取內網服務 |
+| **gce-agent-tw** | Tailscale | `http://ct-serv-jp-vpn-ip/nginx` | ✅ 回傳 private 內容 | 200 | 跨節點經由 VPN 存取正常 |
+| **User (無痕)** | 公網直連 | `http://<PRIVATE_DOMAIN>/nginx` | ❌ 預期失敗 (需認證) | 401 | 進入 Zero Trust 登入畫面 |
+| **User (無痕)** | 公網直連 | `http://<PUBLIC_DOMAIN>/echo` | ✅ 正常回傳 echo | 200 | 一般使用者存取業務服務 |
+| **User (Warp)** | CF Tunnel | `http://<PRIVATE_DOMAIN>/nginx` | ✅ 成功觸發 private | 200 | 授權人員經 Tunnel 存取後台 |
+
+---
+
+## 4. 維運指南 (Operations)
+
+*   **新增公開服務**:
+    ```yaml
+    metadata:
+      annotations:
+        kubernetes.io/ingress.class: "nginx-public"
+    ```
+*   **新增管理服務**:
+    ```yaml
+    metadata:
+      annotations:
+        kubernetes.io/ingress.class: "nginx-private"
+    ```
+*   **除錯**:
+    若發生 404，請優先檢查 `ingress.class` 是否與該服務預期的暴露層級匹配。

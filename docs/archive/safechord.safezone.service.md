@@ -1,28 +1,20 @@
 ---
-title: "SafeZone: Application Services & Data Flow Architecture"
+title: "Service: Application Services & Data Flow Architecture"
 doc_id: safechord.safezone.service
 version: "0.2.1"
-status: active
+status: archived
 authors:
   - "bradyhau"
   - "Gemini 2.5 Pro"
 last_updated: "2025-12-28"
-summary: "本文檔詳細描述 SafeZone v0.2.1 的服務架構。區分了核心業務服務與工具組件，並特別強調 szcli (Client-Relay) 與 Time Server 在非同步資料流與驗證中的核心作用。"
+summary: "[DEPRECATED] 本文件已廢棄。服務列表與資料流架構已整併至 `safechord.safezone.md`。請參閱該文件以獲得最新資訊。"
 keywords:
   - SafeZone
   - service architecture
-  - szcli
-  - dataflow
-  - smoke-test
-  - kafka
-  - pandemic-simulator
-  - cache versioning
+  - Deprecated
 logical_path: "SafeChord.SafeZone.Service"
 related_docs:
-  - "safechord.knowledgetree.md"
   - "safechord.safezone.md"
-  - "safechord.safezone.service.pandemicsimulator.md"
-  - "safechord.safezone.toolkit.cli.md"
 parent_doc: "safechord.safezone"
 tech_stack:
   - Python

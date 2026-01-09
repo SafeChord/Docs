@@ -63,6 +63,7 @@ tech_stack: []
 
 📂 對應文件：
 
-* `archive/k3han/v0.1.0/safechord.chorde.k3han.md`
-* `archive/k3han/v0.1.0/safechord.chorde.k3han.cluster.md`
-* `archive/k3han/v0.1.0/safechord.chorde.k3han.scheduling.md`
+* `archive/chorde/k3han/v0.1.0/safechord.chorde.k3han.md`
+* `archive/chorde/k3han/v0.1.0/safechord.chorde.k3han.cluster.md`
+* `archive/chorde/k3han/v0.1.0/safechord.chorde.k3han.scheduling.md`
+* `archive/chorde/k3han/v0.1.0/safechord.chorde.k3han.spec.md`

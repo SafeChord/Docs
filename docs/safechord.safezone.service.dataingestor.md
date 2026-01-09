@@ -102,7 +102,7 @@ SafeZone/services/data-ingestor/
 *   **Lifespan Management**:
     *   **Why**: 使用 FastAPI 的 `lifespan` 來管理 Kafka Producer 的啟動與優雅停機 (Graceful Shutdown)，確保連接池在服務關閉時能正確釋放。
 *   **Architecture Evolution**:
-    *   詳見 [ADR: From Sync DB to Event-Driven Ingestion](safechord.safezone.ingestor_evolution.md)。(簡述：為了解耦寫入壓力，於 v0.2.0 重構為 Kafka Producer。)
+    *   詳見 [ADR: From Sync DB to Event-Driven Ingestion](safechord.safezone.service.dataingestor_evolution.md)。(簡述：為了解耦寫入壓力，於 v0.2.0 重構為 Kafka Producer。)
 *   **Potential Bottleneck & Scaling Plan**:
     *   **Observation**: 目前 Python (FastAPI) 實作在高併發場景下可能成為 CPU 瓶頸，因此在 Upstream (Simulator) 實施了限流 (`Semaphore`)。
     *   **Future Plan**: 詳見 [Issue #22: Refactor Data Ingestor to Golang](https://github.com/SafeChord/SafeZone/issues/22)。規劃在預見效能瓶頸時遷移至 Golang 並整合 KEDA。

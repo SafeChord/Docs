@@ -1,13 +1,13 @@
 ---
-title: "SafeZone: Deployment & Operations Overview"
+title: "Map: SafeZone Deployment & Operations"
 doc_id: safechord.safezone.deployment
-version: 0.2.1
+version: 0.2.2
 status: active
 authors:
   - "bradyhau"
-  - "Gemini 2.5 Pro"
-last_updated: "2026-01-03"
-summary: "SafeZone 的部署與運維層總覽。本文件作為 Delivery Layer 的入口，整合了 Helm Charts 架構定義與 GitOps 工作流程，指導如何將應用程式安全、可控地交付至 Staging 與 Production 環境。"
+  - "Gemini 3 Pro"
+last_updated: "2026-01-09"
+summary: "SafeZone 部署與運維層的導航地圖。整合了 Helm Charts 架構定義與 GitOps 工作流程，指導如何將應用程式交付至不同環境。"
 keywords:
   - Deployment
   - Operations
@@ -20,6 +20,7 @@ related_docs:
   - "safechord.safezone.deployment.workflow.md"
   - "safechord.environment.md"
 parent_doc: "safechord.safezone"
+archetype: map
 ---
 
 # SafeZone Deployment

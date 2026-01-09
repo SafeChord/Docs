@@ -1,23 +1,20 @@
 ---
-title: SafeChord Project Overview
+title: "Map: SafeChord Ecosystem"
 doc_id: safechord
-version: 0.2.0
+version: 0.2.2
 status: active
 authors:
-  - bradyhau
-  - Gemini 3 Pro
-last_updated: 2025-12-28
-summary: "SafeChord 是一個採用微服務架構的健康安全地圖系統，旨在展示從本地開發到混合雲運維的全鏈路工程能力。專案核心由應用層 (SafeZone) 與叢集管理層 (Chorde) 組成。透過環境演進策略 (Environment Evolution)，我們展示了如何在資源受限的混合雲環境下，實現穩定且安全的服務交付。"
+  - "bradyhau"
+  - "Gemini 3 Pro"
+last_updated: "2026-01-09"
+summary: "SafeChord 專案的頂級導航地圖。定義系統全景架構、MVA 設計哲學與環境演進策略。這是理解 SafeChord 的第一站。"
 keywords:
   - SafeChord
-  - project overview
+  - Project Overview
   - MVA
   - Environment Evolution
   - Hybrid Cloud
-  - K3s
-  - Chorde
-  - K3han
-  - SafeZone
+  - System Map
 logical_path: "SafeChord"
 related_docs:
   - "safechord.knowledgetree.md"
@@ -25,71 +22,80 @@ related_docs:
   - "safechord.safezone.md"
   - "safechord.chorde.md"
 parent_doc: null
+archetype: map
 tech_stack:
-  - Kubernetes (K3s, Tailscale Overlay)
-  - Python (FastAPI/AsyncIO)
-  - Golang (Franz-Go Batcher)
+  - Kubernetes (K3s)
+  - Python (FastAPI)
+  - Golang (Franz-Go)
   - Kafka, PostgreSQL, Redis
   - ArgoCD, KEDA, Cloudflare
 ---
-# SafeChord
+
+# 🎼 SafeChord
 
 > **從事件觸發、非同步處理、資料持續性寫入，到最終的視覺化呈現。**
 >
-> SafeChord 是一個整合了「全鏈路資料流模擬」、「雲原生部署架構」與「平台工程實踐」的綜合專案。旨在展示如何將應用邏輯 (Code) 與基礎設施 (Infra) 深度整合，構建一套可觀測、可擴展的生產級系統。
+> SafeChord 是一個展示「全鏈路資料流」與「生產級維運實踐」的雲原生實驗場。我們旨在證明即使在有限資源下，依然能透過精良的架構設計，構建出一套高可用且可觀察的系統。
 
 ---
 
-## 🎯 專案願景 (Project Vision)
+## 🏛️ 系統全景 (System Context)
 
-SafeChord 的核心挑戰在於**資源限制**。在沒有企業級預算（僅使用低成本 VPS 與家用節點）的前提下，我們實踐了 **MVA (Minimum Viable Architecture，最小可行架構)** 哲學。
+SafeChord 採用嚴格的 **職責分離 (SoC)**，將系統劃分為應用、部署、平台三個解耦的維度。
 
-這不單是一個應用程式，而是一個完整的 **系統工程實驗場 (System Engineering Playground)**。目標是證明即使在異構且資源受限的混合雲環境下，依然能透過精良的架構設計，實現準生產級 (Production-Grade) 的自動化維運與服務可靠性。
+```mermaid
+graph TB
+    %% 樣式設定
+    classDef person fill:#08427b,stroke:#052e56,color:#fff;
+    classDef app fill:#1168bd,stroke:#0b4884,color:#fff;
+    classDef deploy fill:#438dd5,stroke:#2e6295,color:#fff;
+    classDef infra fill:#2c3e50,stroke:#000,color:#fff;
+
+    %% 角色
+    User(User):::person
+    Ops(Operator):::person
+
+    %% SafeChord 系統邊界
+    subgraph SafeChord [SafeChord Ecosystem]
+        direction TB
+
+        subgraph SafeZone [🟦 SafeZone]
+            direction LR
+            Dashboard(Dashboard<br/>Plotly Dash):::app
+            Services(Microservices<br/>FastAPI / Go):::app
+            Kafka(Event Bus<br/>Kafka):::app
+        end
+
+        subgraph Deploy [🟨 SafeZone-Deploy]
+            Helm(Helm Charts):::deploy
+            GitOps(ArgoCD Config):::deploy
+        end
+
+        subgraph Chorde [🟥 Chorde]
+            K3han(K3han Cluster<br/>Hybrid K3s):::infra
+            Network(Tailscale Mesh):::infra
+        end
+    end
+
+    %% 關係連線
+    User -->|"View "| Dashboard
+    Ops -->|"Push Code"| SafeZone
+    Ops -->|"Manage Config"| Deploy
+    Ops -->|"Provision"| Chorde
+    
+    Deploy -->|"Deploys"| SafeZone
+    Chorde -->|"Hosts"| SafeZone
+```
 
 ---
 
-## 🏗️ 系統架構分層 (System Architecture)
+## 🏗️ 核心架構分層 (Architectural Tiers)
 
-為了確保系統的可維護性與擴展性，SafeChord 嚴格遵循 **職責分離 (SoC)** 原則，將系統劃分為三個解耦的層次：
-
-| 子系統 | 定位 | 核心職責 |
-| :--- | :--- | :--- |
-| 🧪 **SafeZone** | **應用層** (Application) | **核心業務邏輯實作**。包含模擬資料生成器、高併發資料攝取服務 (Ingestion)，以及前端視覺化 Dashboard。 |
-| 🧪 **SafeZone-Deploy** | **部署層** (Deployment) | **配置管理與交付**。負責定義 Helm Charts 封裝策略，以及不同環境 (Env) 下的參數配置，串接 CI/CD 流水線。 |
-| 🛠️ **Chorde** | **平台層** (Platform) | **基礎設施與共享服務**。作為叢集管理總倉，負責建構混合雲網路 (Tailscale)、以及資料庫、訊息佇列等共用 PaaS 服務。 |
-| 🛰️ **K3han** | **運行叢集** (Runtime) | 隸屬於 Chorde 的混合雲 K3s 叢集實體，是 SafeZone 服務最終運行的載體。 |
-
----
-
-## 🌍 環境演進策略 (Environment Evolution)
-
-SafeChord 展示了軟體生命週期中，基礎設施如何隨著驗證需求的提升而演進：
-
-*   **🟢 Level 1: Local (開發環境)**
-    *   **技術載體**: `Docker Compose`
-    *   **工程目標**: **極大化開發效率**。透過熱重載 (Hot Reload) 與輕量化容器，讓開發者能專注於邏輯驗證與快速迭代。
-*   **🟡 Level 2: Preview (整合測試)**
-    *   **技術載體**: `K8s Namespace` (CI Pipeline)
-    *   **工程目標**: **確保交付品質**。使用臨時性基礎設施 (Ephemeral Infra) 進行自動化煙囪測試 (Smoke Test)，作為程式碼合併前的品質閘門。
-*   **🔴 Level 3: Platform (準生產環境)**
-    *   **技術載體**: `Hybrid K3s Cluster` (Staging)
-    *   **工程目標**: **驗證真實場景**。在真實的網路拓撲與資源限制下運行，使用平台級的共享服務，測試系統的穩定性與跨節點通訊能力。
-
----
-
-## 🌳 核心文件索引
-
-以下文件詳細記載了各個構面的設計決策：
-
-| 文件名稱 | 內容範疇 |
-| :--- | :--- |
-| [📄 SafeChord](safechord.md) | **(本頁面)** 專案架構總覽、設計哲學與 MVA 策略。 |
-| [📄 Knowledgetree](safechord.knowledgetree.md) | **知識與文件導航**。專案文件的完整結構樹與閱讀指引。 |
-| [📄 Environment](safechord.environment.md) | **環境拓撲全景**。詳述從 Local 開發到 Staging 部署的環境差異、網路連線與配置對照。 |
-| [📄 SafeZone](safechord.safezone.md) | **應用架構設計**。探討非同步處理模式、微服務邊界劃分與端對端資料流設計。 |
-| [📄 Deployment](safechord.safezone.deployment.md) | **交付工程**。深入 Helm Charts 階層設計與 ArgoCD GitOps 同步機制。 |
-| [📄 Chorde / K3han](safechord.chorde.k3han.md) | **基礎設施架構**。混合雲網路方案、Ingress 流量管理與資源調度策略。 |
-| [📄 Methodology](safechord.kdd.introduction.md) | **工程方法論**。介紹 KDD (知識驅動開發) 流程與 AI 協作模式。 |
+| 子系統 | 定位 | 核心職責 | 導航入口 |
+| :--- | :--- | :--- | :--- |
+| 🟦 **SafeZone** | **應用層** (Application) | **核心業務實作**。包含模擬器、Ingestor、Worker 與 Dashboard。 | [**App Map**](safechord.safezone.md) |
+| 🟨 **SafeZone-Deploy** | **部署層** (Delivery) | **配置與交付**。負責 Helm Charts 與 GitOps 晉升流程。 | [**Delivery Map**](safechord.safezone.deployment.md) |
+| 🟥 **Chorde** | **平台層** (Platform) | **基礎設施與網路**。管理 K3han 混合雲叢集與 Tailscale Mesh。 | [**Platform Map**](safechord.chorde.md) |
 
 ---
 
@@ -97,15 +103,57 @@ SafeChord 展示了軟體生命週期中，基礎設施如何隨著驗證需求�
 
 > 🚧 **狀態說明**：目前展示環境進行維護調整中。
 
-*   🚫 [SafeZone Dashboard](https://safezone.omh.idv.tw/dashboard)：瀏覽經由完整資料流處理後的即時視覺化圖表。
+*   🚫 [SafeZone Dashboard](https://<PUBLIC_DOMAIN>/dashboard)：瀏覽經由完整資料流處理後的即時視覺化圖表。
 
 ---
 
-## 🛠 技術堆疊 (Tech Stack)
+## 🛠️ 技術堆疊 (Tech Stack)
 
-本專案選用以下技術棧以構建現代化的雲原生系統：
+| 領域 | 關鍵技術 | 用途說明 |
+| :--- | :--- | :--- |
+| **語言** | **Python (FastAPI)** | 業務邏輯、API、模擬器、Dashboard (Dash) |
+| | **Golang** | 高吞吐量 Worker、Kafka Consumer (Franz-Go) |
+| **資料** | **Kafka** | 非同步事件匯流排 (Event Bus) |
+| | **PostgreSQL** | 關聯式資料儲存 (Raw Data) |
+| | **Redis** | 快取與狀態控制 (Cache & State) |
+| **平台** | **K3s** | 輕量級 Kubernetes 叢集 (MVA Core) |
+| | **Tailscale** | 混合雲 Overlay Network (SDN) |
+| | **Cloudflare** | DNS、Tunnel、Zero Trust Access |
+| **維運** | **ArgoCD** | GitOps 持續交付 |
+| | **KEDA** | 事件驅動自動擴縮 (Event-Driven Auto-scaling) |
+| | **Helm** | 應用程式封裝 (Umbrella Charts) |
 
-*   **核心語言**: `Python (FastAPI)`, `Golang`
-*   **資料工程**: `Kafka (Streaming)`, `PostgreSQL (Relation)`, `Redis (Cache)`
-*   **基礎設施**: `K3s (Lightweight K8s)`, `Tailscale (Overlay Network)`, `Cloudflare Tunnel ( Zero Trust Access)`
-*   **維運治理**: `ArgoCD (GitOps)`, `KEDA (Auto-scaling)`
+---
+
+## 🎯 設計哲學 (Design Philosophy)
+
+### 1. MVA (Minimum Viable Architecture)
+在資源受限的環境下，我們選擇「必要的複雜度」而非「過度的工程」。每一分資源（如 800 TWD/mo 的雲端預算）都精確地分配在最能產生價值的環節上。
+
+### 2. 環境演進策略 (Environment Evolution)
+系統具備跨環境的適應力：
+*   **🟢 Local**: Docker Compose 快速迭代。
+*   **🟡 Preview**: K8s Namespace 自動化煙囪測試。
+*   **🔴 Platform**: 混合雲 K3s 叢集 (Staging) 真實運作。
+
+詳見 [📄 Environment Evolution](safechord.environment.md)。
+
+### 3. KDD (Knowledge-Driven Development)
+我們實踐 **「文件即代碼」**。所有的架構決策與流程皆被記錄在 `Docs/` 中，作為驅動 AI 協作的單一真理來源 (SSOT)。
+
+---
+
+## 🌳 知識索引與地圖
+
+*   **[🗺️ 知識樹 (Knowledge Tree)](safechord.knowledgetree.md)**：全站導航。
+*   **[🛡️ 安全架構 (Security)](safechord.security.md)**：資安與密鑰管理。
+*   **[🔄 變更紀錄 (Changelog)](safechord.safezone.changelog.md)**：版本演進。
+
+---
+
+## 🚀 快速開始
+
+若您是第一次來到這裡，建議閱讀順序：
+1.  [**專案總覽 (本文件)**](safechord.md)
+2.  [**環境演進策略**](safechord.environment.md)
+3.  [**應用層資料流**](safechord.safezone.md)

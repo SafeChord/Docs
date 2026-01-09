@@ -1,98 +1,141 @@
 ---
-title: "SafeZone: Health Safety Map Application Overview"
+title: "Map: SafeZone Application Architecture"
 doc_id: safechord.safezone
-version: "0.2.0"
-app_version: "0.2.1"
+version: "0.2.1"
 status: active
 authors:
   - "bradyhau"
   - "Gemini 3 Pro"
-last_updated: "2025-12-28"
-summary: "SafeZone 是 SafeChord 專案的應用核心，負責實作健康安全地圖的完整業務邏輯。本文件概述其採用的微服務架構、事件驅動設計 (Event-Driven Design) 以及如何處理從模擬生成到視覺化呈現的端對端資料流。"
+last_updated: "2026-01-09"
+summary: "SafeZone 應用層的導航地圖。定義微服務架構、非同步資料流向 (Data Flow) 與各組件的職責邊界。"
 keywords:
   - SafeZone
-  - health safety map
-  - event-driven
-  - kafka
-  - golang
-  - microservices
-  - KEDA
-  - SafeChord
+  - Map
+  - Architecture
+  - Data Flow
+  - Microservices
 logical_path: "SafeChord.SafeZone"
 related_docs:
-  - "safechord.knowledgetree.md"
-  - "safechord.safezone.service.md"
+  - "safechord.safezone.service.dataingestor.md"
+  - "safechord.safezone.service.worker.md"
+  - "safechord.safezone.service.analyticsapi.md"
   - "safechord.safezone.deployment.md"
-  - "safechord.safezone.changelog.md"
 parent_doc: "safechord"
-tech_stack:
-  - "Frontend: Plotly Dash (Time-Aware)"
-  - "Backend: Python (FastAPI/AsyncIO), Golang (Franz-Go)"
-  - "Messaging: Kafka (franz-go batching)"
-  - "Scaling: KEDA (Kafka Lag Trigger)"
-  - "Storage: PostgreSQL, Redis (Versioned Cache)"
-  - "Architecture: Event-Driven Microservices"
+archetype: map
+code_paths:
+  - "SafeZone/services"
 ---
-# SafeZone
 
-> **應用層核心 (Application Layer)**
-> 
-> SafeZone 是 SafeChord 生態系中的業務邏輯載體。它不僅僅是一個地圖網站，而是一套完整的 **分散式資料模擬與處理系統**。
->
-> 系統模擬了真實世界中「事件發生 (Source) → 資料傳輸 (Flow) → 分析決策 (Sink)」的生命週期，並透過微服務架構，展示如何在高併發場景下保持資料的即時性與一致性。
+# 🗺️ SafeZone 應用架構地圖 (Map)
+
+> **Map (地圖型)**：SafeZone 業務邏輯與資料流的全景視圖。
+> *定位：基於事件驅動 (Event-Driven) 的分散式疫情模擬系統。*
 
 ---
 
-## 🏗️ 核心設計理念 (Core Concepts)
+## 1. 系統全景與資料流 (System Context & Data Flow)
 
-SafeZone 的設計圍繞著三個關鍵工程目標：
+SafeZone 的核心是一個單向流動的資料處理管道 (Pipeline)。資料從模擬器產生，經過緩衝與處理，最終沉澱為可供查詢的視圖。
 
-1.  **事件驅動 (Event-Driven)**: 系統不依賴同步請求 (Request-Response)，而是透過 **Kafka** 訊息佇列進行解耦。這確保了當模擬數據瞬間爆發時，後端服務不會因為流量衝擊而崩潰。
-2.  **多語言微服務 (Polyglot Microservices)**: 我們根據服務特性選擇語言。**Python** 負責複雜的業務模擬與 API 邏輯，而 **Golang** 則負責高吞吐量的資料消費 (Worker)，體現了「適才適所」的架構思維。
-3.  **彈性伸縮 (Auto-Scaling)**: 結合 **KEDA**，系統能根據佇列積壓量 (Lag) 自動調整運算資源，實現真正的雲原生彈性。
+```mermaid
+graph LR
+    %% 樣式定義
+    classDef source fill:#e1f5fe,stroke:#01579b;
+    classDef process fill:#fff9c4,stroke:#fbc02d;
+    classDef storage fill:#e0e0e0,stroke:#616161;
+    classDef view fill:#e8f5e9,stroke:#2e7d32;
+
+    %% 觸發源
+    subgraph Trigger [Control Plane]
+        CLI(SZCLI / CronJob):::source
+        Time(Time Server):::source
+    end
+
+    %% 寫入路徑
+    subgraph WritePath [Write Pipeline]
+        Sim(Pandemic Simulator<br/>AsyncIO Generator):::source
+        Ingest(Data Ingestor<br/>FastAPI Gateway):::process
+        Kafka(Kafka Topic<br/>covid.raw.data):::storage
+        Worker(Golang Worker<br/>Franz-Go Consumer):::process
+    end
+
+    %% 儲存層
+    subgraph DataStore [Persistence Layer]
+        DB[(PostgreSQL<br/>Raw Data)]:::storage
+        Redis[(Redis Cache)]:::storage
+    end
+
+    %% 讀取路徑
+    subgraph ReadPath [Read Pipeline]
+        API(Analytics API<br/>Aggregator):::process
+        Dash(Dashboard<br/>Plotly Viz):::view
+    end
+
+    %% 關係連線
+    CLI <-->|"Control & Read"| Time
+    CLI -->|"1. Trigger (w/ Date)"| Sim
+    Sim -->|"2. Events (HTTP)"| Ingest
+    Ingest -->|"3. Buffer"| Kafka
+    Kafka -->|"4. Consume (Batch)"| Worker
+    Worker -->|"5. Upsert"| DB
+    
+    API -->|"6. Query"| DB
+    API -.->|"Cache"| Redis
+    Dash -->|"7. Visualize"| API
+    Time -.->|"Sync Time"| Dash
+```
 
 ---
 
-## 🛠 技術堆疊 (Tech Stack)
+## 2. 微服務導航 (Microservices Index)
 
-*   **Languages**: `Python (FastAPI)`, `Golang`
-*   **Messaging**: `Kafka` (Franz-Go client)
-*   **Storage**: `PostgreSQL` (Relational Data), `Redis` (Cache & PubSub)
-*   **Frontend**: `Plotly Dash` (Interactive Visualization)
+SafeZone 採用 **職責分離 (SoC)** 原則，將系統劃分為以下獨立服務：
 
----
+### 2.1 寫入管道 (Write Pipeline)
+負責高併發數據的接收與落地。
 
-## 📁 核心文件導航 (Documentation Map)
+| 服務名稱 | 職責 | 關鍵技術 | 文件連結 |
+| :--- | :--- | :--- | :--- |
+| **Pandemic Simulator** | **Source** | 模擬資料生成源，支援 AsyncIO 高併發發送。 | [Blueprint](safechord.safezone.service.pandemicsimulator.md) |
+| **Data Ingestor** | **Gateway** | 寫入入口，負責驗證並快速卸載至 Kafka。 | [Blueprint](safechord.safezone.service.dataingestor.md) |
+| **Worker (Golang)** | **Consumer** | 資料處理核心，負責從 Kafka 批次寫入資料庫。 | [Blueprint](safechord.safezone.service.worker.md) |
 
-以下表格引導您深入了解 SafeZone 的各個組成部分：
+### 2.2 讀取管道 (Read Pipeline)
+負責數據的聚合查詢與呈現。
 
-| 模組/文件 | 核心職責與說明 |
-| :--- | :--- |
-| 📦 **[SafeZone](safechord.safezone.md)** | **(本文件)** 應用層架構總覽，定義非同步資料流與微服務設計理念。 |
-| 　├─ 🧩 **[Services](safechord.safezone.service.md)** | **服務全景圖**。詳述 `Source` -> `Kafka` -> `Sink` -> `View` 的完整資料流技術實作。 |
-| 　│　├─ [Pandemic Simulator](safechord.safezone.service.pandemicsimulator.md) | **資料產地**。使用 Python **AsyncIO** 模擬使用者行為，持續產生測試數據。 |
-| 　│　├─ [Data Ingestor](safechord.safezone.service.dataingestor.md) | **流量入口**。作為寫入閘道 (Gateway)，負責將 HTTP 請求轉換為 Kafka 訊息。 |
-| 　│　├─ [Worker (Golang)](safechord.safezone.service.worker.md) | **資料處理**。採用高效能 **Franz-Go** 實作，負責將 Kafka 訊息批次寫入資料庫。 |
-| 　│　├─ [Analytics API](safechord.safezone.service.analyticsapi.md) | **查詢介面**。提供前端聚合數據，並整合 **Cache Versioning** 機制處理快取失效。 |
-| 　│　└─ [Dashboard](safechord.safezone.service.dashboard.md) | **視覺呈現**。具備「時間感知 (Time-Aware)」能力的 Plotly Dash 前端。 |
-| 　├─ 🧰 **Toolkit** | **輔助工具組**。 |
-| 　│　├─ [Time Server](safechord.safezone.toolkit.timeserver.md) | **時間控制塔**。提供統一的虛擬時間軸，支援系統時間的加速與暫停。 |
-| 　│　└─ [SZCLI](safechord.safezone.toolkit.cli.md) | **指揮官**。維運專用 CLI，用於觸發模擬任務與驗證系統狀態。 |
-| 　├─ 🚀 **[Deployment](safechord.safezone.deployment.md)** | **部署與交付**。Helm Umbrella Chart 設計與 ArgoCD GitOps 流程總覽。 |
-| 　│　├─ [Helm Charts](safechord.safezone.deployment.charts.md) | **配置細節**。三層式 Chart 結構解析與 KEDA 伸縮參數配置。 |
-| 　│　└─ [GitOps Workflow](safechord.safezone.deployment.workflow.md) | **環境晉換**。描述從 Preview 到 Staging 的自動化部署路徑。 |
-| 　└─ 📝 **[ChangeLog](safechord.safezone.changelog.md)** | **版本紀錄**。追蹤 SafeZone 的架構演進與重大 API 變更。 |
+| 服務名稱 | 職責 | 關鍵技術 | 文件連結 |
+| :--- | :--- | :--- | :--- |
+| **Analytics API** | **Reader** | 提供聚合查詢 API，整合快取版本控制。 | [Blueprint](safechord.safezone.service.analyticsapi.md) |
+| **Dashboard** | **Visualizer** | 前端視覺化，具備時光旅行感知能力。 | [Blueprint](safechord.safezone.service.dashboard.md) |
 
----
+### 2.3 工具與支撐 (Toolkit)
+輔助系統運作的基礎組件。
 
-## 🔭 未來展望 (Roadmap)
-
-SafeZone 的願景是成為一套可擴展的**資料系統範本 (Blueprint)**。未來我們計畫引入真實 Open Data 作為資料源，並將前端升級為更具互動性的 GIS 系統，證明即便是資源受限的團隊，也能構建出生產級的資料處理流水線。
+| 組件名稱 | 職責 | 關鍵技術 | 文件連結 |
+| :--- | :--- | :--- | :--- |
+| **SZCLI** | **Orchestrator** | 維運指揮官，用於觸發模擬與驗證系統。 | [Reference](safechord.safezone.toolkit.cli.md) |
+| **Time Server** | **Clock** | 全域虛擬時鐘，支援時間暫停與加速。 | [Blueprint](safechord.safezone.toolkit.timeserver.md) |
 
 ---
 
-## 🧭 建議閱讀路徑
+## 3. 架構特徵 (Architectural Characteristics)
 
-1.  **[Services](safechord.safezone.service.md)**：先看懂資料怎麼流 (Data Flow)。
-2.  **[Deployment](safechord.safezone.deployment.md)**：再看程式怎麼跑 (Helm/K8s/KEDA)。
-3.  **[ChangeLog](safechord.safezone.changelog.md)**：最後確認當前版本的架構變更 (v0.2.x)。
+1.  **Event-Driven (事件驅動)**:
+    *   寫入路徑透過 **Kafka** 完全解耦。Ingestor (Gateway) 與 Worker (Processor) 可以獨立擴展。
+    *   **優勢**: 當模擬數據爆量時，Ingestor 僅需負責快速接收，後端 DB 不會被直接擊穿，由 Worker 依據消費能力平滑寫入 (Load Leveling)。
+
+2.  **Polyglot (多語言)**:
+    *   **Python**: 用於複雜邏輯 (Simulator, API) 與快速迭代 (Dashboard)。
+    *   **Golang**: 用於計算密集與高吞吐場景 (Worker)，榨取每一分 CPU 效能。
+
+3.  **Time-Aware (時間感知)**:
+    *   系統內建「虛擬時間軸」。所有組件 (Simulator, Dashboard) 皆參考 `Time Server` 而非物理時間。
+    *   **優勢**: 允許開發者「快轉」疫情發展，或「暫停」時間以進行 Debug。
+
+---
+
+## 4. 快速連結 (Quick Links)
+
+*   **部署架構**: [Helm Charts & KEDA](safechord.safezone.deployment.charts.md)
+*   **開發流程**: [CI/CD Workflow](safechord.safezone.workflow.md)
+*   **API 規格**: 請參閱各服務 Blueprint 內的 Interface 定義。

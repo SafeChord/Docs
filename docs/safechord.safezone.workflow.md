@@ -1,14 +1,14 @@
 ---
-title: SafeZone CI Workflow (Build & Test)
+title: "Script: SafeZone CI/CD Workflow"
 doc_id: safechord.safezone.workflow.ci
-version: 1.0.0
-last_updated: "2025-12-25"
+version: 1.0.1
+last_updated: "2026-01-09"
 status: active
 authors:
-  - bradyhau
-  - Gemini 3 Pro
+  - "bradyhau"
+  - "Gemini 3 Pro"
 context_scope: "SafeZone App Repo"
-summary: "定義 SafeZone 應用程式倉庫的開發與持續整合流程。涵蓋 Git 分支策略、Smoke Test 驗證機制以及 Docker Image 的建置與發佈標準。"
+summary: "定義 SafeZone 應用程式的 CI/CD 劇本。包含 GitFlow 分支策略、Smoke Test 品質閘門以及 Docker Artifacts 的建置與發佈流程。"
 keywords:
   - CI
   - GitHub Actions
@@ -20,6 +20,9 @@ related_docs:
   - "safechord.safezone.deployment.workflow.md"
   - "safechord.environment.md"
 parent_doc: "safechord.safezone"
+archetype: script
+code_paths:
+  - "SafeZone/.github/workflows"
 ---
 
 # SafeZone 開發與 CI 流程

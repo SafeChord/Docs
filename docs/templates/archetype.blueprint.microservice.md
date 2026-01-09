@@ -13,7 +13,7 @@ keywords:
   - [keyword2]
 logical_path: "SafeChord.SafeZone.Service.[Name]"
 related_docs:
-  - "safechord.safezone.service.md"
+  - "safechord.safezone.md"
 parent_doc: "safechord.safezone.service"
 archetype: blueprint
 code_paths:

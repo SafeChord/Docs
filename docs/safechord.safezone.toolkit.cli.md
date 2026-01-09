@@ -18,7 +18,7 @@ keywords:
 logical_path: "SafeChord.SafeZone.Toolkit.CLI"
 related_docs:
   - "safechord.safezone.toolkit.cli.reference.md"
-  - "safechord.safezone.service.md"
+  - "safechord.safezone.md"
   - "safechord.security.md"
 parent_doc: "safechord.safezone.toolkit"
 archetype: blueprint

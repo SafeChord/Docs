@@ -1,8 +1,8 @@
 ---
 title: SafeChord Knowledge Tree Structure
 doc_id: safechord.knowledgetree
-version: 0.2.0
-last_updated: "2025-12-28"
+version: 0.2.1
+last_updated: "2026-01-09"
 status: active
 authors:
   - bradyhau
@@ -56,7 +56,6 @@ related_docs:
             *   [📄 safechord.safezone.md](safechord.safezone.md) ⭐ (Async Dataflow, Event-Driven Design, KEDA)
             *   [📄 safechord.safezone.changelog.md](safechord.safezone.changelog.md) (🔄 版本演進與技術遷移紀錄)
         *   **服務模組 (Microservices)**
-            *   [📄 safechord.safezone.service.md](safechord.safezone.service.md) ⭐ (服務邊界與資料流總覽)
             *   [📄 safechord.safezone.service.pandemicsimulator.md](safechord.safezone.service.pandemicsimulator.md) (Simulator: AsyncIO Data Source)
             *   [📄 safechord.safezone.service.dataingestor.md](safechord.safezone.service.dataingestor.md) (Ingestor: Kafka Producer Gateway)
             *   [📄 safechord.safezone.service.worker.md](safechord.safezone.service.worker.md) (Worker: Golang / Franz-Go Consumer)

@@ -25,10 +25,9 @@ theme:
 nav:
   - Home: safechord.md
   - 🗺️ Knowledge Tree: safechord.knowledgetree.md
-  - 🟦 SafeZone:
+  - 🟦 SafeZone (App):
       - Overview: safechord.safezone.md
-      - Services:
-          - Architecture: safechord.safezone.service.md
+      - Microservices:
           - Pandemic Simulator: safechord.safezone.service.pandemicsimulator.md
           - Data Ingestor: safechord.safezone.service.dataingestor.md
           - Worker (Golang): safechord.safezone.service.worker.md
@@ -44,16 +43,27 @@ nav:
       - Overview: safechord.safezone.deployment.md
       - Helm Architecture: safechord.safezone.deployment.charts.md
       - Workflow: safechord.safezone.deployment.workflow.md
-  - 🟥 K3han Cluster:
-      - Overview: safechord.chorde.k3han.md
-      - Topology: safechord.chorde.k3han.cluster.md
-      - Ingress: safechord.chorde.k3han.ingress.md
-      - Scheduling: safechord.chorde.k3han.scheduling.md
-      - Monitoring: safechord.chorde.k3han.monitoring.md
-      - ChangeLog: safechord.chorde.k3han.changelog.md
+  - 🟥 Chorde (Platform):
+      - Overview: safechord.chorde.md
+      - K3han Cluster:
+          - Overview: safechord.chorde.k3han.md
+          - Topology: safechord.chorde.k3han.cluster.md
+          - Ingress: safechord.chorde.k3han.ingress.md
+          - Scheduling: safechord.chorde.k3han.scheduling.md
+          - Monitoring: safechord.chorde.k3han.monitoring.md
+          - ChangeLog: safechord.chorde.k3han.changelog.md
   - 🌍 Environment: safechord.environment.md
   - 🛡️ Security: safechord.security.md
   - ⬜ Methodology (KDD):
       - Introduction: safechord.kdd.introduction.md
       - Practice: safechord.kdd.practice.md
       - Workflow: safechord.kdd.workflow.md
+
+markdown_extensions:
+  - pymdownx.superfences
+  - attr_list
+  - md_in_html
+  - tables
+
+extra_javascript:
+  - https://unpkg.com/mermaid/dist/mermaid.min.js

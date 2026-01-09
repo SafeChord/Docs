@@ -1,36 +1,67 @@
 ---
-title: "Chorde: Extensible Multi-Cluster Management Framework" 
+title: "Map: Chorde Platform Framework" 
 doc_id: safechord.chorde
-version: "0.2.0"
+version: "0.2.1"
 status: active
 authors:
   - "bradyhau"
-  - "Gemini 2.5 Pro"
-last_updated: "2025-05-16"
-summary: "本文檔深入介紹 SafeChord 的核心組件 Chorde，其定位為一個面向未來的、可擴展的多叢集協同與控制平台。Chorde 提供了一個抽象層，旨在統一管理異構的 Kubernetes (K8s) 集群（包括實驗性的 K3Han 平台以及未來可能的雲託管服務），聚合其 IaC 配置、提供共享基礎設施服務（如監控配置），並設計集群間的互動機制與上層管理框架。本文同時闡述其設計哲學與當前管理的集群概覽。"
+  - "Gemini 3 Pro"
+last_updated: "2026-01-09"
+summary: "Chorde 平台層的導航地圖。定義多叢集管理框架與 GitOps 同步機制。"
 keywords:
   - Chorde
-  - multi-cluster management 
-  - cluster orchestration
-  - abstraction layer
-  - extensible architecture 
-  - heterogeneous clusters 
-  - IaC (Infrastructure as Code) 
-  - shared services 
-  - control plane 
-  - K8s (Kubernetes) 
-  - SafeChord
-  - design philosophy
+  - Platform Layer
+  - Multi-cluster
+  - GitOps
+  - Horde
 logical_path: "SafeChord.Chorde"
 related_docs:
-  - "safechord.knowledgetree.md" 
   - "safechord.md"
   - "safechord.chorde.k3han.md"
 parent_doc: "safechord"
-tech_stack:
-  - Kubernetes (K8s)
-  - Ansible
-  - ArgoCD, Flux
-  - Prometheus
+archetype: map
+code_paths:
+  - "Chorde/gitops"
 ---
-## 暫無內容設計，敬請期待
+
+# 🛠️ Chorde 平台層地圖 (Map)
+
+> **Map (地圖型)**：SafeChord 生產環境的「基礎設施總指揮部」。
+> *職責：管理異構叢集、統一 IaC 配置、維護交付標準。*
+
+---
+
+## 1. 平台願景與詞源 (Vision & Etymology)
+
+### 🏷️ 命名由來
+**Chorde** = **C**luster + **Horde** (部落)。
+這個名字象徵著將散落在不同地理位置、不同供應商的計算資源，聚合為一個強大且協調的「部落」。它不僅是一個管理框架，更是 SafeChord 所有基礎設施的集結地。
+
+---
+
+## 2. 核心組件導航 (Navigation)
+
+### 2.1 運行叢集 (Runtime Clusters)
+Chorde 目前管理以下叢集實體：
+
+*   [**K3han (Hybrid K3s)**](safechord.chorde.k3han.md):
+    *   **定位**: 實驗性混合雲叢集，橫跨歐亞的輕量級平台。
+    *   **用途**: SafeZone v0.2.0 的核心運行環境。
+
+---
+
+## 3. 工程實踐 (Engineering Practices)
+
+Chorde 嚴格遵循以下工程準則：
+
+1.  **GitOps as Law**: 所有的環境狀態（除了 Secrets）都必須在 `Chorde/gitops` 倉庫中有對應的定義。禁止手動使用 `kubectl` 修改狀態。
+2.  **MVA (Minimum Viable Architecture)**: 在保證安全的前提下，優先選擇低資源消耗的方案（如 K3s 而非標準 K8s）。
+3.  **Horde Resilience**: 平台設計考量了異構網路的穩定性，確保即使在地端節點斷線時，雲端控制面仍能保持管理能力。
+
+---
+
+## 4. 快速跳轉 (Quick Access)
+
+*   **地圖**: [K3han 叢集地圖](safechord.chorde.k3han.md)
+*   **代碼**: [GitOps 配置根目錄](https://github.com/bradyhau/SafeChord/tree/main/Chorde/gitops)
+*   **環境**: [環境演進策略](safechord.environment.md)
