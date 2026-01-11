@@ -1,5 +1,5 @@
 site_name: SafeChord Docs
-site_url: https://SafeChord.github.io/Docs/
+site_url: https://SafeChord.github.io/Docs/safechord
 
 theme:
   name: material
