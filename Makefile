@@ -1,5 +1,5 @@
 # SafeChord Docs - Makefile
-IMAGE_NAME := squidfunk/mkdocs-material:9
+IMAGE_NAME := squidfunk/mkdocs-material
 PORT := 8000
 
 .PHONY: dev build clean
