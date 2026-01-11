@@ -1,5 +1,5 @@
 site_name: SafeChord Docs
-site_url: https://SafeChord.github.io/Docs/safechord
+site_url: https://SafeChord.github.io/Docs/
 
 theme:
   name: material
@@ -24,7 +24,7 @@ theme:
       name: 切換至淺色模式
 
 nav:
-  - Home: safechord.md
+  - 🧩 System Map: safechord.md
   - 🗺️ Knowledge Tree: safechord.knowledgetree.md
   - 🟦 SafeZone (App):
       - Overview: safechord.safezone.md
