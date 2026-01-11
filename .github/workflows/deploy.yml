@@ -21,6 +21,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      
+      - name: clean older site
+        run: make clean
 
       - name: Build Docs (via Docker)
         run: make build
