@@ -1,31 +1,33 @@
 ---
-title: "Toolkit: Time Server"
+title: 'Toolkit: Time Server'
 doc_id: safechord.safezone.toolkit.timeserver
-version: "0.2.0"
 status: active
 authors:
   - bradyhau
   - Gemini 3 Pro
-last_updated: "2026-01-08"
-summary: "Time Server 是 SafeZone 的時間中樞 (Time Nexus)。它負責維持全系統唯一的「模擬時間 (System Date)」，提供時光旅行 (Mock Date) 與時間加速 (Acceleration) 功能，使系統能脫離物理時間限制進行演練。"
+last_updated: '2026-01-08'
+summary: Time Server 是 SafeZone 的時間中樞 (Time Nexus)。它負責維持全系統唯一的「模擬時間 (System Date)」，提供時光旅行
+  (Mock Date) 與時間加速 (Acceleration) 功能，使系統能脫離物理時間限制進行演練。
 keywords:
   - Time Server
   - Mock Time
   - Time Travel
   - Redis
   - FastAPI
-logical_path: "SafeChord.SafeZone.Toolkit.TimeServer"
+logical_path: SafeChord.SafeZone.Toolkit.TimeServer
 related_docs:
-  - "safechord.safezone.toolkit.cli.md"
-  - "safechord.safezone.service.dashboard.md"
-parent_doc: "safechord.safezone.toolkit"
+  - safechord.safezone.toolkit.cli.md
+  - safechord.safezone.service.dashboard.md
+parent_doc: safechord.safezone.toolkit
 archetype: blueprint
 code_paths:
-  - "SafeZone/toolkit/time-server"
+  - SafeZone/toolkit/time-server
 tech_stack:
   - Python 3.13
   - FastAPI
   - Redis (State Store)
+doc_version: 0.2.0
+app_version: 0.2.1
 ---
 
 # Time Server (Toolkit Blueprint)

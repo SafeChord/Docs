@@ -1,26 +1,26 @@
 ---
-title: "K3han Scheduling Strategy"
+title: K3han Scheduling Strategy
 doc_id: safechord.chorde.k3han.scheduling
-version: 0.2.1
 status: active
 authors:
   - bradyhau
   - Gemini 3 Pro
-context_scope: "Chorde/cluster/k3han"
-summary: "定義混合雲環境下的 Pod 調度邏輯，包含親和性 (Affinity)、污點 (Taints) 與資源隔離策略。"
+context_scope: Chorde/cluster/k3han
+summary: 定義混合雲環境下的 Pod 調度邏輯，包含親和性 (Affinity)、污點 (Taints) 與資源隔離策略。
 keywords:
   - Scheduling
   - Affinity
   - Taints
   - Data Locality
   - Isolation
-logical_path: "SafeChord.Chorde.K3han.Scheduling"
+logical_path: SafeChord.Chorde.K3han.Scheduling
 related_docs:
-  - "safechord.chorde.k3han.cluster.md"
-  - "safechord.safezone.deployment.charts.md"
-parent_doc: "safechord.chorde.k3han"
+  - safechord.chorde.k3han.cluster.md
+  - safechord.safezone.deployment.charts.md
+parent_doc: safechord.chorde.k3han
 archetype: brain
 code_paths: []
+doc_version: 0.2.0
 ---
 
 # K3han Scheduling Strategy (Brain)

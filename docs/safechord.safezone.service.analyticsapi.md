@@ -1,34 +1,36 @@
 ---
-title: "Service: Analytics API"
+title: 'Service: Analytics API'
 doc_id: safechord.safezone.service.analyticsapi
-version: "0.2.1"
 status: active
 authors:
   - bradyhau
   - Gemini 3 Pro
-last_updated: "2026-01-04"
-summary: "Analytics API 是 SafeZone 的數據查詢與分析核心。它提供 RESTful 介面供前端與 CLI 查詢疫情數據，並實作了基於版本控制 (Cache Versioning) 的 Redis 快取策略與 In-Memory 預載優化，以實現極致的查詢效能。"
+last_updated: '2026-01-04'
+summary: Analytics API 是 SafeZone 的數據查詢與分析核心。它提供 RESTful 介面供前端與 CLI 查詢疫情數據，並實作了基於版本控制
+  (Cache Versioning) 的 Redis 快取策略與 In-Memory 預載優化，以實現極致的查詢效能。
 keywords:
   - Analytics API
   - FastAPI
   - Redis Cache
   - Global Invalidation
   - In-Memory Cache
-logical_path: "SafeChord.SafeZone.Service.AnalyticsAPI"
+logical_path: SafeChord.SafeZone.Service.AnalyticsAPI
 related_docs:
-  - "safechord.safezone.changelog.md"
-  - "safechord.safezone.service.dashboard.md"
-  - "safechord.safezone.service.worker.md"
-parent_doc: "safechord.safezone.service"
+  - safechord.safezone.changelog.md
+  - safechord.safezone.service.dashboard.md
+  - safechord.safezone.service.worker.md
+parent_doc: safechord.safezone.service
 archetype: blueprint
 code_paths:
-  - "SafeZone/services/analytics-api"
+  - SafeZone/services/analytics-api
 tech_stack:
   - Python 3.13
   - FastAPI 0.115
   - Redis (redis-py async)
   - SQLAlchemy 2.0 (Sync)
   - psycopg2-binary
+doc_version: 0.2.0
+app_version: 0.2.1
 ---
 
 # Analytics API (Service Blueprint)

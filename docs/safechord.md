@@ -1,13 +1,12 @@
 ---
-title: "Map: SafeChord Ecosystem"
+title: 'Map: SafeChord Ecosystem'
 doc_id: safechord
-version: 0.2.2
 status: active
 authors:
-  - "bradyhau"
-  - "Gemini 3 Pro"
-last_updated: "2026-01-09"
-summary: "SafeChord 專案的頂級導航地圖。定義系統全景架構、MVA 設計哲學與環境演進策略。這是理解 SafeChord 的第一站。"
+  - bradyhau
+  - Gemini 3 Pro
+last_updated: '2026-01-09'
+summary: SafeChord 專案的頂級導航地圖。定義系統全景架構、MVA 設計哲學與環境演進策略。這是理解 SafeChord 的第一站。
 keywords:
   - SafeChord
   - Project Overview
@@ -15,12 +14,12 @@ keywords:
   - Environment Evolution
   - Hybrid Cloud
   - System Map
-logical_path: "SafeChord"
+logical_path: SafeChord
 related_docs:
-  - "safechord.knowledgetree.md"
-  - "safechord.environment.md"
-  - "safechord.safezone.md"
-  - "safechord.chorde.md"
+  - safechord.knowledgetree.md
+  - safechord.environment.md
+  - safechord.safezone.md
+  - safechord.chorde.md
 parent_doc: null
 archetype: map
 tech_stack:
@@ -29,6 +28,8 @@ tech_stack:
   - Golang (Franz-Go)
   - Kafka, PostgreSQL, Redis
   - ArgoCD, KEDA, Cloudflare
+doc_version: 0.2.0
+app_version: null
 ---
 
 # 🎼 SafeChord

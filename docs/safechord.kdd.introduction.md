@@ -1,25 +1,27 @@
 ---
 title: Knowledge-Driven Development (KDD)
 doc_id: safechord.kdd.introduction
-version: 1.0.0
-last_updated: "2025-12-28"
+last_updated: '2025-12-28'
 status: active
 authors:
   - bradyhau
   - Gemini 3 Pro
-context_scope: "Methodology"
-summary: "介紹 SafeChord 專案的核心開發方法論——知識驅動開發 (KDD)。闡述如何以文檔為「唯一真理來源 (Source of Truth)」，驅動 AI Agent 進行精準的程式碼生成與架構維護，並定義當前的人機協作模式。"
+context_scope: Methodology
+summary: 介紹 SafeChord 專案的核心開發方法論——知識驅動開發 (KDD)。闡述如何以文檔為「唯一真理來源 (Source of Truth)」，驅動
+  AI Agent 進行精準的程式碼生成與架構維護，並定義當前的人機協作模式。
 keywords:
   - KDD
   - AI Collaboration
   - Documentation-First
   - Prompt Engineering
   - Human-in-the-Loop
-logical_path: "SafeChord.KDD.Introduction"
+logical_path: SafeChord.KDD.Introduction
 related_docs:
-  - "safechord.kdd.practice.md"
-  - "safechord.knowledgetree.md"
-parent_doc: "safechord.knowledgetree"
+  - safechord.kdd.practice.md
+  - safechord.knowledgetree.md
+parent_doc: safechord.knowledgetree
+doc_version: 0.2.0
+archetype: brain
 ---
 
 # 知識驅動開發 (Knowledge-Driven Development)

@@ -1,29 +1,30 @@
 ---
-title: "Map: K3han Hybrid Cluster" 
+title: 'Map: K3han Hybrid Cluster'
 doc_id: safechord.chorde.k3han
-version: "0.2.1"
 status: active
 authors:
-  - "bradyhau"
-  - "Gemini 3 Pro"
-last_updated: "2026-01-09"
-summary: "K3han 子系統的導航地圖。索引關於混合雲拓撲 (Cluster)、網路邊界 (Ingress) 與資源調度 (Scheduling) 的規格文件。"
+  - bradyhau
+  - Gemini 3 Pro
+last_updated: '2026-01-09'
+summary: K3han 子系統的導航地圖。索引關於混合雲拓撲 (Cluster)、網路邊界 (Ingress) 與資源調度 (Scheduling) 的規格文件。
 keywords:
   - K3han
   - Map
   - Hybrid Cloud
   - Index
   - Navigation
-logical_path: "SafeChord.Chorde.K3han"
+logical_path: SafeChord.Chorde.K3han
 related_docs:
-  - "safechord.chorde.md"
-  - "safechord.chorde.k3han.cluster.md"
-  - "safechord.chorde.k3han.ingress.md"
-  - "safechord.chorde.k3han.scheduling.md"
-parent_doc: "safechord.chorde"
+  - safechord.chorde.md
+  - safechord.chorde.k3han.cluster.md
+  - safechord.chorde.k3han.ingress.md
+  - safechord.chorde.k3han.scheduling.md
+parent_doc: safechord.chorde
 archetype: map
 code_paths:
-  - "Chorde/cluster/k3han"
+  - Chorde/cluster/k3han
+doc_version: 0.2.0
+app_version: 0.2.0
 ---
 
 # 🗺️ K3han 子系統地圖 (Map)

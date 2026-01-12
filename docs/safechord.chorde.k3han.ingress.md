@@ -1,13 +1,13 @@
 ---
-title: "K3han: Ingress Configuration" 
-doc_id: safechord.chorde.k3han.ingress 
-version: "0.2.1" 
+title: 'K3han: Ingress Configuration'
+doc_id: safechord.chorde.k3han.ingress
 status: active
 authors:
-  - "bradyhau"
-  - "Gemini 3 Pro"
-last_updated: "2026-01-09"
-summary: "定義 K3han 叢集的雙通道入口策略 (Dual-Channel Ingress)。詳述 `nginx-private` (內網/VPN) 與 `nginx-public` (公網) 的隔離機制、部署位置與安全性配置。"
+  - bradyhau
+  - Gemini 3 Pro
+last_updated: '2026-01-09'
+summary: 定義 K3han 叢集的雙通道入口策略 (Dual-Channel Ingress)。詳述 `nginx-private` (內網/VPN) 與
+  `nginx-public` (公網) 的隔離機制、部署位置與安全性配置。
 keywords:
   - K3han
   - Ingress
@@ -15,19 +15,21 @@ keywords:
   - Dual-Channel
   - Tailscale
   - Cloudflare
-logical_path: "SafeChord.Chorde.K3han.Networking.Ingress"
+logical_path: SafeChord.Chorde.K3han.Networking.Ingress
 related_docs:
-  - "safechord.chorde.k3han.md"
-  - "safechord.chorde.k3han.cluster.md"
-parent_doc: "safechord.chorde.k3han"
+  - safechord.chorde.k3han.md
+  - safechord.chorde.k3han.cluster.md
+parent_doc: safechord.chorde.k3han
 archetype: blueprint
 code_paths:
-  - "Chorde/cluster/k3han/v0.2.0/infra-charts/ingress-nginx"
+  - Chorde/cluster/k3han/v0.2.0/infra-charts/ingress-nginx
 tech_stack:
   - Kubernetes (K3s)
   - Ingress Nginx
   - Tailscale
   - Cloudflare Tunnel
+doc_version: 0.2.0
+app_version: 0.2.0
 ---
 # K3han Ingress 策略 (Blueprint)
 

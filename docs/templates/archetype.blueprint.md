@@ -1,7 +1,9 @@
 ---
 title: "[Component Name] Specification"
 doc_id: safechord.[layer].[component]
-version: 0.0.1
+doc_version: [Document Version]
+app_version: [Target Application Version]
+last_updated: "YYYY-MM-DD"
 status: draft
 authors:
   - [Author Name]

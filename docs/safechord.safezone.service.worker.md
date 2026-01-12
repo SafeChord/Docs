@@ -1,13 +1,13 @@
 ---
-title: "Service: Worker (Golang)"
+title: 'Service: Worker (Golang)'
 doc_id: safechord.safezone.service.worker
-version: "0.2.1"
 status: active
 authors:
   - bradyhau
   - Gemini 3 Pro
-last_updated: "2026-01-04"
-summary: "Worker 是 SafeZone 系統的資料處理核心，採用 Golang 1.24 與 Franz-Go 實作。負責從 Kafka 高效消費數據，並透過批次寫入 (Batch Insert) 與等冪更新 (Idempotent Upsert) 機制，將數據持久化至 PostgreSQL。"
+last_updated: '2026-01-04'
+summary: Worker 是 SafeZone 系統的資料處理核心，採用 Golang 1.24 與 Franz-Go 實作。負責從 Kafka 高效消費數據，並透過批次寫入
+  (Batch Insert) 與等冪更新 (Idempotent Upsert) 機制，將數據持久化至 PostgreSQL。
 keywords:
   - Worker
   - Kafka Consumer
@@ -15,20 +15,22 @@ keywords:
   - Franz-Go
   - PostgreSQL
   - Batch Processing
-logical_path: "SafeChord.SafeZone.Service.Worker"
+logical_path: SafeChord.SafeZone.Service.Worker
 related_docs:
-  - "safechord.safezone.changelog.md"
-  - "safechord.safezone.service.dataingestor.md"
-  - "safechord.safezone.service.analyticsapi.md"
-parent_doc: "safechord.safezone.service"
+  - safechord.safezone.changelog.md
+  - safechord.safezone.service.dataingestor.md
+  - safechord.safezone.service.analyticsapi.md
+parent_doc: safechord.safezone.service
 archetype: blueprint
 code_paths:
-  - "SafeZone/services/worker-golang"
+  - SafeZone/services/worker-golang
 tech_stack:
   - Golang 1.24
   - Franz-Go (Kafka)
   - pgx/v5 (PostgreSQL)
   - sqlx
+doc_version: 0.2.0
+app_version: 0.2.1
 ---
 
 # Worker - Golang (Service Blueprint)

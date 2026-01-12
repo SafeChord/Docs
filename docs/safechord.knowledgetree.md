@@ -1,21 +1,23 @@
 ---
 title: SafeChord Knowledge Tree Structure
 doc_id: safechord.knowledgetree
-version: 0.2.1
-last_updated: "2026-01-09"
+last_updated: '2026-01-09'
 status: active
 authors:
   - bradyhau
   - Gemini 3 Pro
-context_scope: "Project Root"
-summary: "SafeChord 專案的全域知識地圖及文件概述，作為知識庫系統導航"
+context_scope: Project Root
+summary: SafeChord 專案的全域知識地圖及文件概述，作為知識庫系統導航
 keywords:
   - SafeChord
   - Knowledge Graph
   - Architecture Map
-logical_path: "SafeChord.KnowledgeTree"
+logical_path: SafeChord.KnowledgeTree
 related_docs:
-  - "safechord.md"
+  - safechord.md
+doc_version: 0.2.0
+archetype: map
+app_version: null
 ---
 
 # SafeChord 知識地圖 (Knowledge Map)

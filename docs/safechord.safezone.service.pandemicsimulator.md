@@ -1,13 +1,13 @@
 ---
-title: "Service: Pandemic Simulator"
+title: 'Service: Pandemic Simulator'
 doc_id: safechord.safezone.service.pandemicsimulator
-version: "0.2.3"
 status: active
 authors:
   - bradyhau
   - Gemini 3 Pro
-last_updated: "2026-01-04"
-summary: "Pandemic Simulator 是 SafeZone 資料流的源頭，負責將靜態的疫情數據轉換為動態的時間序列事件。本服務採用 AsyncIO 架構，並由 SafeZone CLI 統一調度，支援歷史回放、系統初始化 (Seeding) 與每日排程等多種觸發模式。"
+last_updated: '2026-01-04'
+summary: Pandemic Simulator 是 SafeZone 資料流的源頭，負責將靜態的疫情數據轉換為動態的時間序列事件。本服務採用 AsyncIO
+  架構，並由 SafeZone CLI 統一調度，支援歷史回放、系統初始化 (Seeding) 與每日排程等多種觸發模式。
 keywords:
   - Pandemic Simulator
   - Data Generation
@@ -15,21 +15,23 @@ keywords:
   - Control Plane
   - Event Sourcing
   - System Seeding
-logical_path: "SafeChord.SafeZone.Service.PandemicSimulator"
+logical_path: SafeChord.SafeZone.Service.PandemicSimulator
 related_docs:
-  - "safechord.safezone.changelog.md"
-  - "safechord.safezone.service.dataingestor.md"
-  - "safechord.safezone.toolkit.cli.md"
-parent_doc: "safechord.safezone.service"
+  - safechord.safezone.changelog.md
+  - safechord.safezone.service.dataingestor.md
+  - safechord.safezone.toolkit.cli.md
+parent_doc: safechord.safezone.service
 archetype: blueprint
 code_paths:
-  - "SafeZone/services/pandemic-simulator"
+  - SafeZone/services/pandemic-simulator
 tech_stack:
   - Python 3.13
   - FastAPI
   - AsyncIO
   - httpx
   - Pandas
+doc_version: 0.2.0
+app_version: 0.2.1
 ---
 
 # Pandemic Simulator (Service Blueprint)

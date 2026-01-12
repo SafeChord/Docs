@@ -1,34 +1,36 @@
 ---
-title: "Service: Dashboard"
+title: 'Service: Dashboard'
 doc_id: safechord.safezone.service.dashboard
-version: "0.2.1"
 status: active
 authors:
   - bradyhau
   - Gemini 3 Pro
-last_updated: "2026-01-04"
-summary: "Dashboard 是 SafeZone 的使用者互動介面，基於 Plotly Dash 構建。它具備「時光旅行」感知能力，能透過 Time Server 同步模擬時間，並將 Analytics API 的數據轉化為動態的疫情地圖與趨勢圖表。"
+last_updated: '2026-01-04'
+summary: Dashboard 是 SafeZone 的使用者互動介面，基於 Plotly Dash 構建。它具備「時光旅行」感知能力，能透過 Time Server
+  同步模擬時間，並將 Analytics API 的數據轉化為動態的疫情地圖與趨勢圖表。
 keywords:
   - Dashboard
   - Plotly Dash
   - Data Visualization
   - Time Travel
   - Interactive Map
-logical_path: "SafeChord.SafeZone.Service.Dashboard"
+logical_path: SafeChord.SafeZone.Service.Dashboard
 related_docs:
-  - "safechord.safezone.changelog.md"
-  - "safechord.safezone.service.analyticsapi.md"
-  - "safechord.safezone.toolkit.timeserver.md"
-parent_doc: "safechord.safezone.service"
+  - safechord.safezone.changelog.md
+  - safechord.safezone.service.analyticsapi.md
+  - safechord.safezone.toolkit.timeserver.md
+parent_doc: safechord.safezone.service
 archetype: blueprint
 code_paths:
-  - "SafeZone/services/dashboard"
+  - SafeZone/services/dashboard
 tech_stack:
   - Python 3.13
   - Plotly Dash 2.18
   - Dash Bootstrap Components
   - Pandas
   - Requests (Sync)
+doc_version: 0.2.0
+app_version: 0.2.1
 ---
 
 # Dashboard (Service Blueprint)

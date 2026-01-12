@@ -1,33 +1,35 @@
 ---
-title: "Service: Data Ingestor"
+title: 'Service: Data Ingestor'
 doc_id: safechord.safezone.service.dataingestor
-version: "0.2.1"
 status: active
 authors:
   - bradyhau
   - Gemini 3 Pro
-last_updated: "2026-01-04"
-summary: "Data Ingestor 是 SafeZone 系統的資料入口閘道 (Gateway)。它提供 RESTful API 接收外部事件，並將其封裝為標準化的 Kafka 訊息 (CovidContract)，實現資料寫入與處理的非同步解耦。"
+last_updated: '2026-01-04'
+summary: Data Ingestor 是 SafeZone 系統的資料入口閘道 (Gateway)。它提供 RESTful API 接收外部事件，並將其封裝為標準化的
+  Kafka 訊息 (CovidContract)，實現資料寫入與處理的非同步解耦。
 keywords:
   - Data Ingestor
   - Kafka Producer
   - Gateway
   - Event Driven
   - FastAPI
-logical_path: "SafeChord.SafeZone.Service.DataIngestor"
+logical_path: SafeChord.SafeZone.Service.DataIngestor
 related_docs:
-  - "safechord.safezone.changelog.md"
-  - "safechord.safezone.service.pandemicsimulator.md"
-  - "safechord.safezone.service.worker.md"
-parent_doc: "safechord.safezone.service"
+  - safechord.safezone.changelog.md
+  - safechord.safezone.service.pandemicsimulator.md
+  - safechord.safezone.service.worker.md
+parent_doc: safechord.safezone.service
 archetype: blueprint
 code_paths:
-  - "SafeZone/services/data-ingestor"
+  - SafeZone/services/data-ingestor
 tech_stack:
   - Python 3.13
   - FastAPI 0.115
   - Kafka (aiokafka 0.12)
   - Pydantic
+doc_version: 0.2.0
+app_version: 0.2.1
 ---
 
 # Data Ingestor (Service Blueprint)

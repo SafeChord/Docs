@@ -1,29 +1,30 @@
 ---
-title: "K3han Cluster Specification"
+title: K3han Cluster Specification
 doc_id: safechord.chorde.k3han.cluster
-version: 0.2.1
 status: active
 authors:
   - bradyhau
   - Gemini 3 Pro
-context_scope: "Chorde/cluster/k3han"
-summary: "定義 K3han 混合雲叢集的物理拓撲、節點規格與網絡覆蓋。"
+context_scope: Chorde/cluster/k3han
+summary: 定義 K3han 混合雲叢集的物理拓撲、節點規格與網絡覆蓋。
 keywords:
   - K3han
   - K3s
   - Topology
   - Tailscale
   - Hybrid Cloud
-logical_path: "SafeChord.Chorde.K3han.Cluster"
+logical_path: SafeChord.Chorde.K3han.Cluster
 related_docs:
-  - "safechord.chorde.k3han.md"
-  - "safechord.chorde.k3han.ingress.md"
-  - "safechord.chorde.k3han.scheduling.md"
-parent_doc: "safechord.chorde.k3han"
+  - safechord.chorde.k3han.md
+  - safechord.chorde.k3han.ingress.md
+  - safechord.chorde.k3han.scheduling.md
+parent_doc: safechord.chorde.k3han
 archetype: blueprint
 code_paths:
-  - "Chorde/cluster/k3han"
-  - "Chorde/gitops/base/tailscale"
+  - Chorde/cluster/k3han
+  - Chorde/gitops/base/tailscale
+doc_version: 0.2.0
+app_version: 0.2.0
 ---
 
 # K3han Cluster (Blueprint)

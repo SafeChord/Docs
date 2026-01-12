@@ -1,13 +1,12 @@
 ---
-title: "K3Han: Changelog" 
+title: 'K3Han: Changelog'
 doc_id: safechord.chorde.k3han.changelog
-version: "N/A"
 status: active
 authors:
-  - "bradyhau"
-  - "Gemini 2.5 Pro"
-last_updated: "2025-05-16"
-summary: "本文檔記錄了 K3Han 模塊各個版本的變更歷史，包括新功能、改進、錯誤修復以及重要的更新說明。"
+  - bradyhau
+  - Gemini 2.5 Pro
+last_updated: '2025-05-16'
+summary: 本文檔記錄了 K3Han 模塊各個版本的變更歷史，包括新功能、改進、錯誤修復以及重要的更新說明。
 keywords:
   - K3Han
   - changelog
@@ -17,12 +16,14 @@ keywords:
   - bug fixes
   - features
   - SafeChord
-logical_path: "SafeChord.Chorde.K3Han.Changelog"
+logical_path: SafeChord.Chorde.K3Han.Changelog
 related_docs:
-  - "safechord.knowledgetree.md"
-  - "safechord.chorde.k3han.md"
-parent_doc: "safechord.chorde.k3han"
+  - safechord.knowledgetree.md
+  - safechord.chorde.k3han.md
+parent_doc: safechord.chorde.k3han
 tech_stack: []
+doc_version: 0.2.0
+app_version: 0.2.0
 ---
 # 📜 SafeChord · Chorde · K3Han - 版本變更紀錄
 

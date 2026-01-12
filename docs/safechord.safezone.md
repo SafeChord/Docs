@@ -1,29 +1,30 @@
 ---
-title: "Map: SafeZone Application Architecture"
+title: 'Map: SafeZone Application Architecture'
 doc_id: safechord.safezone
-version: "0.2.1"
 status: active
 authors:
-  - "bradyhau"
-  - "Gemini 3 Pro"
-last_updated: "2026-01-09"
-summary: "SafeZone 應用層的導航地圖。定義微服務架構、非同步資料流向 (Data Flow) 與各組件的職責邊界。"
+  - bradyhau
+  - Gemini 3 Pro
+last_updated: '2026-01-09'
+summary: SafeZone 應用層的導航地圖。定義微服務架構、非同步資料流向 (Data Flow) 與各組件的職責邊界。
 keywords:
   - SafeZone
   - Map
   - Architecture
   - Data Flow
   - Microservices
-logical_path: "SafeChord.SafeZone"
+logical_path: SafeChord.SafeZone
 related_docs:
-  - "safechord.safezone.service.dataingestor.md"
-  - "safechord.safezone.service.worker.md"
-  - "safechord.safezone.service.analyticsapi.md"
-  - "safechord.safezone.deployment.md"
-parent_doc: "safechord"
+  - safechord.safezone.service.dataingestor.md
+  - safechord.safezone.service.worker.md
+  - safechord.safezone.service.analyticsapi.md
+  - safechord.safezone.deployment.md
+parent_doc: safechord
 archetype: map
 code_paths:
-  - "SafeZone/services"
+  - SafeZone/services
+doc_version: 0.2.0
+app_version: 0.2.1
 ---
 
 # 🗺️ SafeZone 應用架構地圖 (Map)

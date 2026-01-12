@@ -1,27 +1,28 @@
 ---
-title: "Map: Chorde Platform Framework" 
+title: 'Map: Chorde Platform Framework'
 doc_id: safechord.chorde
-version: "0.2.1"
 status: active
 authors:
-  - "bradyhau"
-  - "Gemini 3 Pro"
-last_updated: "2026-01-09"
-summary: "Chorde 平台層的導航地圖。定義多叢集管理框架與 GitOps 同步機制。"
+  - bradyhau
+  - Gemini 3 Pro
+last_updated: '2026-01-09'
+summary: Chorde 平台層的導航地圖。定義多叢集管理框架與 GitOps 同步機制。
 keywords:
   - Chorde
   - Platform Layer
   - Multi-cluster
   - GitOps
   - Horde
-logical_path: "SafeChord.Chorde"
+logical_path: SafeChord.Chorde
 related_docs:
-  - "safechord.md"
-  - "safechord.chorde.k3han.md"
-parent_doc: "safechord"
+  - safechord.md
+  - safechord.chorde.k3han.md
+parent_doc: safechord
 archetype: map
 code_paths:
-  - "Chorde/gitops"
+  - Chorde/gitops
+doc_version: 0.2.0
+app_version: 0.2.0
 ---
 
 # 🛠️ Chorde 平台層地圖 (Map)

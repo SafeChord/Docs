@@ -1,26 +1,27 @@
 ---
-title: "Toolkit: CLI Command Reference (Instruction Set)"
+title: 'Toolkit: CLI Command Reference (Instruction Set)'
 doc_id: safechord.safezone.toolkit.cli.reference
-version: "0.2.1"
 status: active
 authors:
   - bradyhau
   - Gemini 3 Pro
-last_updated: "2026-01-08"
-summary: "SafeZone CLI 的指令操作手冊。本文件採用「意圖導向 (Intent-Driven)」結構，旨在作為人類維運者與 AI Agent 執行系統任務時的標準參考。包含環境配置要求、指令範式與預期行為。"
+last_updated: '2026-01-08'
+summary: SafeZone CLI 的指令操作手冊。本文件採用「意圖導向 (Intent-Driven)」結構，旨在作為人類維運者與 AI Agent 執行系統任務時的標準參考。包含環境配置要求、指令範式與預期行為。
 keywords:
   - szcli
   - Command Reference
   - Instruction Set
   - Cheat Sheet
   - AI Prompts
-logical_path: "SafeChord.SafeZone.Toolkit.CLI.Reference"
+logical_path: SafeChord.SafeZone.Toolkit.CLI.Reference
 related_docs:
-  - "safechord.safezone.toolkit.cli.md"
-parent_doc: "safechord.safezone.toolkit.cli"
+  - safechord.safezone.toolkit.cli.md
+parent_doc: safechord.safezone.toolkit.cli
 archetype: script
 code_paths:
-  - "SafeZone/toolkit/cli/command"
+  - SafeZone/toolkit/cli/command
+doc_version: 0.2.0
+app_version: 0.2.1
 ---
 
 # CLI Instruction Set (szcli)

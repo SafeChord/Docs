@@ -1,13 +1,14 @@
 ---
-title: "Roadmap: The Reliability Journey"
+title: 'Roadmap: The Reliability Journey'
 doc_id: safechord.roadmap
-version: "0.3.0-planning"
 status: planning
 authors:
-  - "bradyhau"
-  - "Gemini 3 Pro"
-last_updated: "2026-01-04"
-summary: "定義 SafeChord v0.3.0 的核心目標。本版本採用 'Architecture TDD' (架構測試驅動開發) 思維。我們的目標並非立即達成完美的效能，而是先定義「架構斷言 (Architectural Assertions)」(即 SLO)，並建構對應的觀測工具鏈 (k6, Prometheus) 來執行這些測試，最終產出系統的基準線報告 (Baseline Report)。"
+  - bradyhau
+  - Gemini 3 Pro
+last_updated: '2026-01-04'
+summary: 定義 SafeChord v0.3.0 的核心目標。本版本採用 'Architecture TDD' (架構測試驅動開發) 思維。我們的目標並非立即達成完美的效能，而是先定義「架構斷言
+  (Architectural Assertions)」(即 SLO)，並建構對應的觀測工具鏈 (k6, Prometheus) 來執行這些測試，最終產出系統的基準線報告
+  (Baseline Report)。
 keywords:
   - Roadmap
   - Architecture TDD
@@ -15,13 +16,14 @@ keywords:
   - Reliability
   - k6
   - Baseline
-logical_path: "SafeChord.Roadmap"
+logical_path: SafeChord.Roadmap
 related_docs:
-  - "safechord.safezone.md"
-  - "safechord.chorde.k3han.monitoring.md"
-parent_doc: "safechord"
+  - safechord.safezone.md
+  - safechord.chorde.k3han.monitoring.md
+parent_doc: safechord
 archetype: brain
 code_paths: []
+doc_version: 0.2.0
 ---
 
 # 🛣️ SafeChord Roadmap: Toward Observable Reliability

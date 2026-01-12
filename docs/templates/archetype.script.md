@@ -1,7 +1,9 @@
 ---
 title: "[Workflow Name] Workflow"
 doc_id: safechord.[layer].workflow.[name]
-version: 0.0.1
+doc_version: [Document Version]
+app_version: [Target Application Version]
+last_updated: "YYYY-MM-DD"
 status: draft
 authors:
   - [Author Name]

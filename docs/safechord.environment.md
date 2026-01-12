@@ -1,14 +1,13 @@
 ---
 title: Environment Landscape & Evolution
 doc_id: safechord.environment
-version: 0.2.4
-last_updated: "2026-01-02"
+last_updated: '2026-01-02'
 status: active
 authors:
   - bradyhau
   - Gemini 3 Pro
-context_scope: "Global"
-summary: "定義 SafeChord 系統的環境策略。闡述我們如何依據開發生命週期的不同階段（Local, Preview, Staging），在資源隔離與平台整合之間做出務實的架構權衡。"
+context_scope: Global
+summary: 定義 SafeChord 系統的環境策略。闡述我們如何依據開發生命週期的不同階段（Local, Preview, Staging），在資源隔離與平台整合之間做出務實的架構權衡。
 keywords:
   - Environment
   - Docker Compose
@@ -17,11 +16,14 @@ keywords:
   - Service Discovery
   - PaaS
   - Soak Testing
-logical_path: "SafeChord.Environment"
+logical_path: SafeChord.Environment
 related_docs:
-  - "safechord.chorde.k3han.md"
-  - "safechord.safezone.deployment.charts.md"
-parent_doc: "safechord"
+  - safechord.chorde.k3han.md
+  - safechord.safezone.deployment.charts.md
+parent_doc: safechord
+doc_version: 0.2.0
+archetype: map
+app_version: null
 ---
 
 # 環境演進論 (Environment Evolution)

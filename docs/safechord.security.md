@@ -1,14 +1,14 @@
 ---
 title: Security Architecture & Governance
 doc_id: safechord.security
-version: 0.2.0
-last_updated: "2026-01-02"
+last_updated: '2026-01-02'
 status: active
 authors:
   - bradyhau
   - Gemini 3 Pro
-context_scope: "Global"
-summary: "定義 SafeChord 的安全治理準則。涵蓋基於 SealedSecrets 的機密管理、最小權限控制 (RBAC) 以及基於 Google OAuth2 的 API 安全接入策略。"
+context_scope: Global
+summary: 定義 SafeChord 的安全治理準則。涵蓋基於 SealedSecrets 的機密管理、最小權限控制 (RBAC) 以及基於 Google OAuth2
+  的 API 安全接入策略。
 keywords:
   - Security
   - SecretOps
@@ -16,12 +16,14 @@ keywords:
   - OAuth2
   - IAM
   - NetworkPolicy
-logical_path: "SafeChord.Security"
+logical_path: SafeChord.Security
 related_docs:
-  - "safechord.environment.md"
-  - "safechord.safezone.deployment.charts.md"
-  - "safechord.chorde.k3han.ingress.md"
-parent_doc: "safechord"
+  - safechord.environment.md
+  - safechord.safezone.deployment.charts.md
+  - safechord.chorde.k3han.ingress.md
+parent_doc: safechord
+doc_version: 0.2.0
+archetype: brain
 ---
 
 # 🛡️ 安全架構與治理 (Security Architecture & Governance)

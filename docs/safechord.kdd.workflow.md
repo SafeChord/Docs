@@ -1,24 +1,26 @@
 ---
 title: KDD Workflow (Three-Step Process)
 doc_id: safechord.kdd.workflow
-version: 1.0.0
-last_updated: "2025-12-25"
+last_updated: '2025-12-25'
 status: active
 authors:
   - bradyhau
   - Gemini 3 Pro
-context_scope: "Methodology"
-summary: "詳細定義 Knowledge-Driven Development (KDD) 的三階段工作流程：從高階架構定義 (Step 1)，到詳細語意與 TDD 規格標記 (Step 2)，最終達成自動化生成 (Step 3)。"
+context_scope: Methodology
+summary: 詳細定義 Knowledge-Driven Development (KDD) 的三階段工作流程：從高階架構定義 (Step 1)，到詳細語意與
+  TDD 規格標記 (Step 2)，最終達成自動化生成 (Step 3)。
 keywords:
   - KDD Process
   - Semantic Tagging
   - TDD
   - Prompt Engineering
-logical_path: "SafeChord.KDD.Workflow"
+logical_path: SafeChord.KDD.Workflow
 related_docs:
-  - "safechord.kdd.practice.md"
-  - "safechord.knowledgetree.md"
-parent_doc: "safechord.kdd.introduction"
+  - safechord.kdd.practice.md
+  - safechord.knowledgetree.md
+parent_doc: safechord.kdd.introduction
+doc_version: 0.2.0
+archetype: brain
 ---
 
 # KDD 工作流程 (KDD Workflow)

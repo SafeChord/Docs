@@ -1,7 +1,8 @@
 ---
 title: "[Decision/Concept Name]"
 doc_id: safechord.[layer].[concept]
-version: 0.0.1
+doc_version: [Document Version]
+last_updated: "YYYY-MM-DD"
 status: draft
 authors:
   - [Author Name]

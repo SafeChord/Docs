@@ -3,19 +3,21 @@ title: Welcome
 doc_id: landing_page
 status: active
 authors:
-  - "bradyhau"
-  - "Gemini 3 Pro"
-last_updated: "2026-01-11"
-summary: "SafeChord 專案的網站入口頁面 (Landing Page)。提供專案簡介與快速導航入口。"
+  - bradyhau
+  - Gemini 3 Pro
+last_updated: '2026-01-11'
+summary: SafeChord 專案的網站入口頁面 (Landing Page)。提供專案簡介與快速導航入口。
 keywords:
   - Landing Page
   - Portfolio
   - Entry Point
-logical_path: "Web.Index"
+logical_path: Web.Index
 related_docs:
-  - "safechord.md"
-  - "safechord.kdd.introduction.md"
-archetype: blueprint
+  - safechord.md
+  - safechord.kdd.introduction.md
+archetype: map
+doc_version: 0.2.0
+app_version: null
 ---
 
 # Welcome to SafeChord

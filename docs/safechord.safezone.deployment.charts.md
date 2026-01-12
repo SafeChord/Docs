@@ -1,27 +1,28 @@
 ---
-title: "Blueprint: SafeZone Helm Chart Architecture"
+title: 'Blueprint: SafeZone Helm Chart Architecture'
 doc_id: safechord.safezone.deployment.charts
-version: 0.2.1
 status: active
 authors:
-  - "bradyhau"
-  - "Gemini 3 Pro"
-last_updated: "2026-01-09"
-summary: "詳解 SafeZone 的 Helm Umbrella Chart 架構。包含分層依賴關係、服務發現機制以及 KEDA 自動伸縮配置。"
+  - bradyhau
+  - Gemini 3 Pro
+last_updated: '2026-01-09'
+summary: 詳解 SafeZone 的 Helm Umbrella Chart 架構。包含分層依賴關係、服務發現機制以及 KEDA 自動伸縮配置。
 keywords:
   - Helm
   - Umbrella Chart
   - Kubernetes
   - Architecture
   - KEDA
-logical_path: "SafeChord.SafeZone.Deployment.Charts"
+logical_path: SafeChord.SafeZone.Deployment.Charts
 related_docs:
-  - "safechord.safezone.deployment.workflow.md"
-  - "safechord.safezone.md"
-parent_doc: "safechord.safezone"
+  - safechord.safezone.deployment.workflow.md
+  - safechord.safezone.md
+parent_doc: safechord.safezone
 archetype: blueprint
 code_paths:
-  - "SafeZone-Deploy/helm-charts"
+  - SafeZone-Deploy/helm-charts
+doc_version: 0.2.0
+app_version: 0.2.1
 ---
 
 # 📦 SafeZone Helm Chart 架構

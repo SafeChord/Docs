@@ -1,13 +1,13 @@
 ---
-title: "Toolkit: SafeZone CLI (szcli)"
+title: 'Toolkit: SafeZone CLI (szcli)'
 doc_id: safechord.safezone.toolkit.cli
-version: "0.2.1"
 status: active
 authors:
   - bradyhau
   - Gemini 3 Pro
-last_updated: "2026-01-08"
-summary: "SafeZone CLI (szcli) 是系統的指揮官與控制台。採用 Client-Relay 架構，Client 端提供 Typer CLI 介面，Relay 端則作為 K8s 內部的受信任 Gateway，負責執行特權操作並驗證 Google OAuth 憑證。"
+last_updated: '2026-01-08'
+summary: SafeZone CLI (szcli) 是系統的指揮官與控制台。採用 Client-Relay 架構，Client 端提供 Typer CLI
+  介面，Relay 端則作為 K8s 內部的受信任 Gateway，負責執行特權操作並驗證 Google OAuth 憑證。
 keywords:
   - SafeZone CLI
   - szcli
@@ -15,21 +15,23 @@ keywords:
   - Typer
   - FastAPI
   - Headless OAuth
-logical_path: "SafeChord.SafeZone.Toolkit.CLI"
+logical_path: SafeChord.SafeZone.Toolkit.CLI
 related_docs:
-  - "safechord.safezone.toolkit.cli.reference.md"
-  - "safechord.safezone.md"
-  - "safechord.security.md"
-parent_doc: "safechord.safezone.toolkit"
+  - safechord.safezone.toolkit.cli.reference.md
+  - safechord.safezone.md
+  - safechord.security.md
+parent_doc: safechord.safezone.toolkit
 archetype: blueprint
 code_paths:
-  - "SafeZone/toolkit/cli"
+  - SafeZone/toolkit/cli
 tech_stack:
   - Python 3.13
   - Typer (CLI Framework)
   - FastAPI (Relay Server)
   - Google OAuth 2.0 (Headless)
   - Rich (Terminal UI)
+doc_version: 0.2.0
+app_version: 0.2.1
 ---
 
 # SafeZone CLI (Toolkit Blueprint)

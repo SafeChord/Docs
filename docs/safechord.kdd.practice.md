@@ -1,25 +1,27 @@
 ---
 title: KDD Practice & AI Agent Collaboration Guide
 doc_id: safechord.kdd.practice
-version: 0.2.0
-last_updated: "2025-12-25"
+last_updated: '2025-12-25'
 status: active
 authors:
   - bradyhau
   - Gemini 3 Pro (CLI)
-context_scope: "Methodology"
-summary: "定義 SafeChord 專案當前與 AI Agent 協作的實作模式。基於 Architect-Builder-Coder 三位一體模型，規範文檔驅動開發的具體流程與 Repo 邊界管理。"
+context_scope: Methodology
+summary: 定義 SafeChord 專案當前與 AI Agent 協作的實作模式。基於 Architect-Builder-Coder 三位一體模型，規範文檔驅動開發的具體流程與
+  Repo 邊界管理。
 keywords:
   - AI Agents
   - Collaboration
   - KDD
   - Multi-Agent Workflow
-logical_path: "SafeChord.KDD.Practice"
+logical_path: SafeChord.KDD.Practice
 related_docs:
-  - "safechord.kdd.introduction.md"
-  - "safechord.knowledgetree.md"
-  - "safechord.environment.md"
-parent_doc: "safechord.kdd.introduction"
+  - safechord.kdd.introduction.md
+  - safechord.knowledgetree.md
+  - safechord.environment.md
+parent_doc: safechord.kdd.introduction
+doc_version: 0.2.0
+archetype: brain
 ---
 
 # KDD 實作現狀：AI Agent 協作守則

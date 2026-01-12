@@ -1,7 +1,9 @@
 ---
 title: "[System/Module Name] Overview"
 doc_id: safechord.[layer].[module]
-version: 0.0.1
+doc_version: [Document Version]
+app_version: "[Repository Version or null]"
+last_updated: "YYYY-MM-DD"
 status: draft
 authors:
   - [Author Name]

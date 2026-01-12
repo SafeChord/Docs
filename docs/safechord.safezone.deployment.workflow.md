@@ -1,25 +1,26 @@
 ---
-title: "Script: SafeZone Deployment Workflow"
+title: 'Script: SafeZone Deployment Workflow'
 doc_id: safechord.safezone.deployment.workflow
-version: 0.2.1
 status: active
 authors:
-  - "bradyhau"
-  - "Gemini 3 Pro"
-last_updated: "2026-01-09"
-summary: "定義 SafeZone-Deploy 倉庫的 GitOps 工作流程。描述如何透過指令式編排與聲明式同步，達成版本晉升與發布歸檔。"
+  - bradyhau
+  - Gemini 3 Pro
+last_updated: '2026-01-09'
+summary: 定義 SafeZone-Deploy 倉庫的 GitOps 工作流程。描述如何透過指令式編排與聲明式同步，達成版本晉升與發布歸檔。
 keywords:
   - GitOps
   - ArgoCD
   - GitHub Actions
   - Environment Promotion
   - Deployment
-logical_path: "SafeChord.SafeZone.Deployment.Workflow"
+logical_path: SafeChord.SafeZone.Deployment.Workflow
 related_docs:
-  - "safechord.safezone.deployment.charts.md"
-  - "safechord.environment.md"
-parent_doc: "safechord.safezone.deployment"
+  - safechord.safezone.deployment.charts.md
+  - safechord.environment.md
+parent_doc: safechord.safezone.deployment
 archetype: script
+doc_version: 0.2.0
+app_version: 0.2.1
 ---
 
 # SafeZone 部署與 GitOps 流程

@@ -1,14 +1,14 @@
 ---
 title: SafeZone ChangeLog
 doc_id: safechord.safezone.changelog
-version: 0.2.1
-last_updated: "2025-09-12"
+last_updated: '2025-09-12'
 status: active
 authors:
   - bradyhau
   - Gemini 2.5 Pro
-context_scope: "SafeZone Module"
-summary: "記錄 SafeZone 應用層的版本演進。對於 AI Agent 而言，本文件是追蹤架構變更、廢棄功能及新引入技術的重要依據，確保 Context 的時效性。"
+context_scope: SafeZone Module
+summary: 記錄 SafeZone 應用層的版本演進。對於 AI Agent 而言，本文件是追蹤架構變更、廢棄功能及新引入技術的重要依據，確保 Context
+  的時效性。
 keywords:
   - SafeZone
   - Changelog
@@ -16,11 +16,13 @@ keywords:
   - v0.2.1
   - KRaft
   - Migration
-logical_path: "SafeChord.SafeZone.ChangeLog"
+logical_path: SafeChord.SafeZone.ChangeLog
 related_docs:
-  - "safechord.knowledgetree.md"
-  - "safechord.safezone.md"
-parent_doc: "safechord.safezone"
+  - safechord.knowledgetree.md
+  - safechord.safezone.md
+parent_doc: safechord.safezone
+doc_version: 0.2.0
+app_version: 0.2.1
 ---
 
 # SafeZone 版本變更日誌

@@ -1,11 +1,11 @@
 ---
 title: "Service: [Service Name]"
 doc_id: safechord.safezone.service.[name]
-version: 0.1.0
+doc_version: [Document Version]
+app_version: [Target Application Version]
 status: draft
 authors:
-  - bradyhau
-  - Gemini 3 Pro
+ - [Author Name]
 last_updated: "YYYY-MM-DD"
 summary: "[一句話描述：核心職責、資料流位置、技術特性]"
 keywords:

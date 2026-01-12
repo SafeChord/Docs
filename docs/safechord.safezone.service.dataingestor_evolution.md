@@ -1,26 +1,26 @@
 ---
-title: "ADR: Evolution of Data Ingestor Architecture"
+title: 'ADR: Evolution of Data Ingestor Architecture'
 doc_id: safechord.safezone.ingestor_evolution
-version: "1.0.0"
 status: active
 authors:
   - bradyhau
   - Gemini 3 Pro
-context_scope: "SafeZone Architecture"
-summary: "記錄 Data Ingestor 從 v0.1.0 直接寫入資料庫模式，演進至 v0.2.0 事件驅動架構 (Event-Driven) 的決策過程與權衡。"
+context_scope: SafeZone Architecture
+summary: 記錄 Data Ingestor 從 v0.1.0 直接寫入資料庫模式，演進至 v0.2.0 事件驅動架構 (Event-Driven) 的決策過程與權衡。
 keywords:
   - ADR
   - Architecture Evolution
   - Event-Driven
   - Kafka
   - Load Leveling
-logical_path: "SafeChord.SafeZone.Brain.IngestorEvolution"
+logical_path: SafeChord.SafeZone.Brain.IngestorEvolution
 related_docs:
-  - "safechord.safezone.service.dataingestor.md"
-  - "safechord.safezone.service.worker.md"
-parent_doc: "safechord.safezone"
+  - safechord.safezone.service.dataingestor.md
+  - safechord.safezone.service.worker.md
+parent_doc: safechord.safezone
 archetype: brain
 code_paths: []
+doc_version: 0.2.0
 ---
 
 # ADR: Data Ingestor 架構演進 (Direct DB -> Event Sourcing)
