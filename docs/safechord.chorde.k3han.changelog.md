@@ -27,11 +27,41 @@ app_version: 0.2.0
 ---
 # 📜 SafeChord · Chorde · K3Han - 版本變更紀錄
 
-> 本文件記錄 K3Han 架構自 v0.1.0 起的重要變更點，涵蓋節點佈局、模組部署、調度邏輯與設計哲學的轉變。每個版本皆對應可查閱之 `.md` 文件，供對比與回溯使
+> 本文件記錄 K3Han 架構自 v0.1.0 起的重要變更點，涵蓋節點佈局、模組部署、調度邏輯與設計哲學的轉變。每個版本皆對應可查閱之 `.md` 文件，供對比與回溯使用。
 
 ---
 
-## 🔖 \[v0.2.0 - Latest] - 2024-05-09 
+## 🔖 [v0.3.0 - Latest] - 2026-03-07
+
+**本版核心變更：**
+
+* **GitOps v2 架構重構**：
+    * 引入 `ApplicationSet` 取代單一 `Application` 模式，實現動態服務註冊與層級編排。
+    * 實施三階段同步策略 (Stages)：`00-bootstrap` (基礎)、`01-platform` (維運)、`02-components` (應用組件)。
+    * 建立 `root.yaml` 作為全域 GitOps 入口點 (Entry Point)。
+* **配置模式現代化**：
+    *   **基礎設施 Operator 化**：正式完成從 Bitnami 系單體 Helm Charts 轉向 **Operator-managed** 部署模式。
+        *   **PostgreSQL**: 採用 CloudNativePG (CNPG) 替代原先的 Bitnami PostgreSQL Chart，實現更原生的備援與擴展管理。
+        *   **Kafka**: 採用 Strimzi Operator 替代 Bitnami Kafka Chart，並統一使用官方 Helm Chart 進行 Operator 的生命週期管理。
+    *   **ArgoCD Multiple Sources Pattern**：直接引用各組件官方 Helm Chart (Upstream) 並搭配本地 `$chorde-repo` 的 `values-custom.yaml` 進行客製化。
+    *   正式廢棄並移除 `helm-charts/` 本地目錄，降低倉庫維護複雜度。
+* **基礎設施與維運優化**：
+    * 固化所有 Manifests 路徑至 `main` 分支。
+    * 明確 Ansible Playbooks 作為「行為紀錄 (Record of Actions)」之定位，以應對高變異度的節點環境。
+    * 完成 Loki 存儲後端遷移至 S3 (Amazon S3 JP)。
+    * 優化 Prometheus 抓取規則，消除 Grafana 指標抓取的日誌噪音。
+* **代理人治理規範**：
+    * 更新 `.rule/10-chorde.md`，在授權前提下開放 `kubectl`、`argocd`、`logcli` 等工具存取權，強化 AI 代理人的故障排除能力。
+
+📂 對應文件：
+
+* `safechord.chorde.k3han.md` (架構總覽)
+* `safechord.chorde.k3han.cluster.md` (叢集細節)
+* `safechord.chorde.k3han.monitoring.md` (監控優化)
+
+---
+
+## 🔖 [v0.2.0] - 2024-05-09 
 
 **本版核心變更：**
 

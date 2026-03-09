@@ -4,7 +4,7 @@ doc_id: safechord.chorde.k3han.cluster
 status: active
 authors:
   - bradyhau
-  - Gemini 3 Pro
+  - Gemini 3.5 Pro
 context_scope: Chorde/cluster/k3han
 summary: 定義 K3han 混合雲叢集的物理拓撲、節點規格與網絡覆蓋。
 keywords:
@@ -22,9 +22,9 @@ parent_doc: safechord.chorde.k3han
 archetype: blueprint
 code_paths:
   - Chorde/cluster/k3han
-  - Chorde/gitops/base/tailscale
-doc_version: 0.2.0
-app_version: 0.2.0
+  - Chorde/gitops/k3han
+doc_version: 0.3.0
+app_version: 0.3.0
 ---
 
 # K3han Cluster (Blueprint)
@@ -38,7 +38,9 @@ app_version: 0.2.0
 *   **Cost Efficiency (MVA)**: 採用 "Scatter-Gather" 策略，整合低成本 VPS (Contabo) 與 GCP 入口資源。**總體營運成本控制在約 NT$800/月 以內**，達成高性能與低負擔的平衡。
 *   **Network Overlay**: 透過 **Tailscale** 建立跨國、跨網段的統一內網 (Mesh Network)，屏蔽底層網路差異。
 *   **Split Architecture**: 將 "Control Plane" (高穩定) 與 "Data Plane" (高效能) 物理分離。
-*   **Provisioning Strategy**: 目前採用 **Manual Provisioning (手動建置)**，輔以 Ansible Inventory 作為靜態資產紀錄。
+*   **Provisioning Strategy (v0.3.0)**: 
+    *   **Ansible**: 作為 **行為紀錄 (Record of Actions)** 與配置文檔化工具，用於紀錄高變異度節點的初始化步驟。
+    *   **GitOps**: 採用 **Recursive GitOps v2** (ApplicationSet)，將基礎設施資源與應用邏輯完全解耦，透過 `root.yaml` 進行集中化宣告式部署。
 
 ## 2. 物理拓撲 (Physical Topology)
 本叢集採用 **"Hub & Spoke"** 物理架構，節點分散於三個地理區域。

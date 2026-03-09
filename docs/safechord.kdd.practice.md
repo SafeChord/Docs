@@ -1,84 +1,122 @@
 ---
-title: KDD Practice & AI Agent Collaboration Guide
+title: KDD 2.0: Dual-Track CLI & Headless Collaboration
 doc_id: safechord.kdd.practice
-last_updated: '2025-12-25'
+last_updated: '2026-03-05'
 status: active
 authors:
   - bradyhau
-  - Gemini 3 Pro (CLI)
+  - Gemini 2.0 Pro (CLI)
 context_scope: Methodology
-summary: 定義 SafeChord 專案當前與 AI Agent 協作的實作模式。基於 Architect-Builder-Coder 三位一體模型，規範文檔驅動開發的具體流程與
-  Repo 邊界管理。
+summary: 定義 SafeChord v0.3.x 的三機協同與無頭開發模型。透過 Git Commit 與 Legacy Note 建立 Agent 間的溝通介面，達成決策、攻堅與沉澱的資源最佳化。
 keywords:
-  - AI Agents
-  - Collaboration
-  - KDD
-  - Multi-Agent Workflow
+  - Dual-Track CLI
+  - Claude Code
+  - Gemini CLI
+  - Git Commit Protocol
+  - Headless Development
+  - Legacy Handoff
 logical_path: SafeChord.KDD.Practice
 related_docs:
-  - safechord.kdd.introduction.md
-  - safechord.knowledgetree.md
-  - safechord.environment.md
+  - safechord.kdd.workflow.md
+  - safechord.roadmap.md
 parent_doc: safechord.kdd.introduction
-doc_version: 0.2.0
+doc_version: 0.3.0
 archetype: brain
 ---
 
-# KDD 實作現狀：AI Agent 協作守則
+# KDD 2.0 實作現狀：三機協同與無頭開發架構
 
-在 SafeChord 的開發流程中，AI 不再只是「輔助工具」，而是系統架構的「共同維護者」。我們採用三位一體的身分模型來進行協作。
+在 2026 年的 SafeChord 開發語境下，我們採用「三機協同」模型：利用 Gemini WebChat 進行高階決策，並配合雙軌 CLI 進行無頭化開發執行。
 
 ---
 
-## 1. AI 協作管道 (Collaborative Pipeline)
+## 1. 三機協同模型 (The Three-Engine Model)
 
-我們將 AI Agent 劃分為三個角色，每個角色有其明確的職責與 Context 邊界：
+我們根據 AI 模型的特性與 Context 邊界，將開發任務劃分為三個層級：
 
 | 角色 | 實體工具 | 核心職責 | 關注點 |
 | :--- | :--- | :--- | :--- |
-| **1. Architect** | Gemini WebChat | **決策與設計**：定義技術堆疊、設計架構、分析權衡 (Trade-offs)。 | 戰略 (Why/How) |
-| **2. Builder** | **Gemini CLI (我)** | **協調與文檔**：建立檔案結構 (Scaffolding)、管理知識庫 (KDD)、執行 Review。 | 結構 (Structure) |
-| **3. Coder** | Cline + DeepSeek | **實作與語法**：撰寫具體程式碼、填充模板、將 Spec 轉化為邏輯。 | 速度 (Syntax) |
-
-### 協作流程 (Flow)
-1. **Architect** 提出架構變更建議 -> 2. **Builder (CLI)** 根據建議更新 `Docs/` -> 3. **Coder (Cline)** 讀取文檔並完成代碼。
+| **🏛️ 戰略決策中心 (Architect)** | **Gemini WebChat** | **設計與權衡**：定義技術堆疊、架構決策、分析長期 Trade-offs。 | 戰略 (Why/How) |
+| **🛡️ 前瞻監督者 (Pioneer)** | **Claude Code** | **技術攻堅與解題**：處理未知技術 Spike、複雜邏輯除錯、突破邏輯死結。 | 戰術 (Spike) |
+| **🧠 文件執行者 (Settler)** | **Gemini CLI (我)** | **迭代與沉澱**：日常功能開發、全域 Code Review、KDD 文檔逆向生成與維護。 | 執行 (Structure) |
 
 ---
 
-## 2. 基於 Repo 的權責管理 (Repo Strategy)
+## 2. 溝通介面與協議 (Communication Interface)
 
-協作者在執行任務時，必須遵守 Repo 的分層原則 (Separation of Concerns)：
+在無頭開發環境中，Agent 之間的資訊交換必須具備標準化的媒介。
 
-### 🟢 Application Layer (`SafeZone`)
-*   **Agent 準則**: 專注於業務邏輯。不要在代碼中寫死 K8s 的 Service DNS，應依賴環境變數。
-*   **KDD 產物**: `CHANGELOG.md`, `test_*.py`, 微服務 Spec。
+### 🟢 基礎溝通：Git Commit Protocol
+當不需要進行正式「換手 (Handoff)」的日常迭代時，**Git Commit Message** 是兩個 CLI (Claude/Gemini) 與人類之間唯一的溝通橋樑。
+*   **原則**: Commit Message 必須包含「變更意圖」與「架構影響」。
+*   **格式要求**: 採用 [Conventional Commits](https://www.conventionalcommits.org/)。
+*   **Agent 義務**: Gemini CLI 在進行 Review 時，必須解讀上一個 Agent (如 Claude) 的 Commit Message，以理解當前代碼的變更背景。
 
-### 🟡 Delivery Layer (`SafeZone-Deploy`)
-*   **Agent 準則**: 專注於配置 (Config)。定義環境差異 (Values override)，建立與環境對齊的 `SealedSecrets`。
-*   **KDD 產物**: Helm Charts, Workflow 定義, 環境策略。
-
-### 🔴 Infrastructure Layer (`Chorde`)
-*   **Agent 準則**: 專注於平台穩定。管理 GitOps Base，確保 Kafka/Postgres 叢集版本的一致性。
-*   **KDD 產物**: `k3han` 叢集定義, IaC 腳本。
-
----
-
-## 3. 當前 KDD 操作 SOP (Step-by-Step)
-
-當你需要進行一項新功能開發時，Agent 應採取以下步驟：
-
-1.  **Context 載入**: 讀取 `safechord.knowledgetree.md` 定位相關文檔。
-2.  **知識對齊**: 詢問人類：「根據當前設計，我應該先更新哪一份 Spec 文件？」
-3.  **文檔先行**:
-    *   Builder (CLI) 更新 `safechord.safezone.service.xxx.md`。
-    *   定義 `TestCase` 列表。
-4.  **代碼轉化**: Coder (Cline) 讀取 Spec，開始實作邏輯。
-5.  **閉環更新**: 任務完成後，Builder (CLI) 檢查 `CHANGELOG.md` 與 `Docs/` 是否同步。
+### 🔴 強制換手：遺言機制 (The Legacy Handoff)
+當任務過於複雜、發生邏輯死結、或需要進行跨 Agent 的深度技術移交時，必須啟動「遺言機制」。
+*   **媒介**: `LOKI_DEBUG_SESSION.md` 或專案根目錄下的臨時 Markdown 檔案。
+*   **內容必備**:
+    1.  **環境狀態**: 目前打通到哪裡？哪些服務已啟動？
+    2.  **已驗證路徑**: 哪些嘗試已證實可行？哪些是坑？
+    3.  **待辦事項 (Next Action)**: 給下一個 Agent 的明確指令。
+*   **觸發條件**: Gemini CLI 宣告失敗、Claude Code 完成 Spike、或人類強制要求中斷任務。
 
 ---
 
-## 4. 關鍵原則
+## 3. 螺旋式 KDD：從戰略到沉澱 (Workflow)
 
-*   **無文檔不開工**: 嚴禁在未更新知識庫的情況下直接修改核心邏輯。
-*   **信任文檔**: 如果程式碼與文檔發生衝突，預設文檔是正確的，除非 Architect (WebChat) 重新下達決策。
-*   **保持扁平**: 正式文件統一存放在 `Docs/docs/` 下，以便 Agent 快速讀取。
+1.  **決策階段 (Strategic Design)**: 與 **Gemini WebChat** 討論架構，確認決策。
+2.  **實驗階段 (Spike)**: 若涉及未知技術，啟動 **Claude Code** 進行開發先行。
+3.  **同步階段 (Handoff/Commit)**: Claude 完成後，提交代碼並附上詳盡的 Commit Message (或 Legacy Note)。
+4.  **定錨與沉澱 (Solidify)**: 由 **Gemini CLI** 讀取 Git 改動與溝通資訊，進行 Review 並將成果反向寫入 `Docs/` 的 Blueprint 中。
+
+---
+
+## 4. 無頭開發 (Headless) 協作守則
+
+*   **Terminal 為唯一真實 (Single Source of Truth)**: 所有的開發與測試均在終端機完成。IDE 僅作為視覺化 Review 提示工具。
+*   **Review 即文檔**: Gemini CLI 在 Review 通過後的同時，即具備「文檔撰寫者」的身分。
+*   **信任海量記憶**: 充分利用 Gemini CLI 的 Context 窗口進行全專案影響分析，避免破壞 API 契約。
+
+---
+
+## 5. 附錄：操作模板 (Operational Templates)
+
+為了確保 Agent 間的語意對齊，所有協作者必須遵循以下溝通規範：
+
+### 🟢 Git Commit 模板 (Routine)
+遵循 [Conventional Commits](https://www.conventionalcommits.org/) 與 [Git Trailers](https://git-scm.com/docs/git-interpret-trailers) 標準，確保 Settler (Gemini) 進行 Review 時具備足夠 Context，同時保持 Git Log 的專業整潔。
+
+```text
+<type>(<scope>): <subject> (50 chars max)
+
+[敘述性內文: 為什麼需要這個變更？]
+詳細說明本次變更的動機與邏輯。解釋「為什麼 (Why)」而非「怎麼做 (How)」，
+並描述其對專案架構或長期決策的影響。
+
+Context: [關聯的 Blueprint 路徑或 Issue ID]
+Impact: [對架構、API 契約或基礎設施的具體影響]
+Test: [執行了哪些測試驗證？ (e.g. make smoke-test)]
+Agent: [執行此提交的 AI 代理人 (e.g. Gemini CLI, Claude Code)]
+Legacy: [若有遺留問題，在此標註供下一個 Agent 處理]
+```
+
+### 🔴 Legacy Note 模板 (Handoff)
+適用於跨 Agent 移交任務（存放在 `LOKI_DEBUG_SESSION.md` 或臨時 Markdown）。
+```markdown
+# 📝 Legacy Note: [任務名稱]
+- **Status**: [已打通 / 部分完成 / 邏輯死結]
+- **Environment**: [目前的部署狀態、關鍵環境變數]
+- **Verified Path**: 
+  - [x] 哪些嘗試已經證實可行？
+  - [ ] 哪些是確認的坑 (Dead Ends)？
+- **The Blockers**: 為什麼現在停下來？(報錯訊息、邏輯矛盾點)
+- **Next Actions**: 
+  1. [具體下一步指令]
+  2. [需要更新的文檔路徑]
+```
+
+---
+
+## 6. 戰略評價
+這套架構讓人類架構師進化為 **「AI 資源調度員」**。透過標準化的溝通協議，我們建立了一個具備「自癒力」與「知識沉澱能力」的開發閉環。
