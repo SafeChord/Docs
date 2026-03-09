@@ -1,19 +1,20 @@
 ---
 title: Security Architecture & Governance
 doc_id: safechord.security
-last_updated: '2026-01-02'
+last_updated: '2026-03-09'
 status: active
 authors:
   - bradyhau
   - Gemini 3 Pro
 context_scope: Global
-summary: 定義 SafeChord 的安全治理準則。涵蓋基於 SealedSecrets 的機密管理、最小權限控制 (RBAC) 以及基於 Google OAuth2
-  的 API 安全接入策略。
+summary: 定義 SafeChord 的多層級安全治理準則。涵蓋基於 SealedSecrets 的機密管理、最小權限控制 (RBAC)、GCP 防火牆硬化以及端到端加密策略。
 keywords:
   - Security
   - SecretOps
   - SealedSecrets
-  - OAuth2
+  - Cloudflare Full (Strict)
+  - Origin Hardening
+  - Basic Auth
   - IAM
   - NetworkPolicy
 logical_path: SafeChord.Security
@@ -22,7 +23,7 @@ related_docs:
   - safechord.safezone.deployment.charts.md
   - safechord.chorde.k3han.ingress.md
 parent_doc: safechord
-doc_version: 0.2.0
+doc_version: 0.2.2
 archetype: brain
 ---
 
@@ -30,7 +31,7 @@ archetype: brain
 
 > *"Security is not an afterthought; it is the foundation of trust."*
 
-在 SafeChord 的開發流程中，安全不是外掛的功能，而是架構的基石。我們的目標是落實 **Security-by-Design**，在混合雲環境的資源限制下，構建一套符合 **縱深防禦 (Defense in Depth)** 原則的安全體系，專注於解決「機密生命週期管理」與「零信任存取控制」兩大核心議題。
+在 SafeChord 的開發流程中，我們落實 **Security-by-Design**，在混合雲環境中構建一套 **縱深防禦 (Defense in Depth)** 體系，確保從基礎設施到應用層均具備多重防護機制。
 
 ---
 
@@ -40,19 +41,8 @@ archetype: brain
 
 ### 核心技術：SealedSecrets
 我們選用 Bitnami SealedSecrets 實作非對稱加密機制，確保機密僅在叢集內部可見：
-*   **公鑰 (Public Key)**：公開分發。開發者使用公鑰將原始 Secret 封裝為 `SealedSecret` CRD，此過程不可逆。
-*   **私鑰 (Private Key)**：僅存於 K8s 控制平面的 Controller 內部，負責在運行時解密並還原 Secret。
-
-### 部署流程 (Deployment Flow)
-為降低自動化帶來的潛在曝露風險，我們採取 **受控注入 (Controlled Injection)** 模式：
-1.  **加密 (Seal)**：開發者於本地環境使用 `kubeseal` 加密敏感配置。
-2.  **提交 (Commit)**：將加密後的 `SealedSecret` 資源提交至 Git 倉庫。
-3.  **注入 (Inject)**：透過 GitHub Actions 執行部署腳本，將 `SealedSecret` 一次性應用至目標 Namespace。
-4.  **還原 (Unseal)**：叢集內的 Controller 自動解密並建立原生的 Kubernetes Secret 供應用程式掛載。
-
-### 環境差異策略
-*   **Preview 環境**：使用開發專用的 Key Pair，優先考量開發效率與輪替 (Rotation) 的便利性。
-*   **Staging 環境**：實施嚴格的密鑰管控（私鑰不離群）。此外，我們在此環境強制實施 **額外的使用者帳號隔離**，確保即便基礎設施層遭受滲透，業務資料層仍保有最後一道防線。
+*   **SealedSecrets**: 確保敏感憑證（如資料庫密碼、Basic Auth 認證）能安全地儲存於公有 Git 倉庫。
+*   **部署流程**：開發者於本地加密，ArgoCD 於運行時解密。透過 `argocd.argoproj.io/sync-wave: "-1"` 確保 Secret 在應用程式啟動前就緒。
 
 ---
 
@@ -61,52 +51,35 @@ archetype: brain
 我們嚴格遵循 **最小權限原則 (Principle of Least Privilege)**，並透過細緻的 RBAC 策略落實於 CI/CD 流水線中。
 
 ### CI/CD 權限隔離 (Scoped Workload Identity)
-我們摒棄將 Admin 權限授予 CI 系統的做法，而是為每個環境建立專用的 ServiceAccount (`*-ci-sa`)，並嚴格限制其作用域：
+*   **環境 SA 隔離**：每個環境建立專用的 ServiceAccount，僅允許管理該 Namespace 內的資源，嚴禁跨 Namespace 操作。
+*   **動態憑證**：CI 流程執行時請求短時效 Token (2 小時)，過期自動失效。
 
-*   **Preview Deployer (`safezone-preview-ci-sa`)**：
-    *   `gitops` Namespace：僅允許管理 ArgoCD 的 `Application` CRD。
-    *   `safezone-preview` Namespace：僅允許寫入 `SealedSecret`。
-    *   **權限邊界**：嚴格禁止跨 Namespace 存取或修改 Cluster 層級配置。
-
-*   **Staging Deployer (`safezone-ci-sa`)**：
-    *   `safezone` Namespace：僅允許 **讀取** `Job` 狀態（用於確認遷移任務完成），嚴禁直接修改部署配置。
-
-### 動態憑證管理 (On-Demand Credentials)
-為消除長期憑證 (Long-lived Credentials) 的洩漏風險，我們實作了動態憑證機制：
-*   **即時生成**：CI 流程執行時，動態請求短時效 Token。
-*   **自動過期**：Token 有效期限制為 2 小時，任務結束後憑證即刻失效。
-*   **受限上下文**：生成的 Kubeconfig 僅綁定上述受限的 ServiceAccount，即使外洩，攻擊者也無法進行破壞性操作。
-
-### 人員存取控制 (Human Access)
-*   **禁止直連**：開發者原則上不直接存取 Staging Cluster。所有的變更必須透過 PR，經由代碼審查後自動化部署。
-*   **緊急破窗 (Emergency Access)**：
-    *   **Level 1**：透過 `cli-relay` 進行受控操作，強制要求 **Google OAuth2** 身分驗證。
-    *   **Level 2**：極端情況下透過 Tailscale VPN 進行，所有操作均保留完整的 Audit Log 以供稽核。
+### 應用層存取控制
+*   **人機識別**：針對內部測試工具 (如 `echo-server`) 實施 **Basic Authentication**，並將機密納入 SealedSecrets 管理。
 
 ---
 
-## 🌐 3. 網路安全 (Network Security)
+## 🌐 3. 網路安全與入口硬化 (Network Security)
 
-我們採用 **雙層邊界 (Dual Perimeter)** 策略，在網路層實現物理隔離。具體的 IngressClass 配置與測試矩陣，請參閱 **[K3Han Ingress Configuration](safechord.chorde.k3han.ingress.md)**。
+我們採用 **三維防禦 (Triple-Lock Defense)** 策略，在網路層實現物理與邏輯隔離。具體的 Ingress 配置請參閱 **[K3Han Ingress Configuration](safechord.chorde.k3han.ingress.md)**。
 
-### 邊界防護策略 (Perimeter Policy)
-*   **公網層 (Public Zone)**：
-    *   僅暴露面向終端使用者的必要入口（如 Dashboard）。
-    *   強制流量經過 Cloudflare Proxy 進行 DDoS 防護與 SSL 卸載。
-    *   **實作對應**：`IngressClass: nginx-public`
+### 3.1 基礎設施硬化 (Infrastructure Layer)
+*   **Origin Hardening (GCP Firewall)**：
+    *   透過 GCP VPC 防火牆規則，限制只有來自 **Cloudflare 已知 IP 網段** 的流量能進入 `ingress-public` 節點。
+    *   **防護效果**：防止攻擊者繞過 WAF 與 DDoS 防護直連 Origin IP。
 
-*   **內網層 (Private Zone)**：
-    *   所有管理介面（ArgoCD, Grafana, Prometheus）嚴禁直接暴露於公網。
-    *   存取必須經過 **Tailscale Overlay VPN** 或經由 **Cloudflare Tunnel** 驗證的通道。
-    *   **實作對應**：`IngressClass: nginx-private`
+### 3.2 傳輸層加密 (Transport Layer)
+*   **Cloudflare Full (Strict) Mode**：
+    *   強制實施端到端 (E2E) TLS 加密。
+    *   **Origin CA 憑證**：於 K3s 叢集內部部署 Cloudflare 簽發的 Origin CA，確保連線對象的誠信。
 
-### 內部網段隔離 (Internal Segmentation)
-*   **Namespace 隔離**：Preview 環境使用動態生成的 Namespace，確保測試過程的資源隔離。
-*   **服務發現限制**：應用程式僅能存取當前 Namespace 內的資源，或經由 `ExternalName` 明確定義的平台級服務。
+### 3.3 邊界防護策略 (Perimeter Policy)
+*   **公網層 (Public Zone)**：強制流量經過 Cloudflare Proxy。實作對應：`IngressClass: nginx-public`。
+*   **內網層 (Private Zone)**：存取必須經過 **Tailscale Overlay VPN**。實作對應：`IngressClass: nginx-private`。
 
 ---
 
 ## ⛓️ 4. 供應鏈安全 (Supply Chain Security)
 
-*   **映像檔誠信 (Image Provenance)**：僅信任 **GitHub Container Registry (GHCR)**。所有 Image 必須由受信任的 CI 流程自動建置，嚴禁開發者從本地環境直接推送至生產倉庫。
-*   **相依性鎖定 (Dependency Pinning)**：所有的 Helm 依賴（如 Redis, Kafka）均需鎖定確切版本號，防止上游意外更新引入的潛在風險或供應鏈攻擊。
+*   **映像檔誠信 (Image Provenance)**：僅信任由 GitHub Actions 自動建置並推送至 **GHCR** 的映像檔。
+*   **相依性鎖定 (Dependency Pinning)**：所有的 Helm 依賴均需鎖定確切版本號，防止上游更新引入風險。
