@@ -22,8 +22,8 @@ related_docs:
   - safechord.chorde.k3han.md
 parent_doc: safechord.chorde.k3han
 tech_stack: []
-doc_version: 0.2.0
-app_version: 0.2.0
+doc_version: 0.3.0
+app_version: 0.3.0
 ---
 # 📜 SafeChord · Chorde · K3Han - 版本變更紀錄
 

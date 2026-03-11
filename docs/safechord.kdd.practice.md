@@ -1,13 +1,13 @@
 ---
 title: KDD 2.0: Dual-Track CLI & Headless Collaboration
 doc_id: safechord.kdd.practice
-last_updated: '2026-03-05'
+last_updated: '2026-03-11'
 status: active
 authors:
   - bradyhau
-  - Gemini 2.0 Pro (CLI)
+  - Gemini 2.0 Flash (CLI)
 context_scope: Methodology
-summary: 定義 SafeChord v0.3.x 的三機協同與無頭開發模型。透過 Git Commit 與 Legacy Note 建立 Agent 間的溝通介面，達成決策、攻堅與沉澱的資源最佳化。
+summary: 定義 SafeChord v0.3.x 的三機協同 (Three-Engine) 與無頭開發模型。詳述 Settler (Gemini CLI) 如何透過跨代理人協議維護四層解耦架構的一致性，將 KDD 2.0 轉化為高效的生產力閉環。
 keywords:
   - Dual-Track CLI
   - Claude Code

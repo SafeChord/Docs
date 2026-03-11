@@ -31,8 +31,8 @@ tech_stack:
   - Tailscale
   - Cloudflare Tunnel
   - Cloudflare Origin CA
-doc_version: 0.2.2
-app_version: 0.2.2
+doc_version: 0.3.0
+app_version: 0.3.0
 ---
 # K3han Ingress 策略 (Blueprint)
 
