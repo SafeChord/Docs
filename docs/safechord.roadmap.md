@@ -1,104 +1,86 @@
 ---
-title: 'Roadmap: The Reliability Journey'
+title: 'Roadmap: The Reliability & Performance Journey'
 doc_id: safechord.roadmap
-status: planning
+status: active
 authors:
   - bradyhau
-  - Gemini 3 Pro
-last_updated: '2026-01-04'
-summary: 定義 SafeChord v0.3.0 的核心目標。本版本採用 'Architecture TDD' (架構測試驅動開發) 思維。我們的目標並非立即達成完美的效能，而是先定義「架構斷言
-  (Architectural Assertions)」(即 SLO)，並建構對應的觀測工具鏈 (k6, Prometheus) 來執行這些測試，最終產出系統的基準線報告
-  (Baseline Report)。
+  - Gemini CLI
+last_updated: '2026-04-10'
+summary: 定義 SafeChord 從 v0.3.0 到 v0.5.0 的系統演進計畫。本 Roadmap 採「地基先行，數據驅動」策略，從工具解耦 (v0.3.0)、架構測試 (v0.4.0) 到最終的效能躍遷 (v0.5.0)。
 keywords:
   - Roadmap
   - Architecture TDD
   - SLO
   - Reliability
-  - k6
-  - Baseline
+  - Performance
+  - Scalability
+  - Observability
 logical_path: SafeChord.Roadmap
 related_docs:
   - safechord.safezone.md
-  - safechord.chorde.k3han.monitoring.md
+  - safechord.kdd.practice.md
 parent_doc: safechord
 archetype: brain
-code_paths: []
-doc_version: 0.2.0
+doc_version: 0.3.0
 ---
 
-# 🛣️ SafeChord Roadmap: Toward Observable Reliability
+# 🛣️ SafeChord Roadmap: From Stabilization to Scaling
 
-> **"Reliability is not an accident; it is a feature."**
+> **"Reliability is not an accident; it is a feature. Optimization is not a guess; it is a measurement."**
 
-SafeChord 的開發策略分為三個階段：
-1.  **v0.1.x - v0.2.x (Functional)**: 建構功能完整的 MVP，驗證 AsyncIO 資料流與混合雲架構可行性。[Completed]
-2.  **v0.3.0 (Reliability Baseline)**: **Architecture TDD Phase**。不新增業務功能，專注於「寫下架構測試」(SLO) 與「建構測試環境」(Observability)，並確立系統效能基準線。
+SafeChord 的演進並非盲目追求功能堆疊，而是遵循嚴謹的工程邏輯。我們將開發路徑劃分為三個關鍵階段，確保每一層優化都建立在穩固且可測量的地基之上。
 
 ---
 
-## 🎯 v0.3.0: Architecture TDD (The Setup & Measure Phase)
+## 🌍 演進三部曲 (The Three-Phase Evolution)
 
-本版本的核心哲學是 **架構層面的測試驅動開發 (Architecture TDD)**。
-如同單元測試需先定義 `Expected Result`，我們在此定義 SLO 作為架構的「斷言 (Assertions)」。本階段的目標是 **「讓測試跑起來」** 並 **「誠實記錄現況 (Baseline)」**，而非立即優化系統以通過測試。
-
-### 📊 1. 架構斷言：業務層 (Business Level)
-*測試目標：驗證排程承諾的可觀測性*
-
-| 構面 | 架構斷言 (SLO Hypothesis) | SLI 技術指標 (Indicator) | 測量工具 (Test Runner) |
+| 版本 | 階段名稱 | 核心目標 | 關鍵戰略 |
 | :--- | :--- | :--- | :--- |
-| **排程準點率** | **Daily Schedule Adherence**<br>每日 `UTC 0:10` 前，Dashboard 需完整呈現當日數據。 | `Sum(Daily_Records) > 0` AND `Timestamp <= UTC 00:10` | **Prometheus** (Blackbox check)<br>**SafeZone CLI** (`verify` command) |
-| **例外處理** | 允許 10 分鐘的 E2E Latency (Worker Lag + Polling) 作為一致性緩衝窗。 | N/A | **Documentation** (Known Constraints) |
-
-### ⚡ 2. 架構斷言：應用層 (Application Level)
-*測試目標：驗證系統在壓力下的行為邊界*
-
-| 構面 | 架構斷言 (SLO Hypothesis) | SLI 技術指標 (Indicator) | 測量工具 (Test Runner) |
-| :--- | :--- | :--- | :--- |
-| **寫入韌性** | **Lag Recovery Time < 5 mins**<br>當 Ingestion Rate 飆升至 10 倍 (Burst) 時，系統需在 5 分鐘內消化完畢。 | `kafka_consumer_group_lag > 0` 的持續時間 | **Prometheus** (Kafka Exporter)<br>**KEDA** (HPA Metrics) |
-| **讀取可用性** | **Availability under Stress > 99%**<br>在快取失效 (Cache Stampede) 的 1 分鐘內，API 錯誤率需低於 1%。 | `rate(http_requests_total{status=~"5.."}[1m]) / rate(http_requests_total[1m])` | **Prometheus** (Ingress NGINX Metrics)<br>**k6** (Load Testing) |
-
-### 🏗️ 3. 架構斷言：基礎設施層 (Infrastructure Level)
-*測試目標：驗證混合雲網路的物理限制*
-
-| 構面 | 架構斷言 (SLO Hypothesis) | SLI 技術指標 (Indicator) | 測量工具 (Test Runner) |
-| :--- | :--- | :--- | :--- |
-| **網路穩定性** | **Overlay Stability (P95) < 100ms**<br>確保 Contabo (JP) 與 Acer (TW) 之間走 Direct 連線而非 Relay。 | `probe_duration_seconds{target="acer-agent"}` (ICMP/TCP) | **Blackbox Exporter**<br>**Tailscale** (`tailscale ping`) |
-| **節點健康度** | **Memory Pressure < 10 mins/month**<br>針對 e2-micro (GCE) 等弱節點的資源飽和度控制。 | `kube_node_status_condition{condition="MemoryPressure", status="true"}` | **Node Exporter**<br>**Kubelet Metrics** |
+| **v0.3.0** | **Tooling & Portability** | **建立實驗室** | 解決環境耦合，實作「容器原生」的觀測與斷言工具鏈，並診斷潛在漏洞。 |
+| **v0.4.0** | **Architecture TDD** | **建立基準線** | 定義 SLO 並執行「架構斷言」，產出系統性能體檢報告。 |
+| **v0.5.0** | **Performance Scaling** | **外科手術優化** | 根據基準線數據，針對性地突破併發與吞吐量瓶頸。 |
 
 ---
 
-## 🛠️ 實作與驗證計畫 (Implementation Strategy)
+## 🟡 Phase 1: v0.3.0 - Tooling & Portability (工程地基)
+**定位**: 消除「環境依賴」，並在邁向高階架構前優先診斷系統穩定性。
 
-本階段不包含 Tuning，而是聚焦於 **Test Implementation (實作測試)**。
-
-### Phase 1: Toolchain Setup (測試工具鏈建置)
-1.  **Observability**: 確保 Prometheus 能夠抓取 Kafka Lag, Ingress Metrics 與 Node Metrics。
-2.  **Dashboard**: 在 Grafana 建立 **"Reliability Cockpit"**，將上述 SLI 視覺化。
-3.  **Load Generator**: 在 `SafeZone-Deploy` 中整合 **k6**，撰寫標準化的壓測腳本 (`tests/k6/*.js`)。
-
-### Phase 2: Establish Baseline (建立基準線)
-執行以下劇本，並記錄「真實數據」與「架構斷言」的差距：
-
-#### 1. The Burst Test (寫入壓力基準)
-*   **Action**: 使用 `szcli` 或 k6 發送 100x 瞬間流量。
-*   **Observe**: 記錄實際的 Lag Recovery Time。是 5 分鐘還是 15 分鐘？
-*   **Artifact**: 產出 Lag 收斂曲線圖。
-
-#### 2. The Stampede Test (讀取壓力基準)
-*   **Action**: 500 VUs 持續查詢 + 觸發 Cache Invalidation。
-*   **Observe**: 記錄 DB CPU 峰值與 API Error Rate。
-*   **Artifact**: 產出 API Latency P95/P99 分佈圖。
-
-#### 3. The Edge Failure (混沌測試基準)
-*   **Action**: 模擬 `acer-agent` 斷線。
-*   **Observe**: 記錄 K3s 偵測到節點失聯並重新調度 Pod 所需的時間。
+*   **關鍵任務**:
+    *   **Memory Leak Investigation (#17)**：利用更精細的 pprof/Metrics 手段診斷 Go Worker 在長期負載下的內存行為，若確認存在洩漏則一併修復。
+    *   **Protocol-Level Observability (#29, #30)**：透過 `X-Cache-Status` Header 暴露快取行為，實現「無侵入式」的即時觀測。
+    *   **Container-Native Assertions (#31, #32)**：實作模組化 Python 斷言套件，汰換對宿主機指令的依賴，實現 Local/K8s/CI 的無差別測試。
+    *   **Architecture Hardening (#19)**：在 API 層導入 **Dependency Injection (DI)**，提升代碼體質與可測試性。
+*   **戰略價值**: 建立一個「可攜式實驗室」，確保後續壓測數據具備再現性 (Reproducibility)。
 
 ---
 
-## 📅 版本發布準則 (Release Criteria)
+## 🟠 Phase 2: v0.4.0 - Architecture TDD & Baseline (基準測量)
+**定位**: 這是 **Architecture TDD** 的核心階段。我們在此定義「架構斷言 (SLO)」，並誠實記錄系統現況。
 
-v0.3.0 的 Definition of Done (DoD) 為：
+### 📊 架構斷言 (Architectural Assertions)
+利用 v0.3.0 建立的工具鏈，我們定義以下 SLO 作為系統的「體檢指標」：
 
-1.  [ ] **Observability Stack Ready**: 所有定義的 SLI 都能在 Grafana 上看到即時數據。
-2.  [ ] **Test Scripts Ready**: k6 壓測腳本與 Chaos 劇本已納入版控。
-3.  [ ] **Baseline Report**: 完成一份基準線測試報告，列出「理想 SLO」與「實際測量值」的對照表，作為後續 v0.3.x 調優的依據。
+| 層級 | 構面 | 架構斷言 (SLO Hypothesis) | 測量工具 |
+| :--- | :--- | :--- | :--- |
+| **業務** | **排程準點率** | 每日 `UTC 0:10` 前數據完整呈現。 | **Prometheus** / **szcli** |
+| **應用** | **寫入韌性** | 10x 流量突發下，Lag 需在 5 分鐘內消化。 | **KEDA** / **Kafka Exporter** |
+| **應用** | **讀取可用性** | 快取失效期間，API 錯誤率需 < 1%。 | **k6 (Stampede Test)** |
+| **基礎設施** | **網路穩定性** | 跨節點 (JP-TW) Overlay 延遲 P95 < 100ms。 | **Blackbox Exporter** |
+
+*   **戰略價值**: 產出 **"Baseline Report"**。這份報告將指引 v0.5.0 的優化方向，避免盲目優化。
+
+---
+
+## 🔴 Phase 3: v0.5.0 - Performance & Scaling (效能躍遷)
+**定位**: 根據基準線數據進行「精確的手術優化」，突破系統瓶頸。
+
+*   **關鍵任務**:
+    *   **Go Worker Refactor (#23)**: 對齊 Go 慣用併發模式，優化 Goroutine 與 Channel 管理。
+    *   **Idempotency & Batching (#6)**: 實現冪等寫入與批次確認，降低資料庫 I/O 頻率。
+    *   **Ingestor Evolution (#22)**: 評估並執行 Data Ingestor 遷移至 Go，解決高吞吐量入口瓶頸。
+*   **戰略價值**: 縮小「理想 SLO」與「實際測量值」的差距，實現真正的生產級性能。
+
+---
+
+## 📅 未來展望 (The Future)
+當 SafeZone 達成了上述三個階段，它將從一個「功能原型」進化為一個 **「可觀測、可預測、可擴展」** 的現代化微服務架構。這不僅是技術的堆疊，更是對 **SRE (Site Reliability Engineering)** 精神的實踐。
