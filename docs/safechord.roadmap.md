@@ -5,8 +5,8 @@ status: active
 authors:
   - bradyhau
   - Gemini CLI
-last_updated: '2026-04-10'
-summary: 定義 SafeChord 從 v0.3.0 到 v0.5.0 的系統演進計畫。本 Roadmap 採「地基先行，數據驅動」策略，從工具解耦 (v0.3.0)、架構測試 (v0.4.0) 到最終的效能躍遷 (v0.5.0)。
+last_updated: '2026-04-11'
+summary: 定義 SafeChord 從 v0.3.0 到 v0.5.0 的系統演進計畫。本 Roadmap 採「地基先行，數據驅動」策略，從工具解耦 (v0.3.0)、展示層現代化 (v0.3.5, Dashboard + Docs i18n)、架構測試 (v0.4.0) 到最終的效能躍遷 (v0.5.0)。
 keywords:
   - Roadmap
   - Architecture TDD
@@ -28,15 +28,16 @@ doc_version: 0.3.0
 
 > **"Reliability is not an accident; it is a feature. Optimization is not a guess; it is a measurement."**
 
-SafeChord 的演進並非盲目追求功能堆疊，而是遵循嚴謹的工程邏輯。我們將開發路徑劃分為三個關鍵階段，確保每一層優化都建立在穩固且可測量的地基之上。
+SafeChord 的演進並非盲目追求功能堆疊，而是遵循嚴謹的工程邏輯。我們將開發路徑劃分為四個關鍵階段，確保每一層優化都建立在穩固且可測量的地基之上。
 
 ---
 
-## 🌍 演進三部曲 (The Three-Phase Evolution)
+## 🌍 演進四部曲 (The Four-Phase Evolution)
 
 | 版本 | 階段名稱 | 核心目標 | 關鍵戰略 |
 | :--- | :--- | :--- | :--- |
 | **v0.3.0** | **Tooling & Portability** | **建立實驗室** | 解決環境耦合，實作「容器原生」的觀測與斷言工具鏈，並診斷潛在漏洞。 |
+| **v0.3.5** | **Presentation Modernization** | **提升展示層體驗** | 以 AI 協作模式雙軌並進：Dashboard 遷移至 React SPA，Docs 全面英文化並導入 i18n。 |
 | **v0.4.0** | **Architecture TDD** | **建立基準線** | 定義 SLO 並執行「架構斷言」，產出系統性能體檢報告。 |
 | **v0.5.0** | **Performance Scaling** | **外科手術優化** | 根據基準線數據，針對性地突破併發與吞吐量瓶頸。 |
 
@@ -51,6 +52,47 @@ SafeChord 的演進並非盲目追求功能堆疊，而是遵循嚴謹的工程�
     *   **Container-Native Assertions (#31, #32)**：實作模組化 Python 斷言套件，汰換對宿主機指令的依賴，實現 Local/K8s/CI 的無差別測試。
     *   **Architecture Hardening (#19)**：在 API 層導入 **Dependency Injection (DI)**，提升代碼體質與可測試性。
 *   **戰略價值**: 建立一個「可攜式實驗室」，確保後續壓測數據具備再現性 (Reproducibility)。
+
+---
+
+## 🟢 Phase 1.5: v0.3.5 - Presentation Modernization (展示層現代化)
+**定位**: 面試展示的兩大入口——Dashboard 與 Docs 網站——同步升級。Dashboard 遷移至 React SPA，Docs 全面英文化並導入多語系架構。兩者皆以 AI 協作模式完成，展現 Tech Lead 委派能力。
+
+### 🖥️ Track A: Dashboard — React SPA Migration
+
+*   **背景與動機**:
+    *   現有 Dash 架構下，每次地圖點擊、篩選切換皆觸發 server-side callback，導致互動延遲達秒級。
+    *   Dashboard 作為面試展示的兩大入口之一，體驗品質直接影響第一印象。
+    *   API 層 (`Analytics API`) 的 contract 已穩定且具備 Redis cache，前端可作為純 consumer 獨立替換。
+
+*   **關鍵任務**:
+    *   **React SPA Scaffold**: 以 Vite + TypeScript + React 建立新前端，Mapbox GL JS 處理 GIS 圖層，Recharts 處理趨勢圖。
+    *   **API Contract Reuse**: 新前端消費現有 Analytics API (`/cases/national`, `/cases/city`, `/cases/region`) 與 Time Server (`/time/now`)，**後端零改動**。
+    *   **GeoJSON Static Bundling**: 縣市/鄉鎮邊界 GeoJSON 打包為 static assets，由瀏覽器 cache，地圖圖層切換為純前端操作。
+    *   **Route-Based A/B Deployment**: 透過 Ingress 路由分離，`/dashboard/` 指向新版 React SPA，`/dashboard/classic/` 保留 Dash 版，面試官可即時對比體驗差異。
+
+### 📚 Track B: Docs — English-First Internationalization
+
+*   **背景與動機**:
+    *   現有中文技術文件存在術語中英夾雜、語意精度不足的問題，工程概念用中文描述經常搔不到癢處。
+    *   面試官（國內外 Engineering Manager）面對中文文件站，第一印象會打折。
+    *   英文是技術社群的通用語言，English-first 直接展示工作語言溝通能力。
+
+*   **關鍵任務**:
+    *   **English Rewrite (SSOT)**: 所有面向外部的文件以英文重寫（非逐字翻譯），英文版為 Single Source of Truth，路由掛載於 `/` (root)。
+    *   **i18n Architecture**: 導入 MkDocs i18n plugin，中文翻譯版路由掛載於 `/zh/`，面試官可切換語系。
+    *   **Multi-Model Translation Pipeline**: 英文 SSOT 由 Claude 主導 rewrite；中文翻譯評估 DeepSeek / Qwen 等中文強項模型，透過 OpenRouter 統一 routing，擇優採用。產出 model selection ADR 記錄比較過程。
+
+### 🤖 協作模式（兩軌共用）
+
+*   本階段所有實作以 **AI 協作** 完成（提供 spec + 舊版參考，AI 產出 code/content，人工 review & integration）。
+*   展現 Tech Lead 工作模式：定義 contract → 委派實作 → review 產出 → 整合部署。
+*   Track B 額外展示 **multi-model orchestration** 能力：根據任務特性選擇最適模型，而非單一模型通吃。
+
+### 🎯 戰略價值
+
+*   **Dashboard**: 將地圖互動從秒級降至毫秒級。同時為 v0.4.0 提供 A/B 基準線——同一 API 後端、兩套前端，量化 presentation layer 的體驗差異。
+*   **Docs**: 消除語言障礙，讓技術決策的深度直接傳達給面試官。Multi-model pipeline 本身即為架構能力的展示素材。
 
 ---
 
