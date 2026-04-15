@@ -5,7 +5,7 @@ status: active
 authors:
   - bradyhau
   - Gemini 3 Pro
-last_updated: '2026-01-08'
+last_updated: '2026-04-15'
 summary: SafeZone CLI 的指令操作手冊。本文件採用「意圖導向 (Intent-Driven)」結構，旨在作為人類維運者與 AI Agent 執行系統任務時的標準參考。包含環境配置要求、指令範式與預期行為。
 keywords:
   - szcli
@@ -20,8 +20,8 @@ parent_doc: safechord.safezone.toolkit.cli
 archetype: script
 code_paths:
   - SafeZone/toolkit/cli/command
-doc_version: 0.2.0
-app_version: 0.2.1
+doc_version: 0.3.0
+app_version: 0.3.0-dev
 ---
 
 # CLI Instruction Set (szcli)
@@ -59,13 +59,18 @@ app_version: 0.2.1
     *   Side Effect: 系統的 Cache Version 會被重置。
 
 #### Intent: Verify Data Integrity (驗證數據)
-*   **Use Case**: Smoke Test 驗證點、檢查資料是否落盤。
+*   **Use Case**: Smoke Test 驗證點、檢查資料是否落盤、檢查快取命中。
 *   **Command**:
     ```bash
+    # 一般驗證
     szcli dataflow verify <DATE> [--city <NAME>] [--interval <DAYS>]
+    
+    # 觀測快取狀態 (Verbose Mode)
+    szcli -o json -v dataflow verify <DATE>
     ```
 *   **Verification Logic**:
     *   解析回傳的 JSON。若 `total_cases > 0` 且 `success` 為 `true`，則視為 Pipeline 運作正常。
+    *   **快取檢查**: 在 `-v` 模式下，檢查 JSON 中的 `.headers.x-cache-status`。值為 `HIT` 表示命中快取，`MISS` 表示穿透至資料庫。
     *   若回傳 `404` 或 `count == 0` (且非預期)，則視為 Ingestion Lag 或 Worker 故障。
 
 ---
@@ -111,7 +116,14 @@ app_version: 0.2.1
 
 #### Intent: Clear Data (清空數據)
 *   **Use Case**: 保留 Schema 但移除所有業務數據 (Truncate)。
-*   **Command**: `szcli db clear`
+*   **Command**:
+    ```bash
+    # 互動式執行
+    szcli db clear
+    
+    # 自動化 / 非互動式執行
+    szcli db clear --yes
+    ```
 
 #### Intent: Hard Reset (重置)
 *   **Use Case**: 完整重置資料庫 (Drop & Init)。
@@ -121,6 +133,10 @@ app_version: 0.2.1
 ---
 
 ### ℹ️ General Utilities (一般工具)
+
+#### Global Options
+*   `-o, --output [rich|json|yaml]`: 設定輸出格式 (預設: rich)。
+*   `-v, --verbose`: 顯示額外的偵錯資訊（如 HTTP Headers）。
 
 #### Intent: Check Version info
 *   **Command**: `szcli version`

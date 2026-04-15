@@ -5,7 +5,7 @@ status: active
 authors:
   - bradyhau
   - Gemini 3 Pro
-last_updated: '2026-01-08'
+last_updated: '2026-04-15'
 summary: SafeZone CLI (szcli) 是系統的指揮官與控制台。採用 Client-Relay 架構，Client 端提供 Typer CLI
   介面，Relay 端則作為 K8s 內部的受信任 Gateway，負責執行特權操作並驗證 Google OAuth 憑證。
 keywords:
@@ -15,6 +15,7 @@ keywords:
   - Typer
   - FastAPI
   - Headless OAuth
+  - Ops Automation
 logical_path: SafeChord.SafeZone.Toolkit.CLI
 related_docs:
   - safechord.safezone.toolkit.cli.reference.md
@@ -30,8 +31,8 @@ tech_stack:
   - FastAPI (Relay Server)
   - Google OAuth 2.0 (Headless)
   - Rich (Terminal UI)
-doc_version: 0.2.0
-app_version: 0.2.1
+doc_version: 0.3.0
+app_version: 0.3.0-dev
 ---
 
 # SafeZone CLI (Toolkit Blueprint)
@@ -45,7 +46,7 @@ app_version: 0.2.1
 *   **核心目標**:
     *   **統一入口**: 作為系統的單一控制點，屏蔽 K8s 內部的複雜連線資訊。
     *   **安全邊界**: 透過 Relay 模式，允許外部使用者（開發者）在不直接暴露 DB/Redis 端口的情況下，執行受控的維運指令。
-    *   **驗證驅動**: 負責觸發並驗證 End-to-End 資料流（Smoke Test 核心組件）。
+    *   **自動化驗證**: 整合 **Smoke Test Engine**，透過 CSV 驅動的自動化腳本驗證全系統資料流。
 
 ## 2. 設計哲學 (Design Philosophy)
 > **"Utility First, Purity Second"**
@@ -56,7 +57,7 @@ app_version: 0.2.1
 *   **緩解 (Mitigation)**: 不強制 TDD，而是依賴 **Smoke Test** 覆蓋最關鍵的 Happy Path，確保核心資料流操作正常。
 
 ## 3. 檔案結構 (File Structure)
-專案結構明確劃分為 `command` (Client) 與 `relay` (Server) 兩大部分。
+專案結構劃分為 `command` (Client), `relay` (Server) 與 `ops` (Automation) 三大部分。
 
 ```text
 SafeZone/toolkit/cli/
@@ -65,16 +66,17 @@ SafeZone/toolkit/cli/
 │   ├── bin/
 │   │   ├── client.py             # HTTP Client with Auto-Refresh Auth
 │   │   └── command.py            # Command Decorators
-│   ├── scripts/                  # [Macros] 各環境初始化與資料預熱腳本 (init, seed)
 │   └── config/settings.py        # Client Config (Secrets from Env)
 ├── relay/                        # [Server] FastAPI App (Run inside Cluster)
 │   ├── main.py                   # Entry Point
 │   ├── api/endpoints.py          # REST Interface & RBAC Logic
 │   ├── bin/                      # Business Logic Helpers
-│   │   ├── db_helper.py          # SQLAlchemy Ops
-│   │   └── time_helper.py        # Redis Config Ops
 │   └── config/settings.py        # Server Config (Secrets from Env)
-└── Dockerfile                    # Multi-stage build for both components
+├── ops/                          # [Ops] 自動化測試與維運指令集
+│   ├── smoke_test.py             # CSV-driven Test Engine (Container-native)
+│   ├── test_cases/               # Smoke Test 定義檔 (*.csv)
+│   └── routines/                 # [Macros] 各環境初始化與資料預熱腳本 (init, seed)
+└── Dockerfile                    # 支援不同組件的多階段建置 (command/relay/ops)
 ```
 
 ## 4. 接口規範 (Interfaces)

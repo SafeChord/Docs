@@ -1,7 +1,7 @@
 ---
 title: 'Script: SafeZone CI/CD Workflow'
 doc_id: safechord.safezone.workflow.ci
-last_updated: '2026-01-09'
+last_updated: '2026-04-15'
 status: active
 authors:
   - bradyhau
@@ -15,6 +15,7 @@ keywords:
   - Smoke Test
   - GitFlow
   - Build Pipeline
+  - Container-Native
 logical_path: SafeChord.SafeZone.Workflow.CI
 related_docs:
   - safechord.safezone.deployment.workflow.md
@@ -23,8 +24,8 @@ parent_doc: safechord.safezone
 archetype: script
 code_paths:
   - SafeZone/.github/workflows
-doc_version: 0.2.0
-app_version: 0.2.1
+doc_version: 0.3.0
+app_version: 0.3.0-dev
 ---
 
 # SafeZone 開發與 CI 流程
@@ -60,14 +61,17 @@ CI 是品質的守門員。我們使用 GitHub Actions 來執行此流程，定�
 *   直接推送到 `dev` (雖然不建議，但允許)。
 
 ### 核心步驟 (The Gauntlet)
-1.  **動態版號生成**: 提取 Git SHA (前7碼) 作為臨時版本號 (e.g., `0.2.0-a1b2c3d`)。
+1.  **動態版號生成**: 提取 Git SHA (前7碼) 作為臨時版本號 (e.g., `0.3.0-a1b2c3d`)。
 2.  **建置映像檔 (Build)**:
-    *   執行 `make build-all`。
-    *   在 Runner 本地建置所有微服務的 Docker Image。
+    *   執行 `make build-all` 與 `make build-tool-cli`。
+    *   在 Runner 本地建置所有微服務以及 **Ops 測試映像檔** (`safezone-cli-ops`)。
 3.  **煙霧測試 (Smoke Test)**:
     *   執行 `make smoke-test`。
-    *   這是一個 E2E 測試：它會使用 Docker Compose 啟動整個系統（包含 DB, Kafka 等），並模擬真實的使用者行為來驗證系統是否「冒煙」（崩潰）。
-    *   *關鍵技術*: 使用 `wait_for_infra` 機制確保相依服務就緒後才開始測試。
+    *   **架構**: 採用 **Container-Native** 模式。
+        *   測試引擎 (`smoke_test.py`) 運行於 `safezone-cli-ops` 容器中。
+        *   測試案例由 CSV 定義，支援多步驟驗證、重試機制與非同步等待 (`sleep`)。
+        *   引擎直接加入 Docker Compose 內部網路，與微服務通訊，模擬真實環境。
+    *   *驗證點*: 包含資料模擬、資料落盤驗證、快取命中 (Cache Hit/Miss) 檢查以及資料庫清理。
 
 > **注意**: CI 階段的 Image **不會** 推送到遠端 Registry (GHCR)，它們只存在於 Runner 的快取中，僅供測試使用。
 
@@ -81,7 +85,7 @@ CI 是品質的守門員。我們使用 GitHub Actions 來執行此流程，定�
 *   推送到 `main` 分支的 Git Tag (格式: `v*.*.*`)。
 
 ### 執行步驟
-1.  **驗證版號**: 從 Git Tag 提取正式版號 (e.g., `0.2.0`)。
+1.  **驗證版號**: 從 Git Tag 提取正式版號 (e.g., `0.3.0`)。
 2.  **正式建置**: 使用正式版號重新執行 `make build-all`。
 3.  **發佈映像檔**:
     *   執行 `make push-all`。

@@ -1,11 +1,11 @@
 ---
 title: SafeZone ChangeLog
 doc_id: safechord.safezone.changelog
-last_updated: '2025-09-12'
+last_updated: '2026-04-15'
 status: active
 authors:
   - bradyhau
-  - Gemini 2.5 Pro
+  - Gemini 3 Pro
 context_scope: SafeZone Module
 summary: 記錄 SafeZone 應用層的版本演進。對於 AI Agent 而言，本文件是追蹤架構變更、廢棄功能及新引入技術的重要依據，確保 Context
   的時效性。
@@ -13,21 +13,40 @@ keywords:
   - SafeZone
   - Changelog
   - Release Notes
-  - v0.2.1
-  - KRaft
-  - Migration
+  - v0.3.0
+  - Container-Native Smoke Test
+  - szcli
 logical_path: SafeChord.SafeZone.ChangeLog
 related_docs:
   - safechord.knowledgetree.md
   - safechord.safezone.md
 parent_doc: safechord.safezone
-doc_version: 0.2.0
-app_version: 0.2.1
+doc_version: 0.3.0
+app_version: 0.3.0-dev
 ---
 
 # SafeZone 版本變更日誌
 
 本文件同步自專案根目錄的 `CHANGELOG.md`，並為 AI 提供語意化的版本導航。
+
+---
+
+## [0.3.0-dev] - 2026-04-15
+
+### 🚀 關鍵變更 (Critical Changes)
+*   **容器原生煙霧測試架構 (Container-Native Smoke Test)**: 
+    *   廢棄舊有的 `bash` + `jq` 腳本，改為以 Python 實作的 CSV 驅動測試引擎 (`smoke_test.py`)。
+    *   測試引擎運行於獨立的 `safezone-cli-ops` 容器中，直接在 Docker Compose 網路內執行。
+    *   測試案例從 `data/smoke-test/` 遷移至 `toolkit/cli/ops/test_cases/`。
+*   **szcli 功能強化**:
+    *   新增全域 `--verbose` / `-v` 旗標，支援顯示 HTTP Header (如 `X-Cache-Status`)。
+    *   `szcli db clear` 新增 `--yes` / `-y` 旗標，支援非互動式（自動化）執行。
+*   **觀測性提升**: 
+    *   實現 `X-Cache-Status` 標頭的完整傳遞鏈（`analytics-api` -> `cli-relay` -> `szcli`），可用於驗證快取命中狀態。
+
+### 🐛 修復與穩定化
+*   **修復 `dev-up.sh` 啟動錯誤**: 解決了在 `set -e` 下 `((attempt++))` 導致的非預期退出。
+*   **強化非同步驗證**: 在測試引擎中引入 `sleep` 指令與 Assertion 重試機制，應對 Kafka 延遲。
 
 ---
 
