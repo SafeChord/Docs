@@ -65,13 +65,15 @@ CI 是品質的守門員。我們使用 GitHub Actions 來執行此流程，定�
 2.  **建置映像檔 (Build)**:
     *   執行 `make build-all` 與 `make build-tool-cli`。
     *   在 Runner 本地建置所有微服務以及 **Ops 測試映像檔** (`safezone-cli-ops`)。
-3.  **煙霧測試 (Smoke Test)**:
+3. **煙霧測試 (Smoke Test)**:
     *   執行 `make smoke-test`。
     *   **架構**: 採用 **Container-Native** 模式。
         *   測試引擎 (`smoke_test.py`) 運行於 `safezone-cli-ops` 容器中。
-        *   測試案例由 CSV 定義，支援多步驟驗證、重試機制與非同步等待 (`sleep`)。
+        *   **有狀態測試流 (Stateful Test Flows)**: 測試案例由 CSV 定義，支援具備邏輯順序依賴的測試步驟，確保驗證點符合業務場景（如：先模擬再驗證快取命中）。
+        *   **非同步事件驗證 (Async Verification)**: 針對系統的非同步特性（Kafka 延遲、資料落盤），引擎內建「自適應輪詢與重試機制」，自動處理資料的最終一致性驗證，而非單純的靜態等待。
         *   引擎直接加入 Docker Compose 內部網路，與微服務通訊，模擬真實環境。
-    *   *驗證點*: 包含資料模擬、資料落盤驗證、快取命中 (Cache Hit/Miss) 檢查以及資料庫清理。
+    *   *驗證點*: 包含資料模擬觸發、端到端落盤驗證、快取生命週期 (Cache Hit/Miss) 檢查以及資料庫自動化清理。
+
 
 > **注意**: CI 階段的 Image **不會** 推送到遠端 Registry (GHCR)，它們只存在於 Runner 的快取中，僅供測試使用。
 
