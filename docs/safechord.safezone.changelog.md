@@ -30,11 +30,16 @@ app_version: 0.3.0-dev
 本文件同步自專案根目錄的 `CHANGELOG.md`，並為 AI 提供語意化的版本導航。
 
 ---
-
-## [0.3.0-dev] - 2026-04-15
+## [0.3.0-dev] - 2026-04-16
 
 ### 🚀 關鍵變更 (Critical Changes)
+*   **Worker 服務硬化 (Worker Hardening)**: 
+    *   **記憶體洩漏修復**: 修復了 `worker.go` 中因 `defer cancel()` 放置於迴圈內導致的 Timer Goroutine 堆積問題。
+    *   **Go 慣用化重構**: 移除 Java 風格的 `WorkerFactory` 與 `Orchestrator` 殼，改用地道的 Go Constructor (`NewWorker`) 與 Package-level 執行函式 (`RunWorkers`)。
+    *   **可測試性強化**: 透過 `CacheReader` Interface 抽離對快取層的硬依賴，支援 Mock 測試。
 *   **容器原生煙霧測試架構 (Container-Native Smoke Test)**: 
+    *   （...先前已記錄的變更...）
+ 
     *   廢棄舊有的 `bash` + `jq` 腳本，改為以 Python 實作的 CSV 驅動測試引擎 (`smoke_test.py`)。
     *   測試引擎運行於獨立的 `safezone-cli-ops` 容器中，直接在 Docker Compose 網路內執行。
     *   測試案例從 `data/smoke-test/` 遷移至 `toolkit/cli/ops/test_cases/`。

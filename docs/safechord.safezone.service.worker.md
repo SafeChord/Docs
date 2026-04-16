@@ -5,7 +5,7 @@ status: active
 authors:
   - bradyhau
   - Gemini 3 Pro
-last_updated: '2026-01-04'
+last_updated: '2026-04-16'
 summary: Worker 是 SafeZone 系統的資料處理核心，採用 Golang 1.24 與 Franz-Go 實作。負責從 Kafka 高效消費數據，並透過批次寫入
   (Batch Insert) 與等冪更新 (Idempotent Upsert) 機制，將數據持久化至 PostgreSQL。
 keywords:
@@ -29,8 +29,8 @@ tech_stack:
   - Franz-Go (Kafka)
   - pgx/v5 (PostgreSQL)
   - sqlx
-doc_version: 0.2.0
-app_version: 0.2.1
+doc_version: 0.3.0
+app_version: 0.3.0-dev
 ---
 
 # Worker - Golang (Service Blueprint)
@@ -47,26 +47,28 @@ app_version: 0.2.1
 ```text
 SafeZone/services/worker-golang/
 ├── app/
-│   ├── main.go                     # Entry Point (Signal Handling & Factory Init)
+│   ├── main.go                     # Entry Point (Signal Handling & Lifecycle)
 │   ├── service/
-│   │   ├── orchestrator.go         # Worker Pool Management
-│   │   ├── workerFactory.go        # DI Container (Env-based Injection)
-│   │   └── worker.go               # Core Business Logic
+│   │   ├── worker.go               # Core Business Logic (Batch & Flush)
+│   │   ├── worker_test.go          # [Unit Test] Flow verification
+│   │   └── orchestrator.go         # Worker Pool Execution (Parallelism control)
 │   ├── adapter/                    # [Ports] Input Adapters
 │   │   ├── source.go               # Interface: EventSource
 │   │   ├── kafkaSource.go          # Impl: Franz-Go Consumer
-│   │   └── mockSource.go           # Impl: In-Memory Generator (for Dev)
+│   │   └── mockSource.go           # Impl: Channel-based Mock (for Testing)
 │   ├── strategy/                   # [Ports] Output Ports
 │   │   ├── sink.go                 # Interface: EventSink
 │   │   ├── dbSink.go               # Impl: PostgreSQL Batch Upsert
-│   │   └── mockSink.go             # Impl: Console Printer (for Dev)
+│   │   └── mockSink.go             # Impl: Capture-based Mock (for Testing)
 │   ├── schema/
 │   │   ├── event.go                # Data Models (Contracts)
-│   │   └── validator.go            # Business Rule Validation
+│   │   ├── validator.go            # Validation Logic (Depends on CacheReader)
+│   │   └── validator_test.go       # [Unit Test] Rule verification
 │   ├── config/                     # Configuration Loader
 │   └── pkg/                        # Shared Utilities (Logger, Cache)
 ├── go.mod / go.sum                 # Dependency Management
-└── Dockerfile                      # Production Builder
+├── Dockerfile                      # Production Builder
+└── Dockerfile.test                 # Test Runner (used in CI)
 ```
 
 ## 3. 接口規範 (Interfaces)
@@ -104,9 +106,15 @@ SafeZone/services/worker-golang/
 
 ## 6. 實作決策 (Implementation Decisions)
 
-*   **Test-Driven Architecture**:
-    *   **Decision**: 採用 Hexagonal (Ports & Adapters) 模式並結合環境變數注入 (`ENVIRONMENT=TEST`) 切換 Mock 實作。
-    *   **Rationale**: 確保業務邏輯能脫離 Kafka/DB 依賴進行獨立驗證，極大化開發初期的迭代速度。雖然目前結構較為沉重 (Java-style)，但換取了 100% 的邏輯測試覆蓋率。未來優化計畫詳見 [Issue #23](https://github.com/SafeChord/SafeZone/issues/23)。
+*   **Idiomatic Go Refactor (v0.3.0)**:
+    *   **Decision**: 移除 Java 風格的 `WorkerFactory` 與 `Orchestrator` struct，改用 Package-level 函式（如 `NewWorker`, `RunWorkers`）進行依賴注入與生命週期管理。
+    *   **Rationale**: 減少不必要的抽象層與物件狀態，利用 Go 的組合性與函式化特性提升程式碼可讀性與測試便利性。
+*   **Interface-based Testability**:
+    *   **Decision**: 引入 `CacheReader` Interface 並透過消費者定義 (Consumer-defined) 介面實作 `CovidValidator`。
+    *   **Rationale**: 徹底解耦 `schema` 與 `pkg/cache` 實作，讓單元測試能在完全不連線資料庫的情況下驗證複雜的業務規則。
+*   **Memory Leak Hardening**:
+    *   **Decision**: 嚴格管控 Context 的 `cancel` 呼叫，確保 `defer cancel()` 位於正確的作用域（即迴圈外或立即呼叫）。
+    *   **Why**: 避免在長時間運行的 Worker 循環中堆積未釋放的 Timer goroutines，確保生產環境的記憶體穩定性。
 *   **Franz-Go Library**:
     *   **Decision**: 使用 `twmb/franz-go` 取代 `segmentio/kafka-go`。
     *   **Why**: 為了更好的效能與 KRaft 協議支援 (詳見 ADR: Ingestor Evolution)。
