@@ -5,8 +5,8 @@ status: active
 authors:
   - bradyhau
   - Gemini CLI
-last_updated: '2026-04-11'
-summary: 定義 SafeChord 從 v0.3.0 到 v0.5.0 的系統演進計畫。本 Roadmap 採「地基先行，數據驅動」策略，從工具解耦 (v0.3.0)、展示層現代化 (v0.3.5, Dashboard + Docs i18n)、架構測試 (v0.4.0) 到最終的效能躍遷 (v0.5.0)。
+last_updated: '2026-04-19'
+summary: 定義 SafeChord 從 v0.3.0 到 v0.5.0 的系統演進計畫。本 Roadmap 採「地基先行，數據驅動」策略，從工具解耦 (v0.3.0)、腳手架標準化 (v0.3.1, v0.3.2)、展示層現代化 (v0.3.5)、架構測試 (v0.4.0) 到最終的效能躍遷 (v0.5.0)。
 keywords:
   - Roadmap
   - Architecture TDD
@@ -21,25 +21,30 @@ related_docs:
   - safechord.kdd.practice.md
 parent_doc: safechord
 archetype: brain
-doc_version: 0.3.0
+doc_version: 0.3.2
 ---
 
 # 🛣️ SafeChord Roadmap: From Stabilization to Scaling
 
 > **"Reliability is not an accident; it is a feature. Optimization is not a guess; it is a measurement."**
 
-SafeChord 的演進並非盲目追求功能堆疊，而是遵循嚴謹的工程邏輯。我們將開發路徑劃分為四個關鍵階段，確保每一層優化都建立在穩固且可測量的地基之上。
+SafeChord 的演進並非盲目追求功能堆疊，而是遵循嚴謹的工程邏輯。我們將開發路徑劃分為六個關鍵階段，確保每一層優化都建立在穩固且可測量的地基之上。
+
+> **💡 符號說明 (Legend)**:
+> 本文件中出現的 `#XX` 編號（如 `#19`, `#22`）皆對應至 **`SafeZone`** 核心倉庫的 GitHub Issues，用於追蹤具體實作進度。
 
 ---
 
-## 🌍 演進四部曲 (The Four-Phase Evolution)
+## 🌍 演進六部曲 (The Six-Phase Evolution)
 
 | 版本 | 階段名稱 | 核心目標 | 關鍵戰略 |
 | :--- | :--- | :--- | :--- |
-| **v0.3.0** | **Tooling & Portability** | **建立實驗室** | 解決環境耦合，實作「容器原生」的觀測與斷言工具鏈，並診斷潛在漏洞。 |
-| **v0.3.5** | **Presentation Modernization** | **提升展示層體驗** | 以 AI 協作模式雙軌並進：Dashboard 遷移至 React SPA，Docs 全面英文化並導入 i18n。 |
-| **v0.4.0** | **Architecture TDD** | **建立基準線** | 定義 SLO 並執行「架構斷言」，產出系統性能體檢報告。 |
-| **v0.5.0** | **Performance Scaling** | **外科手術優化** | 根據基準線數據，針對性地突破併發與吞吐量瓶頸。 |
+| **v0.3.0** | **Tooling & Portability** | **建立實驗室** | ✅ **已完成**。環境解耦，實作容器原生斷言工具鏈。 |
+| **v0.3.1** | **Scaffold & Blueprint** | **定義腳手架標準** | 以 Analytics API 為藍圖，實作 Layered DI 架構。 |
+| **v0.3.2** | **Template Propagation** | **模板推廣與測試補全** | 統一所有 Python 服務架構並補齊單元測試。 |
+| **v0.3.5** | **Presentation Modernization** | **提升展示層體驗** | Dashboard 遷移至 React SPA，Docs 全面英文化。 |
+| **v0.4.0** | **Architecture TDD** | **建立基準線** | 定義 SLO 並執行「架構斷言」，產出體檢報告。 |
+| **v0.5.0** | **Performance Scaling** | **外科手術優化** | 根據數據，針對性地突破併發與吞吐量瓶頸。 |
 
 ---
 
@@ -50,13 +55,34 @@ SafeChord 的演進並非盲目追求功能堆疊，而是遵循嚴謹的工程�
     *   **Memory Leak Investigation (#17)**：利用更精細的 pprof/Metrics 手段診斷 Go Worker 在長期負載下的內存行為，若確認存在洩漏則一併修復。
     *   **Protocol-Level Observability (#29, #30)**：透過 `X-Cache-Status` Header 暴露快取行為，實現「無侵入式」的即時觀測。
     *   **Container-Native Assertions (#31, #32)**：實作模組化 Python 斷言套件，汰換對宿主機指令的依賴，實現 Local/K8s/CI 的無差別測試。
-    *   **Architecture Hardening (#19)**：在 API 層導入 **Dependency Injection (DI)**，提升代碼體質與可測試性。
 *   **戰略價值**: 建立一個「可攜式實驗室」，確保後續壓測數據具備再現性 (Reproducibility)。
 
 ---
 
-## 🟢 Phase 1.5: v0.3.5 - Presentation Modernization (展示層現代化)
-**定位**: 面試展示的兩大入口——Dashboard 與 Docs 網站——同步升級。Dashboard 遷移至 React SPA，Docs 全面英文化並導入多語系架構。兩者皆以 AI 協作模式完成，展現 Tech Lead 委派能力。
+## 🟡 Phase 2: v0.3.1 - Scaffold & Blueprint (架構解耦)
+**定位**: 定義標準化 Python 微服務腳手架，並以最複雜的 `analytics-api` 作為實作藍圖。
+
+*   **關鍵任務**:
+    *   **Scaffold Standardization (#19)**：將 #19 範疇擴展為「Python 微服務腳手架標準化」，實作 Layered Architecture（分層架構）與 Dependency Injection (DI)。
+    *   **Blueprint Implementation**: 在 `analytics-api` 實作標準層級（`api/`, `services/`, `core/`），並抽離 `dependencies.py` 管理生命週期。
+    *   **Zero-Framework Logic**: 確保 `services/` 業務邏輯層對 FastAPI 零導入，達成 100% 純 Python 測試可能性。
+*   **戰略價值**: 建立「Convention over Framework」的開發規範，降低微服務間的架構熵增。
+
+---
+
+## 🟡 Phase 3: v0.3.2 - Template Propagation (規模化覆蓋)
+**定位**: 將腳手架模式推廣至所有 Python 服務，並回填缺失的測試覆蓋率。
+
+*   **關鍵任務**:
+    *   **Template Propagation**: 將 `analytics-api` 的腳手架模式推廣至 `data-ingestor` 與 `pandemic-simulator`。
+    *   **Test Backfill**: 針對 `data-ingestor` 等原先僅有整合測試的服務，補齊單元測試（Mocking external dependencies）。
+    *   **Conftest Standardization**: 統一所有服務的 `test/conftest.py` 結構，實現標準化的測試夾具 (Fixtures) 管理。
+*   **戰略價值**: 達成全系統架構一致性，為 v0.4.0 的大規模「架構斷言」掃除技術債。
+
+---
+
+## 🟢 Phase 4: v0.3.5 - Presentation Modernization (展示層現代化)
+**定位**: 面試展示的兩大入口——Dashboard 與 Docs 網站——同步升級。Dashboard 遷移至 React SPA，Docs 全面英文化並導入 i18n。兩者皆以 AI 協作模式完成，展現 Tech Lead 委派能力。
 
 ### 🖥️ Track A: Dashboard — React SPA Migration
 
@@ -96,7 +122,7 @@ SafeChord 的演進並非盲目追求功能堆疊，而是遵循嚴謹的工程�
 
 ---
 
-## 🟠 Phase 2: v0.4.0 - Architecture TDD & Baseline (基準測量)
+## 🟠 Phase 5: v0.4.0 - Architecture TDD & Baseline (基準測量)
 **定位**: 這是 **Architecture TDD** 的核心階段。我們在此定義「架構斷言 (SLO)」，並誠實記錄系統現況。
 
 ### 📊 架構斷言 (Architectural Assertions)
@@ -113,7 +139,7 @@ SafeChord 的演進並非盲目追求功能堆疊，而是遵循嚴謹的工程�
 
 ---
 
-## 🔴 Phase 3: v0.5.0 - Performance & Scaling (效能躍遷)
+## 🔴 Phase 6: v0.5.0 - Performance & Scaling (效能躍遷)
 **定位**: 根據基準線數據進行「精確的手術優化」，突破系統瓶頸。
 
 *   **關鍵任務**:
@@ -125,4 +151,5 @@ SafeChord 的演進並非盲目追求功能堆疊，而是遵循嚴謹的工程�
 ---
 
 ## 📅 未來展望 (The Future)
-當 SafeZone 達成了上述三個階段，它將從一個「功能原型」進化為一個 **「可觀測、可預測、可擴展」** 的現代化微服務架構。這不僅是技術的堆疊，更是對 **SRE (Site Reliability Engineering)** 精神的實踐。
+當 SafeZone 達成了上述階段，它將從一個「功能原型」進化為一個 **「可觀測、可預測、可擴展」** 的現代化微服務架構。這不僅是技術的堆疊，更是對 **SRE (Site Reliability Engineering)** 精神的實踐。
+

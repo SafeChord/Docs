@@ -27,7 +27,7 @@ tech_stack:
   - FastAPI
   - Redis (State Store)
 doc_version: 0.2.0
-app_version: 0.2.1
+app_version: 0.3.0
 ---
 
 # Time Server (Toolkit Blueprint)
@@ -79,11 +79,12 @@ SafeZone/toolkit/time-server/
 $$ SystemDate = MockDate + (CurrentTime - MockUpdateTime) \times Acceleration $$
 
 > **⚠️ Implementation Status**:
-> *   ✅ **時光旅行 (Mock Date)**: 已完整實作。設定後，系統會鎖定在該日期（若加速為 1，則隨時間平滑推進）。
+> *   ✅ **時光旅行 (Mock Date)**: 已完整實作。設定後，系統會鎖定在該日期。
+> *   ✅ **午夜換日同步 (Midnight Sync)**: 已實作。基準點自動對齊物理午夜，確保模擬時間與物理日期更替同步，避免 CronJob 衝突。
 > *   🚧 **時間加速 (Acceleration)**: 介面與資料庫Schema已預留欄位，但 **加速運算邏輯尚未完全實作**。目前系統預設倍率固定為 `1`。
 
 *   **MockDate**: 使用者設定的模擬起始日期。
-*   **MockUpdateTime**: 設定指令下達時的物理時間戳。
+*   **MockUpdateTime**: 設定指令下達時的物理時間基準點。**系統會強制將其對齊至該日凌晨 00:00:00**，以確保換日規律。
 *   **Acceleration**: 步進倍率 (Reserved)。
 
 ## 5. 依賴與控制 (Dependencies & Control)

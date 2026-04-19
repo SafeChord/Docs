@@ -25,7 +25,7 @@ archetype: script
 code_paths:
   - SafeZone/.github/workflows
 doc_version: 0.3.0
-app_version: 0.3.0-dev
+app_version: 0.3.0
 ---
 
 # SafeZone 開發與 CI 流程
