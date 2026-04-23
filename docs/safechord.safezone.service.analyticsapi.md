@@ -4,21 +4,23 @@ doc_id: safechord.safezone.service.analyticsapi
 status: active
 authors:
   - bradyhau
-  - Gemini 3 Pro
-last_updated: '2026-01-04'
+  - Gemini CLI
+last_updated: '2026-04-23'
 summary: Analytics API 是 SafeZone 的數據查詢與分析核心。它提供 RESTful 介面供前端與 CLI 查詢疫情數據，並實作了基於版本控制
-  (Cache Versioning) 的 Redis 快取策略與 In-Memory 預載優化，以實現極致的查詢效能。
+  (Cache Versioning) 的 Redis 快取策略與 In-Memory 預載優化，以實現極致的查詢效能。此服務也是 SafeZone 中第一個實作 Python Microservice Scaffold 的藍圖專案。
 keywords:
   - Analytics API
   - FastAPI
   - Redis Cache
   - Global Invalidation
   - In-Memory Cache
+  - Scaffold Blueprint
 logical_path: SafeChord.SafeZone.Service.AnalyticsAPI
 related_docs:
   - safechord.safezone.changelog.md
   - safechord.safezone.service.dashboard.md
   - safechord.safezone.service.worker.md
+  - safechord.safezone.service.python_scaffold.md
 parent_doc: safechord.safezone.service
 archetype: blueprint
 code_paths:
@@ -29,8 +31,8 @@ tech_stack:
   - Redis (redis-py async)
   - SQLAlchemy 2.0 (Sync)
   - psycopg2-binary
-doc_version: 0.2.0
-app_version: 0.2.1
+doc_version: 0.3.1
+app_version: 0.3.1
 ---
 
 # Analytics API (Service Blueprint)
@@ -42,27 +44,33 @@ app_version: 0.2.1
 *   **角色**: Reader / Aggregator / Gateway
 *   **特性**: Stateless, High-Concurrency, Read-Heavy
 *   **核心目標**: 作為系統的數據出口。它將存儲於 PostgreSQL 中的原始疫情事件，根據使用者的地理層級 (National/City/Region) 需求進行即時聚合運算，並透過多層次快取機制確保在流量高峰時依然能提供毫秒級的回應速度。
+*   **架構指標**: 作為 v0.3.1 Scaffold 標準化的第一站，本服務的架構設計是其他 Python 微服務的參考藍圖。
 
 ## 2. 檔案結構 (File Structure)
+本服務嚴格遵循 [Python Microservice Scaffold](safechord.safezone.service.python_scaffold.md) 規範：
 ```text
 SafeZone/services/analytics-api/
 ├── app/
-│   ├── main.py                   # Entry Point (App Factory & Lifespan Tasks)
+│   ├── main.py                   # App Factory, Middleware, Lifespan
 │   ├── api/
-│   │   └── endpoints.py          # RESTful Routes (Region/City/National)
-│   ├── pipeline/
-│   │   ├── orchestrator.py       # Logic Coordinator
-│   │   └── query_service.py      # SQLAlchemy Aggregation Logic
-│   ├── config/
-│   │   ├── cache.py              # Cache Decorators & Version Poller
-│   │   └── settings.py           # App Config & Redis/DB Settings
+│   │   ├── endpoints.py          # RESTful Routes (Region/City/National)
+│   │   └── dependencies.py       # DI Providers (DB Session, Cache Client)
+│   ├── services/                 # Business Logic (Framework-Free)
+│   │   ├── query_service.py      # SQLAlchemy Aggregation Logic
+│   │   └── cache_service.py      # In-Memory Cache Loaders
+│   ├── core/
+│   │   ├── settings.py           # App Config & Redis/DB Settings
+│   │   ├── lifecycle.py          # Resource Init & Cache Decorators
+│   │   └── context.py            # ContextVar for Cache Status
 │   └── exceptions/
+│       ├── custom.py             # Domain Exceptions
 │       └── handlers.py           # Custom Exception Handlers
 ├── test/                         # Comprehensive Testing Suite
-│   ├── tests/
-│   │   ├── unit_test/            # Query Logic Tests
-│   │   └── integration_test/     # API End-to-End Tests
-│   └── cases/                    # JSON Spec for Verification
+│   ├── conftest.py               # Shared Test Fixtures
+│   ├── unit/                     # Fast isolated logic tests
+│   ├── integration/              # API End-to-End Tests
+│   ├── cases/                    # JSON Spec for Verification
+│   └── scripts/                  # Data seeder
 ├── Dockerfile                    # Production Environment Builder
 ├── Dockerfile.test               # CI/CD Test Environment Builder
 ├── requirements.txt              # Production Dependencies
@@ -101,22 +109,24 @@ SafeZone/services/analytics-api/
 
 | 範疇 | 驗證路徑 (Source of Truth) | 業務意圖 (Business Intent) |
 | :--- | :--- | :--- |
-| **聚合算法** | `test/tests/cases/test_query_service.json` | 驗證 `SUM(cases)` 與 `ratio` 計算在不同地理層級下的正確性。 |
-| **快取一致性** | `SafeZone/scripts/smoke-test.sh` | **自動化 E2E 劇本**：執行 `test_cache_invalidation_flow`，驗證「寫入後自動失效」機制，確保前端不讀取過時數據。 |
-| **API 整合** | `test/tests/cases/test_integration.json` | 驗證 RESTful 介面的邊界條件與錯誤回應碼。 |
+| **業務邏輯** | `test/unit/` | 單元測試 `query_service` 與 `lifecycle`，確保邏輯隔離與快取鎖定機制正確。 |
+| **API 整合** | `test/integration/` | 透過 `TestClient` 驗證 HTTP Headers (`X-Cache-Status`)、相依注入與路由。 |
+| **快取一致性** | `SafeZone/scripts/ops/smoke_test.py` | **容器原生 E2E 劇本**：驗證跨服務的寫入後自動失效機制，確保前端不讀取過時數據。 |
 
 ## 6. 實作決策 (Implementation Decisions)
 
-*   **Cache Versioning & Global Invalidation**:
-    *   **Decision**: 實作 `poll_cache_version` 背景任務，每 60s 同步 Redis 中的版本號。
-    *   **Why**: 在微服務架構中，傳統的 TTL 失效難以保證資料一致性。透過版本號控制，我們可以在 Worker 完成寫入後立即通知所有 API 實例將舊快取視為無效，達成「近乎即時」的一致性。
+*   **Layered Dependency Injection (v0.3.1)**:
+    *   **Decision**: 移除直接存取 `request.app.state` 的 Service Locator 模式，改為透過 `api/dependencies.py` 進行明確依賴注入。
+    *   **Why**: 提升可測試性，並使 `services/` 層的程式碼完全脫離 FastAPI 框架耦合，為未來可能的 Go 語言遷移打下結構基礎。
+*   **Pure ASGI Middleware (v0.3.1)**:
+    *   **Decision**: 使用純 ASGI 介面實作 `TraceAndCacheMiddleware`。
+    *   **Why**: 解決 `BaseHTTPMiddleware` 執行於不同子任務群組所導致的 `ContextVar` (如 `X-Cache-Status`) 隔離問題。
+*   **Cache Versioning & Stampede Protection**:
+    *   **Decision**: 實作背景版本同步，並在 `@redis_cache` 裝飾器中加入基於 `asyncio.Lock` 的 Double-Check Locking。
+    *   **Why**: 防止快取失效瞬間大量相同請求擊穿資料庫 (Cache Stampede)。
 *   **In-Memory Static Data Preloading**:
     *   **Decision**: 啟動時將城市/行政區 ID 對照表與人口數據全量載入記憶體。
-    *   **Why**: 疫情數據表 (`covid_cases`) 巨大，避免在查詢時執行複雜的 `JOIN` 運算。透過記憶體 Lookups，將 SQL 簡化為對單一事實表的聚合，極大化查詢效能。
-*   **Future Roadmap**:
-    *   詳見 [Issue #24: Scalability Strategy for Analytics API](https://github.com/SafeChord/SafeZone/issues/24)。
-    *   **Trigger**: 當應用層 CPU 成為瓶頸且資料庫負載仍低時啟動評估。
-    *   **Strategy**: 若業務邏輯維持單純聚合，優先考慮遷移至 Golang；若涉及 Pandas 等複雜分析，則考慮服務拆分或 Async Driver 優化。
+    *   **Why**: 極大化查詢效能，將 SQL 簡化為對單一事實表的聚合。
 
 ## 7. 部署與維運 (Deployment & Ops)
 

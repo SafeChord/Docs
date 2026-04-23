@@ -40,7 +40,7 @@ SafeChord 的演進並非盲目追求功能堆疊，而是遵循嚴謹的工程�
 | 版本 | 階段名稱 | 核心目標 | 關鍵戰略 |
 | :--- | :--- | :--- | :--- |
 | **v0.3.0** | **Tooling & Portability** | **建立實驗室** | ✅ **已完成**。環境解耦，實作容器原生斷言工具鏈。 |
-| **v0.3.1** | **Scaffold & Blueprint** | **定義腳手架標準** | 以 Analytics API 為藍圖，實作 Layered DI 架構。 |
+| **v0.3.1** | **Scaffold & Blueprint** | **定義腳手架標準** | ✅ **已完成**。以 Analytics API 為藍圖，實作 Layered DI 架構。 |
 | **v0.3.2** | **Template Propagation** | **模板推廣與測試補全** | 統一所有 Python 服務架構並補齊單元測試。 |
 | **v0.3.5** | **Presentation Modernization** | **提升展示層體驗** | Dashboard 遷移至 React SPA，Docs 全面英文化。 |
 | **v0.4.0** | **Architecture TDD** | **建立基準線** | 定義 SLO 並執行「架構斷言」，產出體檢報告。 |
@@ -63,9 +63,9 @@ SafeChord 的演進並非盲目追求功能堆疊，而是遵循嚴謹的工程�
 **定位**: 定義標準化 Python 微服務腳手架，並以最複雜的 `analytics-api` 作為實作藍圖。
 
 *   **關鍵任務**:
-    *   **Scaffold Standardization (#19)**：將 #19 範疇擴展為「Python 微服務腳手架標準化」，實作 Layered Architecture（分層架構）與 Dependency Injection (DI)。
-    *   **Blueprint Implementation**: 在 `analytics-api` 實作標準層級（`api/`, `services/`, `core/`），並抽離 `dependencies.py` 管理生命週期。
-    *   **Zero-Framework Logic**: 確保 `services/` 業務邏輯層對 FastAPI 零導入，達成 100% 純 Python 測試可能性。
+    *   ✅ **Scaffold Standardization (#19)**：將 #19 範疇擴展為「Python 微服務腳手架標準化」，實作 Layered Architecture（分層架構）與 Dependency Injection (DI)。
+    *   ✅ **Blueprint Implementation**: 在 `analytics-api` 實作標準層級（`api/`, `services/`, `core/`），並抽離 `dependencies.py` 管理生命週期。
+    *   ✅ **Zero-Framework Logic**: 確保 `services/` 業務邏輯層對 FastAPI 零導入，達成 100% 純 Python 測試可能性。
 *   **戰略價值**: 建立「Convention over Framework」的開發規範，降低微服務間的架構熵增。
 
 ---

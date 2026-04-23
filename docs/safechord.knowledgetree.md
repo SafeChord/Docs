@@ -65,13 +65,14 @@ app_version: null
         *   *Focus: Source Code, Business Logic, AsyncIO Dataflow*
         *   **核心架構**
             *   [📄 safechord.safezone.md](safechord.safezone.md) ⭐ (Async Dataflow, Event-Driven Design, KEDA)
+            *   [📄 safechord.safezone.service.python_scaffold.md](safechord.safezone.service.python_scaffold.md) ⭐ (Python Microservice Scaffold: 標準目錄與分層規範)
             *   [📄 safechord.safezone.changelog.md](safechord.safezone.changelog.md) (🔄 應用版本演進與技術遷移紀錄)
         *   **服務模組 (Microservices)**
             *   [📄 safechord.safezone.service.pandemicsimulator.md](safechord.safezone.service.pandemicsimulator.md) (Simulator: AsyncIO 資料源)
             *   [📄 safechord.safezone.service.dataingestor.md](safechord.safezone.service.dataingestor.md) (Ingestor: Kafka Producer 閘道)
             *   [📄 safechord.safezone.service.dataingestor_evolution.md](safechord.safezone.service.dataingestor_evolution.md) (進化論：從同步到非同步的架構重構)
             *   [📄 safechord.safezone.service.worker.md](safechord.safezone.service.worker.md) (Worker: Golang / Franz-Go 消費者)
-            *   [📄 safechord.safezone.service.analyticsapi.md](safechord.safezone.service.analyticsapi.md) (API: 快取版本化聚合器)
+            *   [📄 safechord.safezone.service.analyticsapi.md](safechord.safezone.service.analyticsapi.md) (API: 快取聚合器與 Scaffold 實作藍圖)
             *   [📄 safechord.safezone.service.dashboard.md](safechord.safezone.service.dashboard.md) (UI: 時序感知視覺化)
         *   **工具與開發流 (Toolkit & Workflow)**
             *   [📄 safechord.safezone.toolkit.timeserver.md](safechord.safezone.toolkit.timeserver.md) (Time Server: 時鐘控制塔)

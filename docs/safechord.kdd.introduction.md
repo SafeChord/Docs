@@ -55,9 +55,11 @@ SafeChord 目前處於 KDD 的 **第一階段 (Phase 1)**。這意味著我們�
 *   **Vision (願景)**: 實現 "Text-to-App" 的全自動化流水線。
 *   **Reality (現狀)**: 採用 **人機協同 (Human-in-the-Loop)** 模式。
     *   **人類 (Human)**: 扮演 **Orchestrator (指揮官)**。負責在不同 AI Agent 之間傳遞 Context，進行決策仲裁，並手動觸發生成任務。
-    *   **Builder Agent (Gemini CLI)**: 負責維護知識庫結構與 Spec 文件。
-    *   **Coder Agent (Cline / DeepSeek)**: 負責讀取 Spec 並產出程式碼。
+    *   **Pioneer Agent (Claude Code)**: 負責技術攻堅、複雜邏輯除錯與生成實作。
+    *   **Settler Agent (Gemini CLI)**: 負責全域 Context Review、文檔同步與穩定迭代。
 *   **價值**: 雖然尚未全自動，但這種模式強迫我們將所有隱性知識 (Tacit Knowledge) 轉化為顯性文檔，確保了系統架構的一致性，並大幅減少了 AI 幻覺。
+
+*(註：詳細的 Agent 協作 SOP 與工具鏈請參閱 [KDD 實作現狀 (Script)](safechord.kdd.practice.md))*
 
 ---
 
