@@ -56,10 +56,9 @@ archetype: script
 *   **格式要求**: 採用 [Conventional Commits](https://www.conventionalcommits.org/)。
 *   **Agent 義務**: Gemini CLI 在進行 Review 時，必須解讀上一個 Agent (如 Claude) 的 Commit Message，以理解當前代碼的變更背景。
 
-### 🔴 換手機制 (The Handoff)
+### 🔴 換手機制 (the Handoff Protocol)
 當任務發生執行死結（鬼打牆）、完成階段性目標，或需要進行跨 Agent 的深度技術移交時，必須啟動「換手機制」。
-*   **媒介**: 統一存放在專案根目錄 `.ai-session-handoffs/` 下的臨時 Markdown 檔案，或是提供作為實作藍圖的 `.ai-session-drafts/` (設計草稿)。
-    *   *註：若交接物為設計草稿 (Design Draft)，請參閱附錄中的 [Design Draft 模板](#-design-draft-模板-draft) 以維持架構論述的一致性。*
+*   **媒介**: 統一存放在專案根目錄 `.ai-session-handoffs/` 下的臨時 Markdown 檔案。
 *   **觸發條件**: 
     - Pioneer (Claude Code) 完成 Spike 或階段性開發。
     - Settler (Gemini CLI) 宣告執行失敗或遇到範圍外的錯誤。
@@ -69,6 +68,11 @@ archetype: script
     2.  **改動內容 (What Changed)**: 檔案路徑與具體的架構變更。
     3.  **已嘗試路徑 (Verified Path)**: 哪些嘗試已證實可行？哪些是坑？*(註：僅在任務未完成的異常換手時才需要詳細記錄此項)*。
     4.  **待辦事項 (Next Actions)**: 給下一個 Agent 的明確指令與驗證標準。
+
+### ⚪ 草稿設計 (Design Draft)
+當進行高階戰略決策或規劃複雜重構任務時，人類或 Gemini CLI 應產出設計草稿，作為 Pioneer (Claude Code) 後續實作的明確藍圖。
+*   **媒介**: 統一存放在專案根目錄 `.ai-session-drafts/` 下的臨時 Markdown 檔案。
+*   **內容必備**: 建議參閱附錄中的 [Design Draft 模板](#-design-draft-模板-draft)，涵蓋 Background, Proposed Solution, Blueprint, Trade-offs, Next Steps 等結構化論述，以維持全域架構的一致性。
 
 ---
 
@@ -156,18 +160,26 @@ Legacy: [若有遺留問題，在此標註供下一個 Agent 處理]
 > **To**: Gemini CLI (Settler)
 > **Branch**: `feature/v0.3.1-scaffold` → merged to `dev` via PR #36
 > **Action Required**: Complete PR code review, Complete merge, 0.3.1 version tag, Documentation reconciliation
+
 ---
 
 ## Summary
 v0.3.1 scaffold implementation on `analytics-api` is complete, tested, and merged.
 All work is on `SafeZone` repo. The `utils` submodule also received one commit.
 
----
 ## What Changed
 ### Directory Structure
-...
+    ... 
+
 ### Key Architectural Changes
-...
+    ...
+
+
+## Next Actions 
+### Documentation Reconciliation Needed (Settler Tasks)
+    1. Update `safechord.roadmap.md`
+    2. Scaffold Blueprint doc ...
+```
 
 
 ### ⚪ Design Draft 模板 (Draft)
@@ -196,10 +208,4 @@ All work is on `SafeZone` repo. The `utils` submodule also received one commit.
 
 ## 5. 下一步計畫 (Next Steps)
 [列出具體的執行步驟，供 Pioneer (Claude) 參考。]
-```
----
-## Next Actions 
-### Documentation Reconciliation Needed (Settler Tasks)
-1. Update `safechord.roadmap.md`
-2. Scaffold Blueprint doc...
 ```
