@@ -1,11 +1,11 @@
 ---
 title: KDD 2.0: Dual-Track CLI & Headless Collaboration
 doc_id: safechord.kdd.practice
-last_updated: '2026-03-11'
+last_updated: '2026-04-23'
 status: active
 authors:
   - bradyhau
-  - Gemini 2.0 Flash (CLI)
+  - Gemini CLI
 context_scope: Methodology
 summary: 定義 SafeChord v0.3.x 的三機協同 (Three-Engine) 與無頭開發模型。詳述 Settler (Gemini CLI) 如何透過跨代理人協議維護四層解耦架構的一致性，將 KDD 2.0 轉化為高效的生產力閉環。
 keywords:
@@ -21,12 +21,12 @@ related_docs:
   - safechord.roadmap.md
 parent_doc: safechord.kdd.introduction
 doc_version: 0.3.0
-archetype: brain
+archetype: script
 ---
 
 # KDD 2.0 實作現狀：三機協同與無頭開發架構
 
-在 2026 年的 SafeChord 開發語境下，我們採用「三機協同」模型：利用 Gemini WebChat 進行高階決策，並配合雙軌 CLI 進行無頭化開發執行。
+在 2026 年的 SafeChord 開發語境下，我們採用「三機協同」模型：利用 Gemini WebChat 進行高階戰略決策，並配合雙軌 CLI 進行無頭化開發與文件沉澱。
 
 ---
 
@@ -37,8 +37,12 @@ archetype: brain
 | 角色 | 實體工具 | 核心職責 | 關注點 |
 | :--- | :--- | :--- | :--- |
 | **🏛️ 戰略決策中心 (Architect)** | **Gemini WebChat** | **設計與權衡**：定義技術堆疊、架構決策、分析長期 Trade-offs。 | 戰略 (Why/How) |
-| **🛡️ 前瞻監督者 (Pioneer)** | **Claude Code** | **技術攻堅與解題**：處理未知技術 Spike、複雜邏輯除錯、突破邏輯死結。 | 戰術 (Spike) |
-| **🧠 文件執行者 (Settler)** | **Gemini CLI (我)** | **迭代與沉澱**：日常功能開發、全域 Code Review、KDD 文檔逆向生成與維護。 | 執行 (Structure) |
+| **🛡️ 前瞻監督者 (Pioneer)** | **Claude Code** | **主要開發與解題**：負責大部分的代碼實作、未知技術 Spike、複雜邏輯除錯、突破邏輯死結。 | 戰術 (Spike & Code) |
+| **🧠 文件執行者 (Settler)** | **Gemini CLI** | **Review、歸檔與輔助決策**：提前規劃測試、全域 Code Review、KDD 文檔逆向生成與維護。透過 Plan Mode 參與需要 Codebase 狀態的戰略討論（為 WebChat 提供結構化 Context）。 | 執行 (Structure) |
+
+> **💡 協作備註 (Agent Roles Update)**
+> - **Gemini CLI 的戰略輔助角色**：由於 WebChat 無法直接讀取本地 Codebase，Gemini CLI 可以透過 `enter_plan_mode` 參與架構討論，整理 codebase 狀態並匯出文件，方便人類將資訊貼給 WebChat 進行高階決策。
+> - **職責分流**：目前主要的程式碼撰寫與功能開發皆交由 Claude Code (Pioneer) 負責；而 Gemini CLI (Settler) 則專注於 Review、架構把關與文件歸檔。
 
 ---
 
@@ -52,23 +56,37 @@ archetype: brain
 *   **格式要求**: 採用 [Conventional Commits](https://www.conventionalcommits.org/)。
 *   **Agent 義務**: Gemini CLI 在進行 Review 時，必須解讀上一個 Agent (如 Claude) 的 Commit Message，以理解當前代碼的變更背景。
 
-### 🔴 強制換手：遺言機制 (The Legacy Handoff)
-當任務過於複雜、發生邏輯死結、或需要進行跨 Agent 的深度技術移交時，必須啟動「遺言機制」。
-*   **媒介**: `LOKI_DEBUG_SESSION.md` 或專案根目錄下的臨時 Markdown 檔案。
+### 🔴 換手機制 (The Handoff)
+當任務發生執行死結（鬼打牆）、完成階段性目標，或需要進行跨 Agent 的深度技術移交時，必須啟動「換手機制」。
+*   **媒介**: 統一存放在專案根目錄 `.ai-session-handoffs/` 下的臨時 Markdown 檔案，或是提供作為實作藍圖的 `.ai-session-drafts/` (設計草稿)。
+    *   *註：若交接物為設計草稿 (Design Draft)，請參閱附錄中的 [Design Draft 模板](#-design-draft-模板-draft) 以維持架構論述的一致性。*
+*   **觸發條件**: 
+    - Pioneer (Claude Code) 完成 Spike 或階段性開發。
+    - Settler (Gemini CLI) 宣告執行失敗或遇到範圍外的錯誤。
+    - 人類工程師強制要求中斷並交接任務。
 *   **內容必備**:
-    1.  **環境狀態**: 目前打通到哪裡？哪些服務已啟動？
-    2.  **已驗證路徑**: 哪些嘗試已證實可行？哪些是坑？
-    3.  **待辦事項 (Next Action)**: 給下一個 Agent 的明確指令。
-*   **觸發條件**: Gemini CLI 宣告失敗、Claude Code 完成 Spike、或人類強制要求中斷任務。
+    1.  **目前狀態 (Status)**: 換手日期、交接方向 (From/To)、當前分支狀態、進度總結與下一步預計使用的工具。
+    2.  **改動內容 (What Changed)**: 檔案路徑與具體的架構變更。
+    3.  **已嘗試路徑 (Verified Path)**: 哪些嘗試已證實可行？哪些是坑？*(註：僅在任務未完成的異常換手時才需要詳細記錄此項)*。
+    4.  **待辦事項 (Next Actions)**: 給下一個 Agent 的明確指令與驗證標準。
 
 ---
 
 ## 3. 螺旋式 KDD：從戰略到沉澱 (Workflow)
 
-1.  **決策階段 (Strategic Design)**: 與 **Gemini WebChat** 討論架構，確認決策。
-2.  **實驗階段 (Spike)**: 若涉及未知技術，啟動 **Claude Code** 進行開發先行。
-3.  **同步階段 (Handoff/Commit)**: Claude 完成後，提交代碼並附上詳盡的 Commit Message (或 Legacy Note)。
-4.  **定錨與沉澱 (Solidify)**: 由 **Gemini CLI** 讀取 Git 改動與溝通資訊，進行 Review 並將成果反向寫入 `Docs/` 的 Blueprint 中。
+這是一個典型的任務生命週期，展示了三個角色如何交替接棒：
+
+1.  **決策階段 (Strategic Design)**: 
+    *   人類與 **Gemini WebChat** 討論架構與可行性。
+    *   若需要精確的 Codebase 狀態，可指派 **Gemini CLI** 進入 `Plan Mode`，生成如 `.ai-session-drafts/` 的**設計草稿 (Design Draft)**。
+2.  **實作階段 (Spike / Code)**: 
+    *   **換手 (Handoff)**: 將設計草稿或明確的 Legacy Note 交接給 **Claude Code**。
+    *   **Claude Code** 接手後，建議先透過 Opus 模型（或其內建的 Plan Mode）分析草稿可行性並規劃任務。
+    *   計畫確認後，切換至 Sonnet 模型執行具體的代碼變更與測試實作。
+3.  **收尾階段 (Completion & Handoff)**: 
+    *   Claude 完成開發後，**必須**負責：提交代碼、建立 PR (Pull Request)，並將系統狀態總結為 Legacy Note 交接給 Gemini CLI。
+4.  **定錨與沉澱 (Solidify)**: 
+    *   由 **Gemini CLI** 接手最後的 Legacy Note，負責：執行 PR Code Review、Merge 程式碼、打上 Version Tag（若有需要）、關閉對應的 GitHub Issue，並進行 **文件對齊 (Documentation Reconciliation)**，將成果反向寫入 `Docs/` 的 SSOT 中，完成知識閉環。
 
 ---
 
@@ -85,7 +103,7 @@ archetype: brain
 為了確保 Agent 間的語意對齊，所有協作者必須遵循以下溝通規範：
 
 ### 🟢 Git Commit 模板 (Routine)
-遵循 [Conventional Commits](https://www.conventionalcommits.org/) 與 [Git Trailers](https://git-scm.com/docs/git-interpret-trailers) 標準，確保 Settler (Gemini) 進行 Review 時具備足夠 Context，同時保持 Git Log 的專業整潔。
+遵循 [Conventional Commits](https://www.conventionalcommits.org/) 與 [Git Trailers](https://git-scm.com/docs/git-interpret-trailers) 標準，確保 Settler (Gemini) 進行 Review 時具備足夠 Context。
 
 ```text
 <type>(<scope>): <subject> (50 chars max)
@@ -96,27 +114,92 @@ archetype: brain
 
 Context: [關聯的 Blueprint 路徑或 Issue ID]
 Impact: [對架構、API 契約或基礎設施的具體影響]
-Test: [執行了哪些測試驗證？ (e.g. make smoke-test)]
+Test: [執行了哪些測試驗證？ (e.g. make smoke-test)] (若無特定測試可省略此行)
 Agent: [執行此提交的 AI 代理人 (e.g. Gemini CLI, Claude Code)]
 Legacy: [若有遺留問題，在此標註供下一個 Agent 處理]
 ```
+### 🔴 Handoff 模板 (Legacy Note)
+適用於跨 Agent 移交任務（存放在 `.ai-session-handoffs/` 的臨時 Markdown）。
 
-### 🔴 Legacy Note 模板 (Handoff)
-適用於跨 Agent 移交任務（存放在 `LOKI_DEBUG_SESSION.md` 或臨時 Markdown）。
 ```markdown
 # 📝 Legacy Note: [任務名稱]
-- **Status**: [已打通 / 部分完成 / 邏輯死結]
-- **Environment**: [目前的部署狀態、關鍵環境變數]
-- **Verified Path**: 
-  - [x] 哪些嘗試已經證實可行？
-  - [ ] 哪些是確認的坑 (Dead Ends)？
-- **The Blockers**: 為什麼現在停下來？(報錯訊息、邏輯矛盾點)
-- **Next Actions**: 
-  1. [具體下一步指令]
-  2. [需要更新的文檔路徑]
-```
+
+> **Date**: YYYY-MM-DD
+> **From**: [Agent Name]
+> **To**: [Agent Name]
+> **Branch**: [Branch Name]
+> **Action Required**: [Brief summary of expected next steps]
 
 ---
 
-## 6. 戰略評價
-這套架構讓人類架構師進化為 **「AI 資源調度員」**。透過標準化的溝通協議，我們建立了一個具備「自癒力」與「知識沉澱能力」的開發閉環。
+## Status / Summary
+[描述當前進度：已打通 / 部分完成 / 邏輯死結]
+
+## What Changed
+[列出主要的目錄結構變更或核心架構調整]
+
+## Verified Path (Optional)
+- [x] 哪些嘗試已經證實可行？
+- [ ] 哪些是確認的坑 (Dead Ends) 或報錯？
+
+## Next Actions
+1. [具體下一步指令 1]
+2. [具體下一步指令 2]
+```
+
+#### 💡 Handoff 範例 (v0.3.1 Scaffold Complete)
+當 Pioneer (Claude) 完成階段性任務交接給 Settler (Gemini) 時的實際範例：
+
+```markdown
+> **Date**: 2026-04-22
+> **From**: Claude Code (Pioneer)
+> **To**: Gemini CLI (Settler)
+> **Branch**: `feature/v0.3.1-scaffold` → merged to `dev` via PR #36
+> **Action Required**: Complete PR code review, Complete merge, 0.3.1 version tag, Documentation reconciliation
+---
+
+## Summary
+v0.3.1 scaffold implementation on `analytics-api` is complete, tested, and merged.
+All work is on `SafeZone` repo. The `utils` submodule also received one commit.
+
+---
+## What Changed
+### Directory Structure
+...
+### Key Architectural Changes
+...
+
+
+### ⚪ Design Draft 模板 (Draft)
+適用於戰略決策與複雜重構提案（存放在 `.ai-session-drafts/`）。本模板旨在為 Coder Agent 提供清晰的實作藍圖。
+
+```markdown
+# Design Draft: [任務名稱/組件名稱]
+
+> **Date**: YYYY-MM-DD
+> **Status**: [Proposed / Approved]
+> **Component**: [Affected microservices or modules]
+> **Context**: [Linked Roadmap version or Issue ID]
+
+## 1. 背景與痛點 (Background & Problem Statement)
+[詳細說明為什麼需要這個變更。目前的設計存在哪些缺陷？對於 AI 來說有哪些協作阻礙？]
+
+## 2. 解決方案 (Proposed Solution)
+[描述高階設計思路。將如何解決上述痛點？]
+
+## 3. 架構實作藍圖 (Blueprint)
+[定義具體的目錄結構變更、API 契約調整或分層規則。]
+[包含 Mock 代碼範例或 Pydantic 模型定義。]
+
+## 4. 優缺點分析 (Trade-offs)
+[誠實記錄此設計的權衡：為什麼選擇 A 而非 B？目前的架構債在哪裡？]
+
+## 5. 下一步計畫 (Next Steps)
+[列出具體的執行步驟，供 Pioneer (Claude) 參考。]
+```
+---
+## Next Actions 
+### Documentation Reconciliation Needed (Settler Tasks)
+1. Update `safechord.roadmap.md`
+2. Scaffold Blueprint doc...
+```
