@@ -58,8 +58,7 @@ app_version: null
     *   ⬜ **Knowledge Layer (Repo: Docs)**
         *   *Focus: KDD Methodology, Standards, SSOT*
         *   [📄 safechord.kdd.introduction.md](safechord.kdd.introduction.md) (KDD: 知識驅動開發引言)
-        [📄 safechord.kdd.practice.md](safechord.kdd.practice.md) ⭐ (三機協作實踐：Architect-Pioneer-Settler 模型與無頭開發協議)
-        *   [📄 safechord.kdd.workflow.md](safechord.kdd.workflow.md) (KDD 工作流：Map-Blueprint-Script-Brain)
+        *   [📄 safechord.kdd.practice.md](safechord.kdd.practice.md) ⭐ (三機協作實踐：Architect-Pioneer-Settler 模型與無頭開發協議)
 
     *   🟦 **Application Layer (Repo: SafeZone)**
         *   *Focus: Source Code, Business Logic, AsyncIO Dataflow*

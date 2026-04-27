@@ -17,7 +17,6 @@ keywords:
   - Legacy Handoff
 logical_path: SafeChord.KDD.Practice
 related_docs:
-  - safechord.kdd.workflow.md
   - safechord.roadmap.md
 parent_doc: safechord.kdd.introduction
 doc_version: 0.3.0

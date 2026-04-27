@@ -1,94 +1,86 @@
 ---
 title: Knowledge-Driven Development (KDD)
 doc_id: safechord.kdd.introduction
-last_updated: '2025-12-28'
+last_updated: '2026-04-27'
 status: active
 authors:
   - bradyhau
-  - Gemini 3 Pro
+  - Gemini CLI
 context_scope: Methodology
-summary: 介紹 SafeChord 專案的核心開發方法論——知識驅動開發 (KDD)。闡述如何以文檔為「唯一真理來源 (Source of Truth)」，驅動
-  AI Agent 進行精準的程式碼生成與架構維護，並定義當前的人機協作模式。
+summary: 介紹 SafeChord 專案的核心開發方法論——知識驅動開發 (KDD)。闡述如何透過實體的知識地圖 (Knowledge Map) 建立具備複利效應的長期記憶，並以 TDD 作為 AI 的收斂邊界，重新定義 AI 時代的軟體工程。
 keywords:
   - KDD
+  - Knowledge Map
+  - TDD
   - AI Collaboration
-  - Documentation-First
-  - Prompt Engineering
-  - Human-in-the-Loop
+  - LLM Wiki
 logical_path: SafeChord.KDD.Introduction
 related_docs:
   - safechord.kdd.practice.md
   - safechord.knowledgetree.md
 parent_doc: safechord.knowledgetree
-doc_version: 0.2.0
+doc_version: 0.3.0
 archetype: brain
 ---
 
 # 知識驅動開發 (Knowledge-Driven Development)
 
-SafeChord 不僅是一個軟體專案，更是一場關於 **「AI 時代如何寫軟體」** 的實驗。我們採用的核心方法論稱為 **KDD (Knowledge-Driven Development)**。
+SafeChord 不僅是一個軟體專案，更是一場關於 **「AI 時代如何寫軟體」** 的架構實驗。我們採用的核心方法論稱為 **KDD (Knowledge-Driven Development)**。
 
----
+## 1. 典範轉移：什麼是 KDD？
 
-## 1. 核心哲學 (Core Philosophy)
-
-傳統開發是「人寫程式 -> 補文檔（如果有時間）」。KDD 則反其道而行：
+在過去，開發流程是「人類寫程式，最後再補文檔（如果有時間的話）」。
+但在 AI 程式碼生成能力逐漸超越人類實作者的今天，KDD 反其道而行：
 
 > **"Code is the Artifact of Knowledge. Documentation is the Source."**
-> (程式碼是知識的產物，文檔才是源頭。)
+> (程式碼只是產物，知識才是源頭。)
 
-在 KDD 流程中，我們不直接對 AI 說「幫我寫一個登入功能」，而是：
-1.  **定義知識**: 在文檔中定義「登入」的規格、資料模型、安全約束。
-2.  **載入 Context**: 讓 AI 閱讀這些文檔。
-3.  **生成實作**: AI 根據文檔生成符合規範的程式碼。
+KDD 是一種以 AI 原生 (AI-native) 思維為基礎的開發哲學。它將結構化的「知識 (Knowledge)」與「意圖 (Intent)」作為開發的起點和核心驅動引擎，重新定義了「人機協作的邊界」。
 
 ---
 
-## 2. 當前狀態與成熟度 (Status & Maturity)
+## 2. 核心轉變：從「微觀規格 (Spec)」到「高階知識 (Knowledge)」
 
-> **💡 Project Status: KDD Phase 1 - Human-Orchestrated Agents**
->
-> 為了避免誤解，我們誠實定義本專案目前的自動化程度：
+在 AI 時代，為什麼我們不再提倡傳統的 Spec-Driven (規格驅動)？
 
-SafeChord 目前處於 KDD 的 **第一階段 (Phase 1)**。這意味著我們已經建立了 AI-Ready 的知識結構，但 Agent 之間的互動仍需 **人類介入**。
-
-*   **Vision (願景)**: 實現 "Text-to-App" 的全自動化流水線。
-*   **Reality (現狀)**: 採用 **人機協同 (Human-in-the-Loop)** 模式。
-    *   **人類 (Human)**: 扮演 **Orchestrator (指揮官)**。負責在不同 AI Agent 之間傳遞 Context，進行決策仲裁，並手動觸發生成任務。
-    *   **Pioneer Agent (Claude Code)**: 負責技術攻堅、複雜邏輯除錯與生成實作。
-    *   **Settler Agent (Gemini CLI)**: 負責全域 Context Review、文檔同步與穩定迭代。
-*   **價值**: 雖然尚未全自動，但這種模式強迫我們將所有隱性知識 (Tacit Knowledge) 轉化為顯性文檔，確保了系統架構的一致性，並大幅減少了 AI 幻覺。
-
-*(註：詳細的 Agent 協作 SOP 與工具鏈請參閱 [KDD 實作現狀 (Script)](safechord.kdd.practice.md))*
+*   **微觀管理會扼殺 AI 的潛能**：傳統的 Spec 就像是一張「施工手冊」，把需求寫到最底層的實作細節。但現今的 AI（如 Claude 3.5 或更高階模型），其底層實作能力與演算法廣度往往超越了寫 Spec 的人類。如果我們用底層指令限縮它，就等於把一位「資深協作夥伴」當成了「打字機」。
+*   **知識是活的，規格是死的**：KDD 放棄了「告訴 AI 怎麼做 (How)」，轉而提供「我們面臨的真實問題是什麼 (What)」、「架構的意圖為何 (Why)」，以及「過去嘗試過什麼、為何失敗 (ADR - 架構決策紀錄)」。
+*   **將實作的自由還給 AI**：在 KDD 中，人類扮演架構師與指揮官，負責給予最完整的「背景知識」與「上下文」。在了解了這些 Knowledge 後，AI 能夠自由發揮創意，找到最佳的底層實作路徑。
 
 ---
 
-## 3. 為什麼需要 KDD？
+## 3. 核心約束：TDD 作為 AI 的「收斂邊界」
 
-*   **消除幻覺**: AI 容易胡說八道，除非你有明確的「邊界」限制它。結構化的知識庫就是這個邊界。
-*   **長期記憶**: 對話視窗 (Context Window) 是短暫的，但文件是永恆的。KDD 讓專案的智商隨著文件積累而成長，而不是隨著對話結束而重置。
-*   **架構一致性**: 當所有 Agent 都參考同一份架構圖工作時，系統就不會長歪。
+既然我們給了 AI 最大的實作自由，那要如何防止它「暴走」？
 
----
-
-## 4. KDD 的演進路線圖 (Roadmap)
-
-### Level 1: Context Awareness (當前階段)
-*   建立完整的知識地圖 (`knowledgetree.md`)。
-*   人類負責確保 Agent 在執行任務前，已閱讀正確的文件。
-*   **Human-Orchestrated**: 手動協調 Builder 與 Coder 的工作交接。
-
-### Level 2: Spec-Driven Generation (中期目標)
-*   撰寫結構化的 Markdown Spec (Prompt Code)。
-*   開發簡單的 CLI 工具，自動提取 Markdown 中的 TestCase 並生成測試腳本。
-*   "Document is the Code."
-
-### Level 3: Autonomous Evolution (長期願景)
-*   AI 在修改程式碼後，自動回過頭來更新文件。
-*   知識庫與程式碼庫達成即時雙向同步，無需人類介入文檔維護。
+*   **沒有邊界的 AI 就是災難**：給予強大的 Agent 工具一個模糊的目標，它往往會無止盡地發散、腦補出你沒要的功能、進行無效重構，最終不僅燒光 Token，系統也無法運行。
+*   **從「品質保證」升級為「收斂機制」**：在 KDD 框架下，**TDD (Test-Driven Development)** 的意義發生了質變。測試不再只是為了防呆，更是引導強大 AI **收斂 (Convergence)** 的「物理紅牆」。
+*   **測試即規格**：我們在知識節點（Markdown 文件）中，明確定義出 TestCase（輸入什麼、預期輸出什麼、錯誤碼是什麼）。這等於告訴 AI：「你的實作無論怎麼自由發揮，最終都必須給我通過這幾個條件。」這把 AI 的幻覺 (Hallucination) 完美地鎖死在可驗證的邊界內。
 
 ---
 
-## 5. 下一步
+## 4. 知識的實體載體：為什麼是「知識地圖」而非「向量資料庫」？
 
-要了解我們目前如何實作 Level 1 的協作模式，請閱讀 [實作現狀：基於知識庫的協作模式](safechord.kdd.practice.md)。
+目前 AI 領域的顯學是將文件丟進 Vector DB (向量資料庫) 進行 RAG 檢索，但 **KDD 堅持使用 Markdown 文件與實體樹狀目錄 (Knowledge Map)**，這與 Andrej Karpathy 提出的 **"LLM Wiki"** 概念高度共鳴：
+
+*   **確定性 (Deterministic) vs. 機率性 (Probabilistic)**：
+    Vector DB 將知識切碎，並依賴機率性的「語意相似度」來檢索。這容易導致 AI 每次都在「重新發現知識」，甚至將字面上相似但邏輯無關的模組混在一起，產生嚴重的「架構幻覺 (Retrieval Loss)」。
+    相反地，KDD 透過 [**知識地圖 (`knowledgetree.md`)**](safechord.knowledgetree.md) 作為全局的路由中心。父子關係、模組依賴是**絕對確定**的。當 AI 處理特定任務時，必須「按圖索驥」，精準索引它「應該知道的檔案」，確立不可逾越的邊界。
+*   **知識的複利效應 (Compound Knowledge)**：
+    KDD 的知識樹不是靜態的，而是一個持續演進、具備複利效應的實體資產 (Persistent Artifact)。每一次的 PR、每一次的架構調整，都會在 Markdown 中留下交叉引用與矛盾標記。
+*   **消除簿記 (Bookkeeping) 的勞動**：
+    人類過去難以維護龐大的 Wiki，是因為繁瑣的連結與狀態更新。但在 KDD 的協作模式中，人類負責高階架構決策（Architect），而將這座龐大 Markdown 樹的維護、對齊與沉澱工作，交給不知疲倦的 AI 代理人（Settler）來執行。
+*   **工具抽象化與載體適應性 (Tool-Agnostic Adaptability)**：
+    AI 工具的迭代極快，SafeChord 在發展過程中經歷了從早期的 Web Chat 介面，到 API 調用，再演進至當前雙軌 CLI Agent 的無頭協作。之所以能無痛遷移，正是因為 **Markdown 檔案本身就是最強大的工具抽象層**。無論使用什麼廠商的模型或介面，這棵實體的知識樹永遠是同步各方認知 (包含人類與多種 Agent) 的通用橋樑。
+
+> 📖 **Reference**: 此「知識地圖」與「檔案即知識庫」的理念，與 Andrej Karpathy 於 2025 年提出的 [LLM Wiki](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) 概念不謀而合。KDD 早在 SafeChord 專案初期即實踐了此一「由 AI 維護持久性知識樹」的先進模式。
+
+---
+
+## 5. 邁向實踐：雙軌制與無頭協作
+
+上述是 KDD 的「道」與「北極星」。
+
+至於在 2026 年的當下，SafeChord 專案具體是如何透過實體的 AI 工具（如 Gemini CLI、Claude Code）與標準化的協議（如 Git Commit 規範、`.ai-session-handoffs/` 換手機制）來實踐這套理念，讓「文件即程式碼庫 (Docs as Codebase)」成為可能？
+
+👉 請參閱：**[KDD 實作現狀：三機協同與無頭開發架構 (Practice)](safechord.kdd.practice.md)**
