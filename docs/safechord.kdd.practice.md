@@ -71,25 +71,50 @@ archetype: script
 ### ⚪ 草稿設計 (Design Draft)
 當進行高階戰略決策或規劃複雜重構任務時，人類或 Gemini CLI 應產出設計草稿，作為 Pioneer (Claude Code) 後續實作的明確藍圖。
 *   **媒介**: 統一存放在專案根目錄 `.ai-session-drafts/` 下的臨時 Markdown 檔案。
-*   **內容必備**: 建議參閱附錄中的 [Design Draft 模板](#-design-draft-模板-draft)，涵蓋 Background, Proposed Solution, Blueprint, Trade-offs, Next Steps 等結構化論述，以維持全域架構的一致性。
+*   **內容必備**: 建議參閱附錄中的 **Design Draft 模板**，涵蓋 Background, Proposed Solution, Blueprint, Trade-offs, Next Steps 等結構化論述，以維持全域架構的一致性。
 
 ---
 
-## 3. 螺旋式 KDD：從戰略到沉澱 (Workflow)
+## 3. 雙軌工作流：KDD 的動態平衡 (Dual-Track Workflow)
 
-這是一個典型的任務生命週期，展示了三個角色如何交替接棒：
+在實際開發中，我們面臨著一個結構性矛盾：KDD 哲學要求「文件先行 (Docs ➡️ Code)」，但在探索未知技術時，強求先寫文檔會扼殺敏捷性。
+
+為了解決這個矛盾，SafeChord 引入了基於 Issue 標籤的**雙軌工作流 (Dual-Track Workflow)**。透過明確的標籤，我們讓 AI Agent 知道現在應該採取哪種「戰術型態」。
+
+### 🟢 路徑 A：`kdd:forward` (秩序模式)
+這是最純正的 KDD 實踐，適用於**既有模組優化、已知架構的新功能、Scaffold 內的規範開發**。
+**最高指導原則**：「文件先行」——未改文檔，不准動 Code。
+
+這是一個典型的 `kdd:forward` 任務生命週期，展示了如何在嚴格的知識邊界內進行開發：
 
 1.  **決策階段 (Strategic Design)**: 
-    *   人類與 **Gemini WebChat** 討論架構與可行性。
+    *   人類標註 `kdd:forward`，並與 **Gemini WebChat** 定義 Why/What。
+    *   由 **Gemini CLI (Settler)** 根據決策**先行更新** Markdown 知識節點（例如：在 Blueprint 中加入新的 API 意圖與 TDD 約束）。這構成了不可逾越的「法律」。
+2.  **實作階段 (Implementation / Code)**: 
+    *   **換手 (Handoff)**: 將更新後的 `.md` 文件作為明確指令與邊界，交接給 **Claude Code (Pioneer)**。
+    *   **Claude Code** 接手後，在 Codebase 中撰寫代碼與自動化測試，其實作必須嚴格收斂在文檔所定義的框架內。
+3.  **收尾階段 (Completion & Handoff)**: 
+    *   Claude 完成開發與測試後，**必須**負責：提交代碼、建立 PR (Pull Request)，並將任務狀態總結為 Legacy Note 交接給 Gemini CLI。
+4.  **定錨與沉澱 (Solidify)**: 
+    *   由 **Gemini CLI** 接手，負責：執行嚴格的 PR Code Review（確認實作是否符合事前定義的文檔規範）、Merge 程式碼、打上 Version Tag，並關閉對應的 Issue，維持系統秩序。
+
+### 🔴 路徑 B：`kdd:spike` (拓荒模式)
+這是 KDD 為了擁抱未知而設計的「反向路徑」，適用於**新技術整合（如：第一次接 Kafka）、未知的 Bug 排除、性能極限測試**。
+**最高指導原則**：「實作先行」——先出 Demo/Spike，再回補文檔。
+
+這是一個典型的 `kdd:spike` 任務生命週期，展示了三個角色如何交替接棒，最終將未知轉化為已知文檔：
+
+1.  **決策階段 (Strategic Design)**: 
+    *   人類標註 `kdd:spike`，並與 **Gemini WebChat** 討論架構與可行性。
     *   若需要精確的 Codebase 狀態，可指派 **Gemini CLI** 進入 `Plan Mode`，生成如 `.ai-session-drafts/` 的**設計草稿 (Design Draft)**。
 2.  **實作階段 (Spike / Code)**: 
-    *   **換手 (Handoff)**: 將設計草稿或明確的 Legacy Note 交接給 **Claude Code**。
+    *   **換手 (Handoff)**: 將設計草稿交接給 **Claude Code**，並給予其拓荒的免死金牌。
     *   **Claude Code** 接手後，建議先透過 Opus 模型（或其內建的 Plan Mode）分析草稿可行性並規劃任務。
-    *   計畫確認後，切換至 Sonnet 模型執行具體的代碼變更與測試實作。
+    *   計畫確認後，切換至 Sonnet 模型執行具體的代碼變更與測試實作，不需顧慮現有文檔的約束。
 3.  **收尾階段 (Completion & Handoff)**: 
     *   Claude 完成開發後，**必須**負責：提交代碼、建立 PR (Pull Request)，並將系統狀態總結為 Legacy Note 交接給 Gemini CLI。
 4.  **定錨與沉澱 (Solidify)**: 
-    *   由 **Gemini CLI** 接手最後的 Legacy Note，負責：執行 PR Code Review、Merge 程式碼、打上 Version Tag（若有需要）、關閉對應的 GitHub Issue，並進行 **文件對齊 (Documentation Reconciliation)**，將成果反向寫入 `Docs/` 的 SSOT 中，完成知識閉環。
+    *   這是維持 KDD 不崩塌的關鍵！由 **Gemini CLI** 接手最後的 Legacy Note，負責：執行 PR Code Review、Merge 程式碼、打上 Version Tag（若有需要）、關閉對應的 GitHub Issue，並進行 **文件對齊 (Documentation Reconciliation)**，將雜亂的實驗結果逆向寫入 `Docs/` 的 SSOT 中，完成知識閉環。
 
 ---
 
