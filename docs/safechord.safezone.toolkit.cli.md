@@ -4,10 +4,9 @@ doc_id: safechord.safezone.toolkit.cli
 status: active
 authors:
   - bradyhau
-  - Gemini 3 Pro
-last_updated: '2026-04-15'
-summary: SafeZone CLI (szcli) 是系統的指揮官與控制台。採用 Client-Relay 架構，Client 端提供 Typer CLI
-  介面，Relay 端則作為 K8s 內部的受信任 Gateway，負責執行特權操作並驗證 Google OAuth 憑證。
+  - Gemini CLI
+last_updated: '2026-05-02'
+summary: SafeZone CLI (szcli) is the project's orchestrator and control plane. It utilizes a Client-Relay architecture where a Typer-based CLI interacts with a trusted internal Cluster Relay to perform privileged operations, including Google OAuth verification and dataflow automation.
 keywords:
   - SafeZone CLI
   - szcli
@@ -31,117 +30,83 @@ tech_stack:
   - FastAPI (Relay Server)
   - Google OAuth 2.0 (Headless)
   - Rich (Terminal UI)
-doc_version: 0.3.0
-app_version: 0.3.0-dev
+doc_version: 0.3.5
+app_version: 0.3.2
 ---
 
 # SafeZone CLI (Toolkit Blueprint)
 
-> ⚠️ **Scope Warning**: This blueprint defines the `szcli` toolkit.
-> *繼承自 `archetype.blueprint.md`*
+> **Type**: Blueprint (Technical Specification)
+> **Focus**: Orchestration, secure relay patterns, and ops automation.
+> **Constraint**: Implementation details (CLI subcommands, OAuth flows) live in the codebase.
 
-## 1. 職責與定位 (Responsibility)
-*   **角色**: Orchestrator / Gateway / Ops Tool
-*   **特性**: Client-Relay Architecture, Stateful Auth (Local Token Cache)
-*   **核心目標**:
-    *   **統一入口**: 作為系統的單一控制點，屏蔽 K8s 內部的複雜連線資訊。
-    *   **安全邊界**: 透過 Relay 模式，允許外部使用者（開發者）在不直接暴露 DB/Redis 端口的情況下，執行受控的維運指令。
-    *   **自動化驗證**: 整合 **Smoke Test Engine**，透過 CSV 驅動的自動化腳本驗證全系統資料流。
+---
 
-## 2. 設計哲學 (Design Philosophy)
-> **"Utility First, Purity Second"**
+## 1. Responsibility & Positioning
+*(Required)*
+*   **Role**: Orchestrator / Gateway / Ops Tool
+*   **Core Objective**:
+    *   **Unified Ingress**: Acts as the single control point for the system, shielding developers from complex internal K8s connection strings.
+    *   **Security Boundary**: Utilizes a Relay pattern to allow external users to perform controlled operations (e.g., database seeding) without exposing DB/Redis ports directly.
+    *   **Automated Validation**: Integrates the **Smoke Test Engine** to verify end-to-end dataflows via CSV-driven scripts.
+*   **Characteristics**: Client-Relay Architecture, Stateful Auth (Local Token Cache).
 
-本工具性質屬於 **開發輔助 (Dev Enabler)**，其開發模式具有高度的 **探索性 (Exploratory)**。
-*   **動態需求**: 功能常因應臨時的 Debug 需求或架構調整而新增（例如臨時需要重置 Time Server）。
-*   **權衡 (Trade-off)**: 我們選擇 **犧牲單元測試覆蓋率**，以換取功能的即時交付。
-*   **緩解 (Mitigation)**: 不強制 TDD，而是依賴 **Smoke Test** 覆蓋最關鍵的 Happy Path，確保核心資料流操作正常。
-
-## 3. 檔案結構 (File Structure)
-專案結構劃分為 `command` (Client), `relay` (Server) 與 `ops` (Automation) 三大部分。
-
+## 2. File Structure
+*(Recommended — directory-level only)*
 ```text
 SafeZone/toolkit/cli/
-├── command/                      # [Client] Typer App (Run on Host/Bastion)
-│   ├── main.py                   # Entry Point & Command Registry
-│   ├── bin/
-│   │   ├── client.py             # HTTP Client with Auto-Refresh Auth
-│   │   └── command.py            # Command Decorators
-│   └── config/settings.py        # Client Config (Secrets from Env)
-├── relay/                        # [Server] FastAPI App (Run inside Cluster)
-│   ├── main.py                   # Entry Point
-│   ├── api/endpoints.py          # REST Interface & RBAC Logic
-│   ├── bin/                      # Business Logic Helpers
-│   └── config/settings.py        # Server Config (Secrets from Env)
-├── ops/                          # [Ops] 自動化測試與維運指令集
-│   ├── smoke_test.py             # CSV-driven Test Engine (Container-native)
-│   ├── test_cases/               # Smoke Test 定義檔 (*.csv)
-│   └── routines/                 # [Macros] 各環境初始化與資料預熱腳本 (init, seed)
-└── Dockerfile                    # 支援不同組件的多階段建置 (command/relay/ops)
+├── command/                      # [Client] Typer App (Runs on Host/Bastion)
+│   ├── main.py                   # Registry of subcommands
+│   └── bin/client.py             # Auth-aware HTTP Client
+├── relay/                        # [Server] FastAPI App (Runs inside Cluster)
+│   ├── api/endpoints.py          # Trusted operations & RBAC
+│   └── bin/                      # Domain logic helpers
+└── ops/                          # [Automation] CSV-driven test engine
+    ├── smoke_test.py             # Engine core
+    └── test_cases/               # Test definitions (*.csv)
 ```
 
-## 4. 接口規範 (Interfaces)
+## 3. Business Requirements
+*(Required)*
 
-### 輸入 (Ingress)
-*   **User Interface (Client)**:
-    *   `szcli dataflow {simulate, verify}`
-    *   `szcli system {time, health}`
-    *   `szcli db {init, reset}`
-    *   **詳細操作範式**: 請參閱 **[CLI Instruction Set (szcli)](safechord.safezone.toolkit.cli.reference.md)**。
-*   **API Interface (Relay)**:
-    *   **Endpoint**: `POST /dataflow/simulate`, `GET /system/health`, etc.
-    *   **Auth**: `Authorization: Bearer <ID_TOKEN>` (Google OAuth2).
+### Functional
+*   **Dataflow Control**: Must provide commands to trigger simulations and verify data persistence.
+*   **System Maintenance**: Commands for database initialization, cache clearing, and virtual time adjustment.
+*   **Security Relay**: The relay must verify Google ID Tokens and enforce RBAC based on a whitelist.
 
-### 輸出 (Egress)
-*   **Client Output**: 使用 `Rich` 函式庫渲染的格式化終端輸出 (JSON/Table)。
-*   **Relay Actions**:
-    *   **Database**: 直接連線 PostgreSQL 執行 DDL/DML。
-    *   **Redis**: 寫入 Time Server 配置或讀取 Cache 狀態。
-    *   **Internal API**: 呼叫 `pandemic-simulator` 或 `analytics-api`。
+### Non-Functional
+*   **Headless Operation**: Must support fully automated execution in CI/CD environments (GitHub Actions) using Refresh Tokens.
+*   **Observability**: CLI output must be machine-readable (JSON) while remaining human-friendly (Rich Tables).
 
-## 5. 依賴與控制 (Dependencies & Control)
+## 4. Dependencies & Control
+*(Required)*
 
-| 依賴對象 | 類型 | 說明 |
+| Dependency | Type | Description |
 | :--- | :--- | :--- |
-| **Google Identity** | Auth Provider | Relay 依賴 Google Public Keys 驗證 Token 簽章；Client 依賴 Token Endpoint 換取 ID Token。 |
-| **Internal Services** | Downstream | Relay 需能解析並連線至叢集內的 DB, Redis, Simulator Service。 |
-| **Environment** | Configuration | Client 必須注入 `REFRESH_TOKEN` 才能運作 (Headless Mode)。 |
+| **Google Identity** | Auth Provider | The Relay uses Google Public Keys for token verification. |
+| **Cluster Infras** | Sink | The Relay requires direct connectivity to PostgreSQL and Redis. |
+| **Time Server** | Downstream | The CLI manages simulation time by calling the Time Server API. |
 
-## 6. 安全機制 (Security Architecture)
+## 5. TDD Convergence Boundaries
+*(Required)*
 
-### Headless OAuth 2.0 Flow
-鑑於 CLI 通常在 CI Runner 或 Docker 容器中執行，我們棄用了互動式登入，改採 **Refresh Token** 機制。
+> ⚠️ **KDD Notice**: This component was historically developed as a rapid prototype without comprehensive TDD. To satisfy KDD 2.0 standards, any future refactoring or feature additions MUST establish the following automated verification boundaries.
 
-1.  **Token Injection**: `REFRESH_TOKEN` 作為環境變數注入 Client 容器。
-2.  **Auto-Refresh**: `bin/client.py` 偵測到 Token 過期或不存在時，自動向 Google 換取新的 `ID_TOKEN`。
-3.  **Relay Verification**:
-    *   **Signature**: 驗證 Token 是否由 Google 簽發。
-    *   **RBAC**: 解析 Token 中的 `email`，並比對 `relay/roles.example.yml` 中的白名單 (Admin/User)。
-
-## 7. 行為驗證 (Behavior Verification)
-
-> **⚠️ Note on Quality Assurance**:
-> 本工具定位為「快速開發原型 (Rapid Prototype)」，優先追求開發速度與維運便利性。目前 **未實作** 完整的單元測試 (TDD)，主要依賴 **手動驗證** 與 **全系統煙霧測試**。
-
-| 範疇 | 驗證策略 | 業務意圖 (Business Intent) |
+| Dimension | Constraint Intent | Test Scope |
 | :--- | :--- | :--- |
-| **Auth Flow** | `Manual` | 移除 `TOKEN_FILE` 後執行指令，觀察 Log 是否顯示 `Refreshing authentication token...` 且指令執行成功。 |
-| **RBAC** | `Manual` | 使用非白名單 Email 的 Token 執行指令，確認 Relay 回傳 `403 Forbidden`。 |
-| **Dataflow** | `Smoke Test` | 依賴 `scripts/smoke-test.sh` 的 E2E 流程：`simulate` -> `verify` (返回值為 0) -> `wait` -> `verify` (有返回值)。 |
+| **Command Parsing** | Ensure subcommand arguments and flags are parsed correctly using `typer.testing.CliRunner`. | `command/` (Future Backfill) |
+| **Relay RBAC** | Verify that the Relay rejects unauthorized tokens with 403 Forbidden and accepts whitelisted emails. | `relay/` (Future Backfill) |
+| **Smoke Engine Logic** | Validate that the CSV parser correctly translates test steps into API calls. | `ops/` (Future Backfill) |
 
-## 8. 部署與配置 (Deployment & Config)
+## 6. Architecture Decision Records (ADR)
+*(Optional — append as the component evolves)*
 
-*   **Docker Image**: `safezone-cli` (Client) / `safezone-cli-relay` (Server)
-*   **Configuration**:
-    *   **Client Env**: `RELAY_URL`, `CLIENT_ID`, `CLIENT_SECRET`, `REFRESH_TOKEN`.
-    *   **Relay Env**: `DB_URL`, `REDIS_HOST`, `ROLE_FILE`.
+*   **[v0.3.0] Client-Relay Architecture**
+    *   **Decision**: Decoupled the CLI into a thin Client and a trusted Cluster Relay.
+    *   **Why**: Solves the security risk of exposing database credentials to developer laptops. The Relay acts as a "Trust Proxy" within the VPC.
+*   **[v0.1.0] Prioritizing Speed over Coverage**
+    *   **Decision**: Omitted initial unit tests for the CLI during the early MVP phase.
+    *   **Why**: Functional requirements were highly volatile. **Correction**: Under KDD 2.0, this is now considered technical debt. Future work MUST backfill tests to provide the "Physical Red Wall" for AI agents.
 
-## 9. 技術債與未來展望 (Tech Debt & Roadmap)
-
-雖然本工具採取 MVA 策略，但隨著系統演進，以下關鍵組件將優先納入修復計畫：
-
-*   **Security Hardening (資安補強)**:
-    *   **Observation**: 目前 Relay 的 RBAC 邏輯 (`endpoints.py`) 缺乏測試保護，若修改錯誤可能導致權限旁路。
-    *   **Action**: 開立 **[Issue #25: Hardening CLI Relay Security](https://github.com/SafeChord/SafeZone/issues/25)**，針對 Auth Middleware 補上嚴格的單元測試。
-*   **Legacy Cleanup**:
-    *   **Observation**: 代碼庫中仍殘留舊版互動式 Login 邏輯。
-    *   **Action**: 開立 **[Issue #26: Cleanup Legacy Auth Code](https://github.com/SafeChord/SafeZone/issues/26)**，規劃在下一次重構中移除 `client.py` 中的 Legacy Auth Code。
+## 7. External Links
+*   **Command Reference**: [CLI Instruction Set (szcli)](safechord.safezone.toolkit.cli.reference.md)

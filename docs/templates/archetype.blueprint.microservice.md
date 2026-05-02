@@ -5,9 +5,9 @@ doc_version: [Document Version]
 app_version: [Target Application Version]
 status: draft
 authors:
- - [Author Name]
+  - [Author Name]
 last_updated: "YYYY-MM-DD"
-summary: "[一句話描述：核心職責、資料流位置、技術特性]"
+summary: "[One sentence: core role, data flow position, key characteristic]"
 keywords:
   - [keyword1]
   - [keyword2]
@@ -25,70 +25,79 @@ tech_stack:
 
 # [Service Name] (Service Blueprint)
 
-> ⚠️ **Scope Warning**: This template is **STRICTLY** for microservices within `safechord.safezone.service.*`. Do not use for generic infrastructure or libraries.
-> *繼承自 `archetype.blueprint.md`，並針對容器化服務進行特化。*
+> Inherits from `archetype.blueprint.md`. Specialized for containerized
+> microservices within `safechord.safezone.service.*`.
 
-## 1. 職責與定位 (Responsibility)
-*(必選)*
-*   **角色**: [Producer / Consumer / Aggregator / Gateway]
-*   **特性**: [Stateless / Stateful / Event-Driven / Passive-Triggered]
-*   **核心目標**: [解決了什麼業務問題？]
+## 1. Responsibility
+*(Required)*
+*   **Role**: [Producer / Consumer / Aggregator / Gateway]
+*   **Characteristics**: [Stateless / Stateful / Event-Driven / Read-Heavy]
+*   **Core objective**: [What business problem does this service solve?]
+*   **Architecture reference**: [Link to scaffold or pattern doc, if applicable]
 
-## 2. 檔案結構 (File Structure)
-*(必選 - 分層展開)*
+## 2. File Structure
+*(Required — directory-level with layer roles)*
 ```text
-/services/[service-name]
-├── src/
-│   ├── main.py           # Entry Point
-│   └── api/              # Route Definitions
-├── tests/                # Unit/Integration Tests
+SafeZone/services/[service-name]/
+├── app/
+│   ├── main.py                   # App factory & lifespan
+│   ├── api/                      # Routing layer: HTTP handling & dependency injection
+│   ├── services/                 # Business logic (zero framework imports)
+│   ├── core/                     # Settings, lifecycle, shared state
+│   └── exceptions/               # Domain exceptions & global handlers
+├── test/                         # TDD convergence boundary (unit, integration)
 ├── Dockerfile
 └── requirements.txt
 ```
+*(Pydantic models, test cases, and configuration details live in the codebase.)*
 
-## 3. 接口規範 (Interfaces)
-*(必選)*
+## 3. Business Requirements
+*(Required)*
+Describe **what** the service must do and **why**. Do NOT specify endpoint
+paths, request/response schemas, or Kafka topic names — those are implementation
+details owned by the codebase.
 
-### 資料契約 (Contracts)
-*   **Data Models**: [連結至 Pydantic Model 或 Protobuf 定義]
+### Functional
+*   [Core capability 1]
+*   [Core capability 2]
 
-### 輸入 (Ingress)
-> 定義服務如何接收外部訊號。若為 API 服務則列出 Endpoints；若為 Worker 則列出 Topic。
-*   **Type**: [API | Worker Consumer]
-*   **Source**: `POST /endpoint` OR `Topic: topic-name`
+### Performance
+*   [Throughput, latency, or caching requirements]
 
-### 輸出 (Egress)
-*   **Dest**: `Topic: topic-name` (Producer) OR `DB: TableName`
+### Consistency
+*   [Data integrity or invalidation requirements]
 
-## 4. 依賴與控制 (Dependencies & Control)
-*(必選)*
+### Observability
+*   [Monitoring, tracing, or health check requirements]
 
-| 依賴對象 | 類型 | 說明 |
+> *Implementation reference: `app/api/endpoints.py`, `app/services/` in codebase.*
+
+## 4. Dependencies & Control
+*(Required)*
+
+| Dependency | Type | Description |
 | :--- | :--- | :--- |
-| **Control Plane** | Trigger | [誰負責喚醒？ e.g., CLI] |
-| **Upstream** | Source | [資料來源] |
-| **Downstream** | Sink | [資料去向] |
+| **Upstream** | Source | [Where data comes from] |
+| **Downstream** | Sink | [Where data goes] |
+| **Control Plane** | Trigger | [What initiates this service's work] |
 
-## 5. 行為驗證 (Behavior Verification)
-*(必選 - Spec-as-Code)*
-本服務採用 JSON Test Cases 作為邏輯真理來源。
+## 5. TDD Convergence Boundaries
+*(Required)*
+Define the **constraint intents** that automated tests must enforce as
+"physical red walls". Do NOT enumerate specific test cases or file paths.
 
-| 範疇 | 規格檔路徑 (Source of Truth) | 業務意圖 (Business Intent) |
+| Verification Dimension | Constraint Intent | Test Scope |
 | :--- | :--- | :--- |
-| **邏輯單元** | `test/cases/test_logic.json` | [描述核心算法驗證點] |
-| **整合測試** | `test/cases/test_integration.json` | [描述邊界驗證點] |
+| **[Dimension]** | [What invariant must hold?] | `test/unit/` or `test/integration/` |
 
-## 6. 實作決策 (Implementation Decisions)
-*(可選 - Local Trade-offs)*
-*   **[決策點名稱]**:
-    *   **Why**: [原因]
-    *   **Trade-off**: [權衡]
+> *Test cases and fixtures live exclusively in the codebase.*
 
-## 7. 部署與維運 (Deployment & Ops)
-*(必選)*
-*   **Docker Image**: `safezone-[service-name]`
-*   **Health Check**: `GET /health` (或 Worker 的 Liveness Probe 機制)
-*   **Configuration**:
-    *   詳細變數請參閱代碼庫中的 [.env.example]([link_to_env_example])。
-    *   **Key Settings**:
-        *   `MODE`: [Critical Flag] - [Description]
+## 6. Architecture Decision Records (ADR)
+*(Optional — append as the service evolves)*
+*   **[vX.Y] [Decision Name]**:
+    *   **Decision**: [What was decided]
+    *   **Why**: [Motivation and trade-offs]
+
+## 7. External Links
+*(Optional)*
+*   **GitHub Issues**: [Links to relevant issues or discussions]

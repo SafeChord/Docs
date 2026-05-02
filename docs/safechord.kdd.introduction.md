@@ -1,13 +1,13 @@
 ---
 title: Knowledge-Driven Development (KDD)
 doc_id: safechord.kdd.introduction
-last_updated: '2026-04-27'
+last_updated: '2026-05-02'
 status: active
 authors:
   - bradyhau
   - Gemini CLI
 context_scope: Methodology
-summary: 介紹 SafeChord 專案的核心開發方法論——知識驅動開發 (KDD)。闡述如何透過實體的知識地圖 (Knowledge Map) 建立具備複利效應的長期記憶，並以 TDD 作為 AI 的收斂邊界，重新定義 AI 時代的軟體工程。
+summary: An introduction to Knowledge-Driven Development (KDD), the core development methodology of SafeChord. Explains how physical knowledge maps create long-term compound memory and how TDD serves as a convergence boundary for AI agents, redefining software engineering in the age of LLMs.
 keywords:
   - KDD
   - Knowledge Map
@@ -19,69 +19,84 @@ related_docs:
   - safechord.kdd.practice.md
   - safechord.knowledgetree.md
 parent_doc: safechord.knowledgetree
-doc_version: 0.3.0
+doc_version: 0.3.5
 archetype: brain
 ---
 
-# 知識驅動開發 (Knowledge-Driven Development)
+# Knowledge-Driven Development (KDD)
 
-SafeChord 不僅是一個軟體專案，更是一場關於 **「AI 時代如何寫軟體」** 的架構實驗。我們採用的核心方法論稱為 **KDD (Knowledge-Driven Development)**。
+SafeChord is more than a software project; it is an architectural experiment on **"How to build software in the AI era."** The core methodology we employ is called **KDD (Knowledge-Driven Development)**.
 
-## 1. 典範轉移：什麼是 KDD？
+---
 
-在過去，開發流程是「人類寫程式，最後再補文檔（如果有時間的話）」。
-但在 AI 程式碼生成能力逐漸超越人類實作者的今天，KDD 反其道而行：
+## 1. Paradigm Shift: What is KDD?
+
+Historically, the development workflow was "Humans write code first, and then supplement documentation (if time permits)." 
+
+In an era where AI's code generation capabilities are rapidly surpassing human implementation speed, KDD flips this model on its head:
 
 > **"Code is the Artifact of Knowledge. Documentation is the Source."**
-> (程式碼只是產物，知識才是源頭。)
 
-KDD 是一種以 AI 原生 (AI-native) 思維為基礎的開發哲學。它將結構化的「知識 (Knowledge)」與「意圖 (Intent)」作為開發的起點和核心驅動引擎，重新定義了「人機協作的邊界」。
-
----
-
-## 2. 核心轉變：從「微觀規格 (Spec)」到「高階知識 (Knowledge)」
-
-在 AI 時代，為什麼我們不再提倡傳統的 Spec-Driven (規格驅動)？
-
-*   **微觀管理會扼殺 AI 的潛能**：傳統的 Spec 就像是一張「施工手冊」，把需求寫到最底層的實作細節。但現今的 AI（如 Claude 3.5 或更高階模型），其底層實作能力與演算法廣度往往超越了寫 Spec 的人類。如果我們用底層指令限縮它，就等於把一位「資深協作夥伴」當成了「打字機」。
-*   **知識是活的，規格是死的**：KDD 放棄了「告訴 AI 怎麼做 (How)」，轉而提供「我們面臨的真實問題是什麼 (What)」、「架構的意圖為何 (Why)」，以及「過去嘗試過什麼、為何失敗 (ADR - 架構決策紀錄)」。
-*   **將實作的自由還給 AI**：在 KDD 中，人類扮演架構師與指揮官，負責給予最完整的「背景知識」與「上下文」。在了解了這些 Knowledge 後，AI 能夠自由發揮創意，找到最佳的底層實作路徑。
+KDD is an AI-native development philosophy. It treats structured **Knowledge** and **Intent** as the starting point and primary engine of development, redefining the boundaries of human-AI collaboration.
 
 ---
 
-## 3. 核心約束：TDD 作為 AI 的「收斂邊界」
+## 2. Core Transition: From "Micro-Specs" to "High-Level Knowledge"
 
-既然我們給了 AI 最大的實作自由，那要如何防止它「暴走」？
+Why do we move away from traditional Spec-Driven development in the AI era?
 
-*   **沒有邊界的 AI 就是災難**：給予強大的 Agent 工具一個模糊的目標，它往往會無止盡地發散、腦補出你沒要的功能、進行無效重構，最終不僅燒光 Token，系統也無法運行。
-*   **從「品質保證」升級為「收斂機制」**：在 KDD 框架下，**TDD (Test-Driven Development)** 的意義發生了質變。測試不再只是為了防呆，更是引導強大 AI **收斂 (Convergence)** 的「物理紅牆」。
-*   **意圖在文檔，規格在程式**：這是一個極其重要的分野。我們在 Markdown 知識地圖中，**只保留「為什麼要做 (Why)」、「問題是什麼 (What)」以及「架構決策紀錄 (ADR)」**。至於衍生出的詳細 API Contract (Schema) 與具體的 Test Cases，則應該直接交由 AI 實作並保存在 **Codebase 內**（即真實的程式碼與測試檔中），而非寫死在文檔裡。
-*   **測試代碼即邊界**：我們要求 AI 在實作功能時，必須在 Codebase 中建立並通過對應的自動化測試。這等於告訴 AI：「你的底層實作無論怎麼發揮創意，最終都必須跑過程式庫裡的這些測試。」這把 AI 的幻覺 (Hallucination) 完美地鎖死在可執行的程式碼邊界內，同時也避免了讓文檔淪為難以維護的瑣碎規格書。
-
----
-
-## 4. 知識的實體載體：為什麼是「知識地圖」而非「向量資料庫」？
-
-目前 AI 領域的顯學是將文件丟進 Vector DB (向量資料庫) 進行 RAG 檢索，但 **KDD 堅持使用 Markdown 文件與實體樹狀目錄 (Knowledge Map)**，這與 Andrej Karpathy 提出的 **"LLM Wiki"** 概念高度共鳴：
-
-*   **確定性 (Deterministic) vs. 機率性 (Probabilistic)**：
-    Vector DB 將知識切碎，並依賴機率性的「語意相似度」來檢索。這容易導致 AI 每次都在「重新發現知識」，甚至將字面上相似但邏輯無關的模組混在一起，產生嚴重的「架構幻覺 (Retrieval Loss)」。
-    相反地，KDD 透過 [**知識地圖 (`knowledgetree.md`)**](safechord.knowledgetree.md) 作為全局的路由中心。父子關係、模組依賴是**絕對確定**的。當 AI 處理特定任務時，必須「按圖索驥」，精準索引它「應該知道的檔案」，確立不可逾越的邊界。
-*   **知識的複利效應 (Compound Knowledge)**：
-    KDD 的知識樹不是靜態的，而是一個持續演進、具備複利效應的實體資產 (Persistent Artifact)。每一次的 PR、每一次的架構調整，都會在 Markdown 中留下交叉引用與矛盾標記。
-*   **消除簿記 (Bookkeeping) 的勞動**：
-    人類過去難以維護龐大的 Wiki，是因為繁瑣的連結與狀態更新。但在 KDD 的協作模式中，人類負責高階架構決策（Architect），而將這座龐大 Markdown 樹的維護、對齊與沉澱工作，交給不知疲倦的 AI 代理人（Settler）來執行。
-*   **工具抽象化與載體適應性 (Tool-Agnostic Adaptability)**：
-    AI 工具的迭代極快，SafeChord 在發展過程中經歷了從早期的 Web Chat 介面，到 API 調用，再演進至當前雙軌 CLI Agent 的無頭協作。之所以能無痛遷移，正是因為 **Markdown 檔案本身就是最強大的工具抽象層**。無論使用什麼廠商的模型或介面，這棵實體的知識樹永遠是同步各方認知 (包含人類與多種 Agent) 的通用橋樑。
-
-> 📖 **Reference**: 此「知識地圖」與「檔案即知識庫」的理念，與 Andrej Karpathy 於 2025 年提出的 [LLM Wiki](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) 概念不謀而合。KDD 早在 SafeChord 專案初期即實踐了此一「由 AI 維護持久性知識樹」的先進模式。
+*   **Micro-management stifles AI potential**: Traditional specs act like construction manuals, dictating implementation details. Modern AI models (like Claude 3.5 or Gemini 1.5 Pro) often possess a broader understanding of algorithms and implementation patterns than the humans writing the specs. Restricting them with low-level instructions turns a senior collaborator into a mere typewriter.
+*   **Knowledge is living; Specs are static**: KDD abandons telling the AI "How" to do something. Instead, it provides the **"What"** (the real problem we face), the **"Why"** (the architectural intent), and the **"Context"** (past attempts and why they failed - ADRs).
+*   **Empowering AI Implementation**: In KDD, humans act as Architects and Commanders, providing the most complete "Background Knowledge" and "Context." Once equipped with this knowledge, AI agents are free to find the optimal implementation path.
 
 ---
 
-## 5. 邁向實踐：雙軌制與無頭協作
+## 3. Core Constraint: TDD as the "Convergence Boundary"
 
-上述是 KDD 的「道」與「北極星」。
+If we grant AI maximal implementation freedom, how do we prevent it from "going rogue"?
 
-至於在 2026 年的當下，SafeChord 專案具體是如何透過實體的 AI 工具（如 Gemini CLI、Claude Code）與標準化的協議（如 Git Commit 規範、`.ai-session-handoffs/` 換手機制）來實踐這套理念，讓「文件即程式碼庫 (Docs as Codebase)」成為可能？
+*   **AI without boundaries is a disaster**: Giving a powerful agent tool a vague goal often leads to infinite divergence, hallucinated features, and redundant refactoring.
+*   **From "Quality Assurance" to "Convergence Mechanism"**: Under KDD, **Test-Driven Development (TDD)** undergoes a qualitative change. Tests are no longer just for bug prevention; they are the **"Physical Red Walls"** that guide AI toward convergence.
+*   **Intent in Docs, Specs in Code**: This is a critical distinction. In the Markdown Knowledge Map, we only preserve the **Why**, the **What**, and the **Architectural Decision Records (ADR)**. The resulting detailed API Contracts (Schemas) and specific Test Cases live exclusively within the **Codebase** (actual code and test files).
+*   **Layer-Specific SSOT Boundaries**: The above principle applies differently depending on the layer:
 
-👉 請參閱：**[KDD 實作現狀：三機協同與無頭開發架構 (Practice)](safechord.kdd.practice.md)**
+    | Layer | Docs are SSOT for | Codebase is SSOT for |
+    | :--- | :--- | :--- |
+    | **App (Imperative)** | Business Requirements (Why/What), ADRs | Endpoints, Schemas, Test Cases (How) |
+    | **Infra (Declarative)** | Design Constraints (budget, latency targets, capacity ceilings), Architectural Rationale (Why this topology) | Manifests, Helm values, current deployed state |
+
+    In imperative application code, the code tells you *How* but hides *Why*—so docs fill the gap. In declarative infrastructure (GitOps), **manifests themselves express intent** (desired state). Here, docs serve a different role: consolidating the *design constraints and cross-cutting rationale* scattered across dozens of YAML files into a single readable narrative. Docs do not duplicate manifest values; they define the **red walls** (cost ceilings, latency targets, availability requirements) within which manifests must operate.
+
+*   **Test Code as the Boundary**: We require AI to establish and pass corresponding automated tests within the codebase for every feature. This tells the AI: "Regardless of how creative your implementation is, it must ultimately satisfy these tests." This locks AI hallucinations within executable boundaries and prevents documentation from becoming a cluttered, unmaintainable spec sheet.
+
+---
+
+## 4. Physical Carriers: Why "Knowledge Maps" over "Vector DBs"?
+
+While Vector DBs for RAG are popular, KDD insists on using Markdown files and a physical tree structure (**Knowledge Map**). This resonates with Andrej Karpathy's **"LLM Wiki"** concept:
+
+*   **Deterministic vs. Probabilistic**: Vector DBs chunk knowledge and rely on probabilistic "semantic similarity." This often leads to AI "rediscovering" knowledge or mixing unrelated modules, causing "Retrieval Loss." In contrast, KDD uses the [**Knowledge Tree (`knowledgetree.md`)**](safechord.knowledgetree.md) as a global router. Parent-child relationships and module dependencies are **absolute**.
+*   **Compound Knowledge**: The KDD Knowledge Tree is not static; it is a persistent artifact that gains value over time. Every PR and architectural adjustment leaves a trace of cross-references and versioned logic.
+*   **Eliminating Bookkeeping Drudgery**: Humans historically struggled to maintain large Wikis due to the labor of linking and state updates. In KDD, humans make high-level decisions (Architects), while the labor-intensive maintenance and reconciliation of the Markdown tree are handled by tireless AI agents (Settlers).
+*   **Tool-Agnostic Adaptability**: AI tools evolve rapidly. SafeChord has moved from Web Chat interfaces to API calls and now to dual-track CLI agents. This transition was seamless because **Markdown files are the ultimate tool abstraction layer**.
+
+---
+
+## 5. Dynamic Balance: The Bi-directional Evolution Model
+
+Rigidly dogmatizing "Docs ➡️ Code" can stifle agility during technical exploration (Spikes). KDD maintains balance through a bi-directional model:
+
+*   **Order of Strategy (Forward: Docs ➡️ Code)**: For optimizing existing modules or extending known architectures, "Docs First" is the law. Markdown knowledge nodes act as the legal framework that constrains the AI's implementation boundary.
+*   **Freedom of Tactics (Spike: Code ➡️ Docs)**: For unknown technical exploration, we allow "Code First." We give AI the privilege to explore and push limits. Once the spike is complete, the results must be reverse-engineered back into the knowledge tree, a process called **"Documentation Reconciliation."**
+
+This is not a compromise on KDD principles; it is the "breathing" of the system—inhaling high-level intent to define boundaries, and exhaling hardened implementation facts back into the knowledge base.
+
+---
+
+## 6. Toward Practice: Dual-Track & Headless Collaboration
+
+The above represents the "Tao" of KDD. 
+
+To see how SafeChord practically implements these concepts in 2026 using AI tools (Gemini CLI, Claude Code) and standardized protocols (Git Commit standards, Handoffs):
+
+👉 See: **[KDD Practice: Dual-Track CLI & Headless Collaboration](safechord.kdd.practice.md)**

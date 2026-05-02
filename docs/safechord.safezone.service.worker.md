@@ -4,10 +4,9 @@ doc_id: safechord.safezone.service.worker
 status: active
 authors:
   - bradyhau
-  - Gemini 3 Pro
-last_updated: '2026-04-16'
-summary: Worker 是 SafeZone 系統的資料處理核心，採用 Golang 1.24 與 Franz-Go 實作。負責從 Kafka 高效消費數據，並透過批次寫入
-  (Batch Insert) 與等冪更新 (Idempotent Upsert) 機制，將數據持久化至 PostgreSQL。
+  - Gemini CLI
+last_updated: '2026-05-02'
+summary: The Worker is the data processing core of SafeZone, implemented with Golang 1.24 and Franz-Go. It efficiently consumes events from Kafka and persists them to PostgreSQL using batch inserts and idempotent upsert mechanisms.
 keywords:
   - Worker
   - Kafka Consumer
@@ -15,6 +14,7 @@ keywords:
   - Franz-Go
   - PostgreSQL
   - Batch Processing
+  - Idempotency
 logical_path: SafeChord.SafeZone.Service.Worker
 related_docs:
   - safechord.safezone.changelog.md
@@ -29,108 +29,88 @@ tech_stack:
   - Franz-Go (Kafka)
   - pgx/v5 (PostgreSQL)
   - sqlx
-doc_version: 0.3.0
-app_version: 0.3.0-dev
+doc_version: 0.3.1
+app_version: 0.3.1
 ---
 
 # Worker - Golang (Service Blueprint)
 
 > ⚠️ **Scope Warning**: This blueprint defines the `worker-golang` microservice.
-> *繼承自 `archetype.blueprint.microservice.md`*
+> *Inherits from `archetype.blueprint.microservice.md`*
 
-## 1. 職責與定位 (Responsibility)
-*   **角色**: Consumer (Kafka) / Persister
-*   **特性**: High-Throughput, Idempotent, Batch-Oriented
-*   **核心目標**: 作為高吞吐量的數據落盤組件。利用 Golang 的併發特性消化 Kafka 峰值流量，並負責將非結構化的事件流轉化為結構化的關聯式數據 (Relational Data)。
+## 1. Responsibility & Positioning
+*   **Role**: Consumer (Kafka) / Persister
+*   **Characteristics**: High-Throughput, Idempotent, Batch-Oriented, Stateful (Connection-wise)
+*   **Core Objective**: Acts as a high-throughput data consumption engine, leveraging Golang's concurrency model to process peak Kafka traffic and persist unstructured events as structured relational data in PostgreSQL.
 
-## 2. 檔案結構 (File Structure)
+## 2. File Structure
 ```text
 SafeZone/services/worker-golang/
 ├── app/
 │   ├── main.go                     # Entry Point (Signal Handling & Lifecycle)
-│   ├── service/
-│   │   ├── worker.go               # Core Business Logic (Batch & Flush)
-│   │   ├── worker_test.go          # [Unit Test] Flow verification
-│   │   └── orchestrator.go         # Worker Pool Execution (Parallelism control)
-│   ├── adapter/                    # [Ports] Input Adapters
-│   │   ├── source.go               # Interface: EventSource
-│   │   ├── kafkaSource.go          # Impl: Franz-Go Consumer
-│   │   └── mockSource.go           # Impl: Channel-based Mock (for Testing)
-│   ├── strategy/                   # [Ports] Output Ports
-│   │   ├── sink.go                 # Interface: EventSink
-│   │   ├── dbSink.go               # Impl: PostgreSQL Batch Upsert
-│   │   └── mockSink.go             # Impl: Capture-based Mock (for Testing)
-│   ├── schema/
-│   │   ├── event.go                # Data Models (Contracts)
-│   │   ├── validator.go            # Validation Logic (Depends on CacheReader)
-│   │   └── validator_test.go       # [Unit Test] Rule verification
+│   ├── service/                    # Core Business Logic: Worker Pool & Batch Strategy
+│   ├── adapter/                    # Input Adapters: Kafka Consumer (Franz-Go)
+│   ├── strategy/                   # Output Ports: PostgreSQL Batch Upsert
+│   ├── schema/                     # Data Models & Business Validation Logic
 │   ├── config/                     # Configuration Loader
-│   └── pkg/                        # Shared Utilities (Logger, Cache)
-├── go.mod / go.sum                 # Dependency Management
-├── Dockerfile                      # Production Builder
-└── Dockerfile.test                 # Test Runner (used in CI)
+│   └── pkg/                        # Shared Internal Packages: Logger, Redis Cache
+├── go.mod                          # Dependency Definition
+└── Dockerfile                      # Multi-stage Image Builder
 ```
+*(Note: The Go service follows Hexagonal Architecture principles; implementation details are located in the codebase.)*
 
-## 3. 接口規範 (Interfaces)
+## 3. Business Requirements
 
-### 資料契約 (Contracts)
-*   **Input**: `CovidEvent` (定義於 `app/schema/event.go`)
-    *   對應 Kafka Topic `covid.raw.data` 的 JSON Payload。
-*   **Output**: Database Table `covid_cases`
+The service's core intent is to ensure data integrity and high throughput when transitioning from an asynchronous message queue to persistent storage.
 
-### 輸入 (Ingress)
-*   **Type**: Worker Consumer
-*   **Source**: Kafka Topic `covid.raw.data`
-*   **Consumer Group**: `covid-worker-group` (可配置)
+### 3.1 Efficient Processing (Functional)
+*   **Batch Persistence**: Must not call the database for every single message. Implements size-based or time-based buffering to group messages into batches for SQL Upsert operations.
+*   **Concurrent Consumption**: Supports multiple consumer goroutines to process Kafka partitions in parallel, utilizing a worker pool for compute and I/O parallelism.
 
-### 輸出 (Egress)
-*   **Dest**: PostgreSQL Database
-*   **Behavior**: Batch Upsert (`ON CONFLICT DO UPDATE`)
+### 3.2 Integrity & Idempotency (Consistency)
+*   **Idempotent Upsert**: Must handle "at-least-once" consumption scenarios. Uses `(Date, City, Region)` as a unique key to perform `ON CONFLICT DO UPDATE` to maintain eventual consistency.
+*   **Payload Validation**: Validates message content (e.g., geographic IDs, non-negative values) before DB insertion. Invalid messages are logged and discarded without affecting the rest of the batch.
 
-## 4. 依賴與控制 (Dependencies & Control)
+### 3.3 Resource Governance (Efficiency)
+*   **Graceful Shutdown**: Upon receiving a SIGTERM, the service must stop consuming and flush remaining buffered data to the database before exiting.
 
-| 依賴對象 | 類型 | 說明 |
+### 3.4 Observability
+*   **Consumer Lag Monitoring**: Provides metrics reflecting the offset gap between current consumption and Kafka's high watermark.
+
+## 4. Dependencies & Control
+
+| Dependency | Type | Description |
 | :--- | :--- | :--- |
-| **Kafka Cluster** | Upstream | 數據來源。在 `TEST` 模式下可被 `MockSource` 替換。 |
-| **PostgreSQL** | Downstream | 數據去向。在 `TEST` 模式下可被 `MockSink` 替換。 |
-| **Control Plane** | Trigger | 服務啟動後持續運行 (Daemon)，由 Kubernetes 控制生命週期。 |
+| **Kafka Cluster** | Upstream (Source) | Source of raw pandemic events. |
+| **PostgreSQL** | Downstream (Sink) | Final destination for structured facts. |
+| **Control Plane** | N/A | Daemon service managed by Kubernetes. |
 
-## 5. 行為驗證 (Behavior Verification)
-本服務採用 **Ports & Adapters** 模式，支援在無基礎設施的情況下驗證邏輯。
+## 5. TDD Convergence Boundaries
 
-| 範疇 | 驗證策略 | 業務意圖 (Business Intent) |
+As a Go service using Ports & Adapters, correctness is verified through isolated logic tests:
+
+| Dimension | Constraint Intent | Test Scope |
 | :--- | :--- | :--- |
-| **核心邏輯** | `go test ./...` | 透過 `MockSource` 注入固定事件，驗證 `Worker` 的去重複 (De-duplication) 與驗證邏輯是否正確。 |
-| **等冪寫入** | `Integration Test` | 發送重複的 `(Date, City, Region)` 數據，驗證 DB 最終狀態的一致性 (Upsert)。 |
-| **批次處理** | `Benchmark` | 模擬高流量場景，驗證 Batch Flush 機制是否如期觸發 (Time-based or Size-based)。 |
+| **Batching Logic** | Verify that the buffer only flushes when size or time thresholds are met, and remains empty after flush. | `app/service/` (Unit) |
+| **Idempotent Upsert** | Simulate duplicate primary key writes and verify that the DB state reflects the final input. | `app/strategy/` (Integration) |
+| **Validation Resilience** | Ensure single-message validation failures do not crash the worker or block subsequent consumption. | `app/schema/` (Unit) |
+| **Resource Leakage** | Ensure Contexts are cancelled properly in goroutine loops and connection pools are managed. | `app/pkg/` (Unit) |
 
-## 6. 實作決策 (Implementation Decisions)
+## 6. Architecture Decision Records (ADR)
 
-*   **Idiomatic Go Refactor (v0.3.0)**:
-    *   **Decision**: 移除 Java 風格的 `WorkerFactory` 與 `Orchestrator` struct，改用 Package-level 函式（如 `NewWorker`, `RunWorkers`）進行依賴注入與生命週期管理。
-    *   **Rationale**: 減少不必要的抽象層與物件狀態，利用 Go 的組合性與函式化特性提升程式碼可讀性與測試便利性。
-*   **Interface-based Testability**:
-    *   **Decision**: 引入 `CacheReader` Interface 並透過消費者定義 (Consumer-defined) 介面實作 `CovidValidator`。
-    *   **Rationale**: 徹底解耦 `schema` 與 `pkg/cache` 實作，讓單元測試能在完全不連線資料庫的情況下驗證複雜的業務規則。
-*   **Memory Leak Hardening**:
-    *   **Decision**: 嚴格管控 Context 的 `cancel` 呼叫，確保 `defer cancel()` 位於正確的作用域（即迴圈外或立即呼叫）。
-    *   **Why**: 避免在長時間運行的 Worker 循環中堆積未釋放的 Timer goroutines，確保生產環境的記憶體穩定性。
-*   **Franz-Go Library**:
-    *   **Decision**: 使用 `twmb/franz-go` 取代 `segmentio/kafka-go`。
-    *   **Why**: 為了更好的效能與 KRaft 協議支援 (詳見 ADR: Ingestor Evolution)。
-*   **Explicit Commit Strategy**:
-    *   **Decision**: 讀取後立即 Commit (At-most-once 傾向)，但在 DB 層使用 Upsert 保證一致性。
-    *   **Why**: 為了追求極致的消費吞吐量。雖然理論上有丟失風險，但在 `k3han` 的架構權衡下，我們優先保證即時性，並依賴上游重送機制補償。
+*   **[v0.3.0] Idiomatic Go Refactor**
+    *   **Decision**: Replaced Java-style factories with package-level constructors and interface injection.
+    *   **Why**: Simplifies the code hierarchy and adheres to Go conventions, making mocking adapters for unit tests significantly easier.
+*   **[v0.3.0] Franz-Go Client Migration**
+    *   **Decision**: Switched from `segmentio/kafka-go` to `twmb/franz-go`.
+    *   **Why**: Superior performance and full KRaft protocol support, reducing CPU overhead during peak consumption.
+*   **[v0.2.5] Batch-First Persistence**
+    *   **Decision**: Set default batch size to 1000 records.
+    *   **Why**: Individual SQL inserts are the primary bottleneck for DB performance. Shifting pressure from DB IOPS to memory allows the system to handle simulator bursts effectively.
+*   **[v0.2.0] At-Most-Once Lean Strategy**
+    *   **Decision**: Implemented an aggressive offset commit strategy coupled with DB Upserts.
+    *   **Why (Trade-off)**: Prioritizes throughput over strict exactly-once guarantees. In non-financial scenarios like SafeZone, this trade-off simplifies state management while remaining recoverable via upstream replays.
 
-## 7. 部署與維運 (Deployment & Ops)
-
-*   **Docker Image**: `safezone-worker-golang`
-*   **Health Check**: 
-    *   Liveness Probe: 檢查 Process 是否存活。
-    *   Startup Probe: 檢查 Kafka 連線是否建立。
-*   **Configuration**:
-    *   **關鍵環境變數**:
-        *   `ENVIRONMENT`: `PROD` (Default) 或 `TEST` (啟用 Mock)。
-        *   `KAFKA_BROKERS`: Kafka 位址。
-        *   `POSTGRES_DSN`: DB 連線字串。
-        *   `BATCH_SIZE`: 批次寫入筆數 (Default: 1000)。
+## 7. External Links
+*   **Database Schema**: `SafeChord-Deploy/helm-charts/safezone-foundation/templates/db/init.sql` (Reference)
+*   **Upstream Contract**: [Data Ingestor Blueprint](safechord.safezone.service.dataingestor.md)

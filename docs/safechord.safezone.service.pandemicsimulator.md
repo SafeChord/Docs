@@ -4,10 +4,9 @@ doc_id: safechord.safezone.service.pandemicsimulator
 status: active
 authors:
   - bradyhau
-  - Gemini 3 Pro
-last_updated: '2026-01-04'
-summary: Pandemic Simulator 是 SafeZone 資料流的源頭，負責將靜態的疫情數據轉換為動態的時間序列事件。本服務採用 AsyncIO
-  架構，並由 SafeZone CLI 統一調度，支援歷史回放、系統初始化 (Seeding) 與每日排程等多種觸發模式。
+  - Gemini CLI
+last_updated: '2026-05-02'
+summary: The Pandemic Simulator is the source of the SafeZone dataflow, responsible for "activating" static pandemic data into dynamic time-series events. Built with an AsyncIO architecture, it supports multiple trigger modes including historical replay, system seeding, and pressure testing.
 keywords:
   - Pandemic Simulator
   - Data Generation
@@ -20,108 +19,102 @@ related_docs:
   - safechord.safezone.changelog.md
   - safechord.safezone.service.dataingestor.md
   - safechord.safezone.toolkit.cli.md
+  - safechord.safezone.service.python_scaffold.md
 parent_doc: safechord.safezone.service
 archetype: blueprint
 code_paths:
   - SafeZone/services/pandemic-simulator
 tech_stack:
   - Python 3.13
-  - FastAPI
+  - FastAPI 0.115
   - AsyncIO
   - httpx
   - Pandas
-doc_version: 0.2.0
-app_version: 0.2.1
+doc_version: 0.3.0
+app_version: 0.3.1
 ---
 
 # Pandemic Simulator (Service Blueprint)
 
 > ⚠️ **Scope Warning**: This blueprint defines the `pandemic-simulator` microservice.
-> *繼承自 `archetype.blueprint.microservice.md`*
+> *Inherits from `archetype.blueprint.microservice.md`*
 
-## 1. 職責與定位 (Responsibility)
-*   **角色**: Source / Generator
-*   **特性**: Passive-Triggered, Stateless, AsyncIO
-*   **核心目標**: 將靜態的 CSV 疫情數據「活化」為即時的事件流。解決了系統在開發與測試階段缺乏真實數據源 (Live Data Source) 的問題，並提供可控的流量壓力測試能力。
+## 1. Responsibility & Positioning
+*   **Role**: Source / Generator
+*   **Characteristics**: Passive-Triggered, Stateless, AsyncIO, Read-Only (CSV)
+*   **Core Objective**: Transforms static CSV pandemic data into a live event stream. It solves the lack of a real live data source during development and testing phases and provides precisely controllable traffic simulation for stress testing the entire pipeline.
+*   **Architecture Reference**: [Python Microservice Scaffold](safechord.safezone.service.python_scaffold.md)
 
-## 2. 檔案結構 (File Structure)
+## 2. File Structure
 ```text
 SafeZone/services/pandemic-simulator/
 ├── app/
-│   ├── main.py                   # Entry Point (FastAPI App Factory)
-│   ├── api/
-│   │   └── endpoints.py          # Route Definitions (/simulate, /health)
-│   ├── pipeline/
-│   │   ├── orchestrator.py       # Logic Controller
-│   │   ├── data_productor.py     # CSV Reader & Slicer (Pandas)
-│   │   └── data_sender.py        # Async HTTP Client (httpx)
-│   └── config/
-│       └── settings.py           # Env Loader
-├── data/
-│   └── covid_data.csv            # Data Source (Mount Point)
-├── test/
-│   ├── cases/                    # JSON Spec for Behavior Verification
-│   │   ├── test_data_productor.json
-│   │   ├── test_data_sender.json
-│   │   └── test_integration.json
-│   └── ...
-├── Dockerfile                    # Production Environment Builder
-├── Dockerfile.test               # CI/CD Test Environment Builder
-├── requirements.txt              # Production Dependencies
-└── requirements.test.txt         # Testing Framework & Dependencies (pytest, etc.)
+│   ├── main.py                   # App Factory & Routes Registration
+│   ├── api/                      # Routing Layer: Receives simulation trigger requests
+│   ├── services/                 # Business Logic: Orchestrator, Productor (Pandas), Sender (httpx)
+│   ├── core/                     # Configuration & Global State
+│   └── exceptions/               # Domain Exceptions & Global Exception Handlers
+├── data/                         # Static data source directory (mounted CSV)
+├── test/                         # TDD Convergence Boundaries (Unit, Integration, E2E)
+├── Dockerfile                    # Production Image Builder
+└── requirements.txt              # Production Dependencies
 ```
+*(Note: Detailed data production logic and test cases are implemented within the codebase.)*
 
-## 3. 接口規範 (Interfaces)
+## 3. Business Requirements
 
-### 資料契約 (Contracts)
-*   **CovidDataModel**: 定義於 `utils/pydantic_model/request.py` (Shared Lib)。
-    *   Fields: `date`, `city`, `region`, `cases`.
+The service's core intent is to provide a flexible "Time Machine" that allows the system to replay or preview pandemic dataflows from any time period.
 
-### 輸入 (Ingress)
-本服務不開放公網存取，僅接受 Cluster 內部的觸發請求。
-*   **Type**: API (HTTP GET)
-*   **Source**:
-    *   `GET /simulate/daily?date=YYYY-MM-DD`: 觸發單日模擬。
-    *   `GET /simulate/interval?start_date=...&end_date=...`: 觸發區間模擬。
-    *   `GET /health`: 健康檢查。
+### 3-1 Data Generation & Replay (Functional)
+*   **Daily Replay**: Reads all geographic region data for a specific date from CSV and transforms them into events.
+*   **Interval Replay**: Supports batch simulation across multiple dates, sent in strict chronological order.
+*   **Data Activation**: Ensures generated events contain correct `event_time` and `payload`, adhering to the `CovidDataModel` spec.
 
-### 輸出 (Egress)
-*   **Dest**: Data Ingestor Service (HTTP POST)
-*   **Endpoint**: `${INGESTOR_URL}/covid_event`
-*   **Protocol**: HTTP/1.1 (Keep-Alive via `httpx.AsyncClient`)
+### 3-2 Traffic Control (Performance)
+*   **Concurrency Throttling**: Limits concurrent requests to prevent overwhelming the downstream Ingestor.
+*   **High-Efficiency Transmission**: Leverages AsyncIO to send data points concurrently, minimizing I/O wait time.
 
-## 4. 依賴與控制 (Dependencies & Control)
+### 3-3 Resilience
+*   **Invalid Date Handling**: When requested dates do not exist in the CSV or are in the future, the service should return empty sets or clear error codes instead of crashing.
+*   **Downstream Fault Isolation**: If the Ingestor returns an error, the Simulator should log the failure and continue with the rest of the batch to ensure simulation completion.
 
-| 依賴對象 | 類型 | 說明 |
+### 3-4 Observability
+*   **Simulation Feedback**: Each simulation request should return the total count of successful and failed transmissions.
+
+## 4. Dependencies & Control
+
+| Dependency | Type | Description |
 | :--- | :--- | :--- |
-| **Control Plane** (CLI) | Trigger | 負責喚醒服務。通常由 `szcli dataflow simulate` 指令觸發。 |
-| **Local File System** | Source | 必須掛載 `/data/covid_data.csv`，否則服務無法啟動或執行。 |
-| **Data Ingestor** | Downstream | 接收模擬數據的閘道。若 Ingestor 離線，Simulator 會記錄錯誤但不會崩潰。 |
+| **Control Plane** (CLI) | Trigger | The primary activator, triggered via the SafeZone CLI. |
+| **Local File System** | Source (Input) | Depends on the mounted `covid_data.csv`. |
+| **Data Ingestor** | Downstream (Sink) | The sole receiver for simulated data. |
 
-## 5. 行為驗證 (Behavior Verification)
-本服務採用 **Spec-as-Code** 策略。業務邏輯的正確性由 JSON 測試案例嚴格定義。
+## 5. TDD Convergence Boundaries
 
-| 範疇 | 規格檔路徑 (Source of Truth) | 業務意圖 (Business Intent) |
+Any modifications to this service must satisfy these "Physical Red Walls":
+
+| Dimension | Constraint Intent | Test Scope |
 | :--- | :--- | :--- |
-| **資料生產邏輯** | `test/cases/test_data_productor.json` | 確保模擬器能正確讀取 CSV，且在請求「未來日期」或「無數據日期」時能正確回傳空集合或拋出 `EmptyDataError`。 |
-| **傳輸邏輯** | `test/cases/test_data_sender.json` | 驗證 `AsyncClient` 能正確處理併發請求，並在 Downstream 回傳非 200 時記錄錯誤。 |
-| **API 整合** | `test/cases/test_integration.json` | 定義 RESTful API 的邊界測試（如：結束日期早於開始日期、格式錯誤）應回傳標準 HTTP 400/422。 |
+| **Extraction Accuracy** | Verify that the Productor precisely extracts data points for a given date with correct column mapping. | `test/unit/` |
+| **Time Travel Validity** | Ensure "future" or "out-of-range" dates trigger the correct domain exceptions. | `test/unit/` |
+| **Concurrency Throttling** | Verify that the sender does not exceed the configured Semaphore threshold during high-volume data bursts. | `test/unit/` |
+| **HTTP Reliability** | Ensure the Sender handles Keep-Alive correctly and logs downstream 5xx errors without stopping the process. | `test/integration/` |
+| **Endpoint Validation** | Verify that trigger parameters (e.g., end date before start date) return standard 400/422 codes. | `test/integration/` |
 
-## 6. 實作決策 (Implementation Decisions)
+## 6. Architecture Decision Records (ADR)
 
-*   **AsyncIO + Semaphore**:
-    *   **Why**: 單日模擬可能包含數百個行政區的數據點。同步發送會導致巨大的 I/O Wait。
-    *   **Trade-off**: 引入非同步增加了代碼複雜度，但透過 `asyncio.Semaphore` (由 `MAX_CONCURRENT_REQUESTS` 控制) 可以精確控制對 Downstream 的壓力，避免自我阻斷服務 (Self-DoS)。
-*   **API Trigger vs CronJob**:
-    *   **Why**: 為了支援「時光旅行」與「任意區間回放」，被動式的 API 設計比固定的 CronJob 更靈活。排程邏輯被上移至 `TimeServer` 或外部腳本。
+*   **[v0.3.1] Python Microservice Scaffold Integration**
+    *   **Decision**: Refactored the legacy `pipeline/` module into the `services/` and `api/` layers.
+    *   **Why**: Standardizes the directory structure to align with the `analytics-api` development model.
 
-## 7. 部署與維運 (Deployment & Ops)
+*   **[v0.2.1] Concurrency Control (Semaphore Management)**
+    *   **Decision**: Introduced `asyncio.Semaphore` in the `data_sender.py`.
+    *   **Why (Trade-off)**: Prevents the Simulator from exhausting system file descriptors (FD) when sending thousands of data points, while providing "Back-pressure" protection for downstream services.
 
-*   **Docker Image**: `safezone-pandemic-simulator`
-*   **Health Check**: `GET /health` (回傳 `{"status": {"simulator": "healthy"}}`)
-*   **Configuration**:
-    *   **關鍵環境變數**:
-        *   `INGESTOR_URL`: 下游服務地址 (e.g., `http://data-ingestor:8000`).
-        *   `MAX_CONCURRENT_REQUESTS`: 併發控制閥值 (Default: 10).
-    *   **Volume Mount**:
-        *   `/data/covid_data.csv`: **必須** 以 Read-Only 模式掛載。
+*   **[v0.2.0] API Trigger Pattern**
+    *   **Decision**: Abandoned internal CronJobs in favor of REST API triggers from the Control Plane (CLI/TimeServer).
+    *   **Why**: Increases controllability and supports manual replay for any time point, centralizing scheduling logic.
+
+## 7. External Links
+*   **Data Source**: `SafeZone/data/covid_data.csv`
+*   **Trigger Tool**: [SafeZone CLI (szcli)](safechord.safezone.toolkit.cli.md)

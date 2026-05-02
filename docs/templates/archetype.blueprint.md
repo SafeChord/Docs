@@ -18,58 +18,60 @@ related_docs:
 parent_doc: "[Parent Map ID]"
 archetype: blueprint
 code_paths:
-  - "[Repo/Service Root Path]" # 指向該組件的程式碼根目錄 (e.g., SafeZone/services/api)
+  - "[Repo/Component Root Path]"
 ---
 
 # [Component Name] (Blueprint)
 
-> **BluePrint (藍圖型)**：適用於靜態技術組件、微服務、基礎設施元件的規格說明。
-> *重點：結構、接口、配置、依賴。*
+> **Type**: Blueprint (Technical Specification)
+> **Focus**: Why it exists, what it must do, and how correctness is verified.
+> **Constraint**: Implementation details (schemas, test cases) live in the codebase.
 
-## 1. 職責與定位 (Responsibility)
-*(必選)*
-*   簡述此元件在系統中的角色。
-*   它解決了什麼問題？
-*   **關鍵特性**：
-    *   Feature A
-    *   Feature B
+---
 
-## 2. 檔案結構 (File Structure)
-*(推薦)*
-使用分層展開策略：僅展開關鍵入口 (Entrypoint) 與核心邏輯檔，隱藏通用 boilerplate。
+## 1. Responsibility & Positioning
+*(Required)*
+*   **Role**: Role of this component within the larger system.
+*   **Core Objective**: What specific business problem does it solve?
+*   **Characteristics**: [Stateless / Stateful / Event-Driven / etc.]
+
+## 2. File Structure
+*(Recommended — directory-level only)*
+Show architectural layers with role descriptions.
 ```text
 /root
-├── src/
-│   ├── main.py       # Entry Point
-│   └── core/         # Business Logic
-└── README.md
+├── api/          # Routing layer
+├── services/     # Business logic (framework-agnostic)
+└── core/         # Settings, lifecycle, shared state
 ```
 
-## 3. 接口規範 (Interfaces)
-*(必選)*
-定義此元件如何與外界互動。
+## 3. Business Requirements
+*(Required)*
+Describe **what** and **why**, not **how**.
 
-### 輸入 (Ingress/Input)
-*   **API Endpoints**: `POST /api/v1/data`
-*   **Kafka Topics**: `topic-name-a` (Consumer)
+### Functional
+*   [Core capability 1]
 
-### 輸出 (Egress/Output)
-*   **Data Sink**: 寫入哪個 Database?
-*   **Kafka Topics**: `topic-name-b` (Producer)
-*   **Metrics**: Prometheus 指標。
+### Non-Functional
+*   [Performance, consistency, observability intents]
 
-## 4. 依賴與相依性 (Dependencies)
-*(推薦)*
-列出此元件正常運作所需的外部依賴。
+## 4. Dependencies & Control
+*(Required)*
 
-| 依賴項 | 用途 | 強制性 |
+| Dependency | Type | Description |
 | :--- | :--- | :--- |
-| **PostgreSQL** | 持久化存儲 | Required |
+| **[External]** | [Source/Sink] | [Why this dependency exists] |
 
-## 5. 配置與參數 (Configuration)
-*(推薦)*
-列出關鍵的環境變數 (Env Vars) 或 Helm Values。
+## 5. TDD Convergence Boundaries
+*(Required)*
+Define the **constraint intents** that automated tests must enforce as "Physical Red Walls".
 
-| 變數名稱 | 預設值 | 說明 |
+| Dimension | Constraint Intent | Test Scope |
 | :--- | :--- | :--- |
-| `DB_HOST` | `localhost` | 資料庫連線位置 |
+| **[Logic]** | [What invariant must hold?] | `test/unit/` |
+
+## 6. Architecture Decision Records (ADR)
+*(Optional — append as the component evolves)*
+*   **[vX.Y] [Decision Name]**:
+    *   **Decision**: [What was decided]
+    *   **Why**: [Motivation and trade-offs]

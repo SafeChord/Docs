@@ -3,7 +3,7 @@ site_url: https://SafeChord.github.io/Docs/
 
 theme:
   name: material
-  language: zh
+  language: en
   features:
     - navigation.tabs
     - navigation.indexes
@@ -16,17 +16,31 @@ theme:
     primary: indigo
     toggle:
       icon: material/weather-night
-      name: 切換至深色模式
+      name: Switch to dark mode
   - scheme: slate
     primary: indigo
     toggle:
       icon: material/weather-sunny
-      name: 切換至淺色模式
+      name: Switch to light mode
+
+plugins:
+  - i18n:
+      docs_structure: folder
+      languages:
+        - locale: en
+          default: true
+          name: English
+          build: true
+        - locale: zh
+          default: false
+          name: 繁體中文
+          build: true
+
 
 nav:
-  - 🧩 System Map: safechord.md
-  - 🗺️ Knowledge Tree: safechord.knowledgetree.md
-  - 🟦 SafeZone (App):
+  - Home: index.md
+  - Knowledge Tree: safechord.knowledgetree.md
+  - SafeZone (App):
       - Overview: safechord.safezone.md
       - Microservices:
           - Pandemic Simulator: safechord.safezone.service.pandemicsimulator.md
@@ -40,11 +54,10 @@ nav:
           - Time Server: safechord.safezone.toolkit.timeserver.md
       - Workflow: safechord.safezone.workflow.md
       - ChangeLog: safechord.safezone.changelog.md
-  - 🟨 Deployment:
+  - Deployment:
       - Overview: safechord.safezone.deployment.md
-      - Helm Architecture: safechord.safezone.deployment.charts.md
       - Workflow: safechord.safezone.deployment.workflow.md
-  - 🟥 Chorde (Platform):
+  - Chorde (Platform):
       - Overview: safechord.chorde.md
       - K3han Cluster:
           - Overview: safechord.chorde.k3han.md
@@ -53,9 +66,9 @@ nav:
           - Scheduling: safechord.chorde.k3han.scheduling.md
           - Monitoring: safechord.chorde.k3han.monitoring.md
           - ChangeLog: safechord.chorde.k3han.changelog.md
-  - 🌍 Environment: safechord.environment.md
-  - 🛡️ Security: safechord.security.md
-  - ⬜ Methodology (KDD):
+  - Environment: safechord.environment.md
+  - Security: safechord.security.md
+  - Methodology (KDD):
       - Introduction: safechord.kdd.introduction.md
       - Practice: safechord.kdd.practice.md
 

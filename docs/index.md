@@ -1,68 +1,158 @@
 ---
-title: Welcome
-doc_id: landing_page
+title: 'Map: SafeChord Ecosystem'
+doc_id: safechord
 status: active
 authors:
   - bradyhau
-  - Gemini 3 Pro
-last_updated: '2026-01-11'
-summary: SafeChord 專案的網站入口頁面 (Landing Page)。提供專案簡介與快速導航入口。
+  - Gemini CLI
+last_updated: '2026-05-02'
+summary: The top-level navigational map for the SafeChord project. Defines the system-wide architecture context, the MVA design philosophy, and the strategic evolution roadmap. This is the entry point for understanding the SafeChord ecosystem.
 keywords:
-  - Landing Page
-  - Portfolio
-  - Entry Point
-logical_path: Web.Index
+  - SafeChord
+  - Project Overview
+  - MVA
+  - Architecture Context
+  - Hybrid Cloud
+  - System Map
+logical_path: SafeChord
 related_docs:
-  - safechord.md
-  - safechord.kdd.introduction.md
+  - safechord.knowledgetree.md
+  - safechord.environment.md
+  - safechord.safezone.md
+  - safechord.chorde.md
+parent_doc: null
 archetype: map
-doc_version: 0.2.0
+tech_stack:
+  - Kubernetes (K3s)
+  - Python (FastAPI)
+  - Golang (Franz-Go)
+  - Kafka, PostgreSQL, Redis
+  - ArgoCD, KEDA, Cloudflare
+doc_version: 0.3.5
 app_version: null
 ---
 
-# Welcome to SafeChord
+# 🎼 SafeChord Ecosystem
 
-> **A Production-Grade Health Safety Map System / Engineering Portfolio**
-
-SafeChord 是一個展示「全鏈路資料流」與「生產級維運實踐」的雲原生實驗場。我們旨在證明即使在有限資源下，依然能透過精良的架構設計，構建出一套高可用且可觀察的系統。
-
----
-
-## 🧭 Explore the Project
-
-選擇您的路徑開始探索：
-
-<div class="grid cards" markdown>
-
--   **[System Map (系統全景)](safechord.md)**
-    
-    這是理解 SafeChord 的核心入口。包含完整架構圖、MVA 設計哲學與技術堆疊總覽。
-
--   **[Knowledge Tree (知識地圖)](safechord.knowledgetree.md)**
-    
-    全站文檔索引。根據開發者、維運或架構師的角色，指引您閱讀正確的文件。
-
--   **[Methodology (KDD 方法論)](safechord.kdd.introduction.md)**
-    
-    了解我們如何實踐「知識驅動開發」，以及人類架構師如何與 AI Agent 協同工作。
-
--   **[Roadmap (專案路線圖)](safechord.roadmap.md)**
-    
-    追蹤專案的演進歷程、當前狀態與未來開發規劃。
-
-</div>
+> **From event triggering and asynchronous processing to persistent storage and interactive visualization.**
+>
+> SafeChord is a production-grade "Cloud-Native Laboratory" designed to demonstrate end-to-end dataflow pipelines and modern SRE practices. Our goal is to prove that high availability and observability can be achieved through disciplined architectural design, even under tight resource constraints.
 
 ---
 
-## 🛠️ Key Technologies
+## 🏛️ System Context
 
-SafeChord 整合了現代雲原生技術棧：
+SafeChord adheres to strict **Separation of Concerns (SoC)**, decoupling the ecosystem into three primary dimensions: Application, Delivery, and Platform.
 
-*   **Application**: Python (FastAPI), Go, Plotly Dash
-*   **Data**: Kafka, PostgreSQL, Redis
-*   **Platform**: Kubernetes (K3s), ArgoCD (GitOps), Helm
-*   **Observability**: Prometheus, Grafana, OpenTelemetry
+```mermaid
+graph TB
+    %% Styles
+    classDef person fill:#08427b,stroke:#052e56,color:#fff;
+    classDef app fill:#1168bd,stroke:#0b4884,color:#fff;
+    classDef deploy fill:#438dd5,stroke:#2e6295,color:#fff;
+    classDef infra fill:#2c3e50,stroke:#000,color:#fff;
+
+    %% Actors
+    User(User):::person
+    Ops(Operator):::person
+
+    %% SafeChord Boundary
+    subgraph SafeChord [SafeChord Ecosystem]
+        direction TB
+
+        subgraph SafeZone [🟦 SafeZone]
+            direction LR
+            Dashboard(Dashboard<br/>Interactive UI):::app
+            Services(Microservices<br/>FastAPI / Go):::app
+            Kafka(Event Bus<br/>Kafka):::app
+        end
+
+        subgraph Deploy [🟨 SafeZone-Deploy]
+            Helm(Helm Charts):::deploy
+            GitOps(ArgoCD Config):::deploy
+        end
+
+        subgraph Chorde [🟥 Chorde]
+            K3han(K3han Cluster<br/>Hybrid K3s):::infra
+            Network(Tailscale Mesh):::infra
+        end
+    end
+
+    %% Interactions
+    User -->|"View Metrics"| Dashboard
+    Ops -->|"Push Code"| SafeZone
+    Ops -->|"Manage Config"| Deploy
+    Ops -->|"Provision Cluster"| Chorde
+    
+    Deploy -->|"Orchestrates"| SafeZone
+    Chorde -->|"Hosts"| SafeZone
+```
 
 ---
 
-> *This documentation site is generated automatically from the [SafeChord Repository](https://github.com/bradyhau/SafeChord).*
+## 🏗️ Architectural Tiers
+
+| Tier | Positioning | Core Responsibility | Navigation |
+| :--- | :--- | :--- | :--- |
+| 🟦 **SafeZone** | **Application** | Business logic implementation, including simulators, ingestion gateways, and data workers. | [**App Map**](safechord.safezone.md) |
+| 🟨 **SafeZone-Deploy** | **Delivery** | Packaging and lifecycle management. Governs Helm charts and GitOps promotion workflows. | [**Delivery Map**](safechord.safezone.deployment.md) |
+| 🟥 **Chorde** | **Platform** | Infrastructure and networking. Manages the hybrid K3han cluster and Tailscale overlay mesh. | [**Platform Map**](safechord.chorde.md) |
+
+---
+
+## 🛠️ Technology Stack
+
+| Domain | Core Technologies | Purpose |
+| :--- | :--- | :--- |
+| **Languages** | **Python (FastAPI)** | Business logic, Aggregation APIs, Simulators, Dash UI. |
+| | **Golang** | High-throughput data workers, Franz-Go consumer. |
+| **Data** | **Kafka** | Asynchronous event bus for system decoupling. |
+| | **PostgreSQL** | Relational storage for pandemic facts (PostGIS ready). |
+| | **Redis** | Multi-tier caching and distributed state control. |
+| **Platform** | **K3s** | Lightweight Kubernetes distribution for hybrid environments. |
+| | **Tailscale** | Peer-to-peer SDN for multi-cloud node connectivity. |
+| | **Cloudflare** | DNS management, Tunnels, and Zero Trust access control. |
+| **Operations** | **ArgoCD** | Declarative GitOps for continuous delivery. |
+| | **KEDA** | Event-driven autoscaling based on Kafka consumer lag. |
+
+---
+
+## 🎯 Design Philosophy
+
+### 1. MVA (Minimum Viable Architecture)
+In resource-constrained environments, we prioritize "Necessary Complexity" over "Over-Engineering." Every resource is precisely allocated to segments that deliver the highest architectural value.
+
+### 2. Environment Evolution
+The system is designed for environment-agnostic adaptability:
+*   **🟢 Local**: Rapid iteration via Docker Compose.
+*   **🟡 Preview**: Automated smoke testing within temporary K8s namespaces.
+*   **🔴 Platform**: Live operation on the hybrid K3han cluster (Staging).
+
+### 3. KDD (Knowledge-Driven Development)
+We practice **"Documentation as Codebase."** All architectural decisions and workflows are recorded in this knowledge base, serving as the Single Source of Truth (SSOT) that drives AI and human collaboration.
+
+---
+
+## 🛣️ Strategic Evolution (Merged Roadmap)
+
+> **"Reliability is not an accident; it is a feature. Optimization is not a guess; it is a measurement."**
+
+SafeChord evolves through disciplined phases, moving from a stable foundation to measurable performance.
+
+| Phase | Theme | Objective |
+| :--- | :--- | :--- |
+| **v0.3.x** | **Stabilization** | ✅ **Completed**. Unified microservice scaffolds and backfilled unit tests. |
+| **v0.3.5** | **Modernization** | **Current**. Migrating to English-first documentation and React SPA frontend. |
+| **v0.4.x** | **Architecture TDD** | Defining Service Level Objectives (SLOs) and establishing architectural baselines. |
+| **v0.5.x** | **Scaling** | Surgically optimizing throughput bottlenecks based on collected metrics. |
+
+*For granular task tracking, active sprints, and real-time status, please refer to our [**GitHub Issues Board**](https://github.com/SafeChord/SafeZone/issues).*
+
+---
+
+## 🚀 Getting Started
+
+If this is your first time here, we recommend the following reading path:
+1.  **System Overview** (This document)
+2.  [**Environment Evolution**](safechord.environment.md)
+3.  [**Knowledge Tree**](safechord.knowledgetree.md)

@@ -4,16 +4,16 @@ doc_id: safechord.safezone.service.dashboard
 status: active
 authors:
   - bradyhau
-  - Gemini 3 Pro
-last_updated: '2026-01-04'
-summary: Dashboard 是 SafeZone 的使用者互動介面，基於 Plotly Dash 構建。它具備「時光旅行」感知能力，能透過 Time Server
-  同步模擬時間，並將 Analytics API 的數據轉化為動態的疫情地圖與趨勢圖表。
+  - Gemini CLI
+last_updated: '2026-05-02'
+summary: The Dashboard is the interactive user interface of SafeZone, built with Plotly Dash. It features "Time Awareness" to synchronize with the global system clock via the Time Server, visualizing aggregated pandemic data from the Analytics API through dynamic maps and trend charts.
 keywords:
   - Dashboard
   - Plotly Dash
   - Data Visualization
   - Time Travel
   - Interactive Map
+  - Time Awareness
 logical_path: SafeChord.SafeZone.Service.Dashboard
 related_docs:
   - safechord.safezone.changelog.md
@@ -28,97 +28,85 @@ tech_stack:
   - Plotly Dash 2.18
   - Dash Bootstrap Components
   - Pandas
-  - Requests (Sync)
-doc_version: 0.2.0
-app_version: 0.2.1
+  - httpx
+doc_version: 0.3.0
+app_version: 0.3.1
 ---
 
 # Dashboard (Service Blueprint)
 
 > ⚠️ **Scope Warning**: This blueprint defines the `dashboard` microservice.
-> *繼承自 `archetype.blueprint.microservice.md`*
+> *Inherits from `archetype.blueprint.microservice.md`*
 
-## 1. 職責與定位 (Responsibility)
-*   **角色**: Client / Visualizer
-*   **特性**: Stateless, Time-Aware, Component-Based
-*   **核心目標**: 作為使用者的可視化窗口。它將複雜的時序數據轉化為直觀的熱力圖 (Heatmap) 與趨勢線 (Trend Line)。系統的一個關鍵特性是 **「時間感知 (Time Awareness)」**：Dashboard 不依賴瀏覽器本地時間，而是根據 `Time Server` 的全域時鐘動態渲染過去或未來的模擬狀態。
+## 1. Responsibility & Positioning
+*   **Role**: Client / Visualizer
+*   **Characteristics**: Stateless, Time-Aware, Component-Based, Read-Only
+*   **Core Objective**: Acts as the system's primary visualization window. It transforms complex time-series data into intuitive heatmaps and trend lines. A key differentiator is its **"Time Awareness"**: the Dashboard does not rely on the browser's local time; instead, it renders the simulation state (past or future) based on the global clock provided by the `Time Server`.
 
-## 2. 檔案結構 (File Structure)
+## 2. File Structure
 ```text
 SafeZone/services/dashboard/
 ├── app/
-│   ├── main.py                   # Entry Point (Dash App Initialization)
-│   ├── layout/
-│   │   └── dashboard_layout.py   # Global Layout Container
-│   ├── components/               # [UI] Reusable UI Components
-│   │   ├── map_chart.py          # Interactive Risk Map (Dash Leaflet/Mapbox)
-│   │   ├── trend_chart.py        # Time Series Plot (Plotly Graph Object)
-│   │   └── card.py               # Stat Cards
-│   ├── callbacks/                # [Logic] Event Handlers
-│   │   ├── register.py           # Callback Registry
-│   │   ├── timer_callbacks.py    # Time Sync & Auto-Refresh Logic
-│   │   └── risk_map_callbacks.py # Map Interaction Logic
-│   ├── services/                 # [Infrastructure] External Communication
-│   │   ├── api_caller.py         # HTTP Client for Analytics API (Traceable)
-│   │   └── time_manager.py       # Time Sync Client with Fallback
-│   └── config/
-│       └── settings.py           # Env Loader
-├── test/
-│   ├── manual_test/              # UI Integration Scripts
-│   └── unit_test/                # Logic Verification
-├── Dockerfile                    # Production Environment Builder
-├── Dockerfile.test               # CI/CD Test Environment Builder
-├── requirements.txt              # Production Dependencies
-└── requirements.test.txt         # Testing Dependencies
+│   ├── main.py                   # Dash App Factory & Entry Point
+│   ├── layout/                   # UI Skeleton: Global Layout Container
+│   ├── components/               # UI Layer: Reusable components (Map, Trend Charts, Stat Cards)
+│   ├── callbacks/                # Logic Layer: Event handlers for UI interactions and time sync
+│   ├── services/                 # Infrastructure Layer: External API clients (Analytics API & Time Server)
+│   └── config/                   # Configuration & Environment management
+├── test/                         # Integration & Logic verification
+├── Dockerfile                    # Production Image Builder
+└── requirements.txt              # Production Dependencies
 ```
+*(Note: UI interaction logic and component implementations are located in the codebase.)*
 
-## 3. 接口規範 (Interfaces)
+## 3. Business Requirements
 
-### 輸入 (Ingress)
-*   **User Interaction**: 瀏覽器事件 (Clicks, Hover, Interval Ticks)。
-*   **Endpoint**: `HTTP :8050` (Dash Default)。
+The dashboard's core intent is to provide a user-friendly view of pandemic trends while maintaining strict synchronization with the backend simulation.
 
-### 輸出 (Egress)
-*   **Analytics API**: `GET /cases/{national,city,region}`
-    *   **Behavior**: 使用 `X-Trace-ID` 標記每個請求鏈路。
-*   **Time Server**: `GET /now`
-    *   **Behavior**: 每隔 N 秒 (可配置) 輪詢一次以同步系統時間。
+### 3.1 Visualization & Interaction (Functional)
+*   **Interactive Risk Map**: Renders heatmaps based on geographic tiers (National/City/Region) with zoom and hover capabilities for detailed metrics.
+*   **Pandemic Trend Analysis**: Displays time-series charts for infections, recoveries, and other key indicators.
+*   **"Time Travel" Control**: The UI must display the current system date in real-time and ensure all charts re-render automatically when the system clock changes.
 
-## 4. 依賴與控制 (Dependencies & Control)
+### 3.2 Resilience & Synchronization
+*   **Clock Polling Strategy**: Must poll the `Time Server` at regular intervals to maintain synchronization with the rest of the pipeline.
+*   **Degraded Mode (Fallback)**: If the `Time Server` is unreachable, the dashboard must fallback to the server's local date and indicate "Local Time Mode" in the UI.
+*   **API Error Handling**: Displays user-friendly messages (e.g., "Data Loading" or "Data Unavailable") instead of crashing when the Analytics API returns errors or timeouts.
 
-| 依賴對象 | 類型 | 說明 |
+### 3.3 User Experience
+*   **Asynchronous Loading**: Leverages Dash's async capabilities to ensure that map loading does not block other UI interactions.
+
+## 4. Dependencies & Control
+
+| Dependency | Type | Description |
 | :--- | :--- | :--- |
-| **Analytics API** | Upstream | 數據來源。Dashboard 對其進行同步 HTTP 呼叫。 |
-| **Time Server** | Upstream | 時間來源。若 Time Server 不可用，Dashboard 會 **Fallback** 至本地時間 (Resilience)。 |
-| **User Browser** | Client | 負責渲染 Plotly.js 圖表並維持 WebSocket/HTTP 連線。 |
+| **Analytics API** | Upstream | Primary data source. |
+| **Time Server** | Upstream | Global clock source. |
+| **User Browser** | Client | Renders Plotly.js charts and maintains WebSocket/HTTP connection. |
 
-## 5. 行為驗證 (Behavior Verification)
+## 5. TDD Convergence Boundaries
 
-| 範疇 | 驗證策略 | 業務意圖 (Business Intent) |
+The following constraints must be satisfied through automated testing:
+
+| Dimension | Constraint Intent | Test Scope |
 | :--- | :--- | :--- |
-| **API 整合** | `unit_test/test_service/` | 驗證 `api_caller.py` 能正確序列化 Pydantic Request 並解析 API Response，包含錯誤處理。 |
-| **時間同步** | `Manual/E2E` | 在 CLI 執行 `szcli time set` 後，觀察 Dashboard 右上角的日期顯示是否同步更新，且圖表數據隨之重繪。 |
+| **Request Accuracy** | Verify that `api_caller` sends the correct URL and headers based on UI selections. | `test/unit/` |
+| **Time Synchronization** | Ensure internal state updates correctly when the Time Server returns a new date. | `test/unit/` |
+| **Component Robustness** | Ensure critical components (e.g., Map) do not throw JS exceptions when passed empty or malformed data. | `test/unit/` |
+| **API Integration** | Validate end-to-end connectivity and data parsing with the Analytics API. | `test/integration/` |
 
-## 6. 實作決策 (Implementation Decisions)
+## 6. Architecture Decision Records (ADR)
 
-*   **Plotly Dash Framework**:
-    *   **Decision**: 選擇 Dash 而非 React/Vue 等前端框架。
-    *   **Rationale**:
-        *   **Backend-Centric Efficiency**: 讓後端工程師能使用熟悉的 Python 堆疊快速構建可視化介面，將精力集中於核心資料流與系統穩定性。
-        *   **Unified Stack**: 前後端共用 Python 生態系與 Docker 基礎映像檔，顯著簡化了 CI/CD Pipeline 與依賴管理。
-*   **Time-Aware Polling Architecture**:
-    *   **Decision**: 前端使用 `dcc.Interval` 觸發 Callback，後端 `TimeManager` 查詢 Time Server。
-    *   **Why**: 為了支援「歷史回放」與「快進模擬」。系統必須與物理時間解耦，讓 Dashboard 成為一個可控時間軸的視窗。
-*   **Resilience Strategy (Time Fallback)**:
-    *   **Decision**: 當 `Time Server` 連線超時或錯誤時，自動降級使用 `date.today()`。
-    *   **Why**: 確保即使輔助服務故障，核心展示功能 (針對真實日期) 仍然可用。
+*   **[v0.2.1] Plotly Dash Framework**
+    *   **Decision**: Chose Dash over React/Vue.
+    *   **Why (Trade-off)**: Empowers backend-centric engineers to maintain the full UI/Logic stack within Python, maximizing development efficiency for this administrative and visualization tool.
+*   **[v0.2.1] Time-Aware Polling Architecture**
+    *   **Decision**: Implemented client-side polling via `dcc.Interval` coupled with a backend `TimeManager`.
+    *   **Why**: Solves the visualization drift problem in distributed simulation environments by decoupling the UI from physical time.
+*   **[v0.2.0] Component-Based UI Management**
+    *   **Decision**: Decoupled the layout into reusable components in `app/components/`.
+    *   **Why**: Reduces the complexity of `main.py` and allows for isolated UI testing of specific widgets.
 
-## 7. 部署與維運 (Deployment & Ops)
-
-*   **Docker Image**: `safezone-dashboard`
-*   **Health Check**: `GET /` (檢查 HTML 回應)
-*   **Configuration**:
-    *   **關鍵環境變數**:
-        *   `API_URL`: Analytics API 地址。
-        *   `TIME_SERVER_URL`: Time Server 地址。
-        *   `UPDATE_INTERVAL`: 前端輪詢頻率 (ms)。
+## 7. External Links
+*   **Time Source**: [Time Server Toolkit](safechord.safezone.toolkit.timeserver.md)
+*   **Data Source**: [Analytics API Blueprint](safechord.safezone.service.analyticsapi.md)

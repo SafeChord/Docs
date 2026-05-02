@@ -1,96 +1,96 @@
 ---
 title: SafeZone ChangeLog
 doc_id: safechord.safezone.changelog
-last_updated: '2026-04-15'
+last_updated: '2026-05-02'
 status: active
 authors:
   - bradyhau
-  - Gemini 3 Pro
+  - Gemini CLI
 context_scope: SafeZone Module
-summary: 記錄 SafeZone 應用層的版本演進。對於 AI Agent 而言，本文件是追蹤架構變更、廢棄功能及新引入技術的重要依據，確保 Context
-  的時效性。
+summary: Records the version evolution of the SafeZone application layer. This document is a critical reference for AI agents to track architectural changes, deprecated features, and newly introduced technologies.
 keywords:
   - SafeZone
   - Changelog
   - Release Notes
-  - v0.3.0
-  - Container-Native Smoke Test
-  - szcli
+  - v0.3.1
+  - v0.3.2
+  - Scaffold
+  - KDD
 logical_path: SafeChord.SafeZone.ChangeLog
 related_docs:
   - safechord.knowledgetree.md
   - safechord.safezone.md
 parent_doc: safechord.safezone
-doc_version: 0.3.0
-app_version: 0.3.0-dev
+doc_version: 0.3.5
+app_version: 0.3.2
 ---
 
-# SafeZone 版本變更日誌
+# SafeZone ChangeLog
 
-本文件同步自專案根目錄的 `CHANGELOG.md`，並為 AI 提供語意化的版本導航。
+This document provides a semantic version navigation for the SafeZone application layer, synchronized with the repository's `CHANGELOG.md`.
 
 ---
-## [0.3.0-dev] - 2026-04-16
 
-### 🚀 關鍵變更 (Critical Changes)
-*   **Worker 服務硬化 (Worker Hardening)**: 
-    *   **記憶體洩漏修復**: 修復了 `worker.go` 中因 `defer cancel()` 放置於迴圈內導致的 Timer Goroutine 堆積問題。
-    *   **Go 慣用化重構**: 移除 Java 風格的 `WorkerFactory` 與 `Orchestrator` 殼，改用地道的 Go Constructor (`NewWorker`) 與 Package-level 執行函式 (`RunWorkers`)。
-    *   **可測試性強化**: 透過 `CacheReader` Interface 抽離對快取層的硬依賴，支援 Mock 測試。
-*   **容器原生煙霧測試架構 (Container-Native Smoke Test)**: 
-    *   （...先前已記錄的變更...）
- 
-    *   廢棄舊有的 `bash` + `jq` 腳本，改為以 Python 實作的 CSV 驅動測試引擎 (`smoke_test.py`)。
-    *   測試引擎運行於獨立的 `safezone-cli-ops` 容器中，直接在 Docker Compose 網路內執行。
-    *   測試案例從 `data/smoke-test/` 遷移至 `toolkit/cli/ops/test_cases/`。
-*   **szcli 功能強化**:
-    *   新增全域 `--verbose` / `-v` 旗標，支援顯示 HTTP Header (如 `X-Cache-Status`)。
-    *   `szcli db clear` 新增 `--yes` / `-y` 旗標，支援非互動式（自動化）執行。
-*   **觀測性提升**: 
-    *   實現 `X-Cache-Status` 標頭的完整傳遞鏈（`analytics-api` -> `cli-relay` -> `szcli`），可用於驗證快取命中狀態。
+## [0.3.2] - 2026-05-02
 
-### 🐛 修復與穩定化
-*   **修復 `dev-up.sh` 啟動錯誤**: 解決了在 `set -e` 下 `((attempt++))` 導致的非預期退出。
-*   **強化非同步驗證**: 在測試引擎中實作自適應輪詢與有狀態斷言 (Stateful Assertion) 機制，有效處理 Kafka 非同步延遲與最終一致性驗證。
+### 🚀 Critical Changes (Scaffold Propagation)
+*   **Template Propagation**: The Python Microservice Scaffold (v0.3.1) has been successfully propagated to `data-ingestor` and `pandemic-simulator`.
+*   **Directory Restructuring**:
+    *   `data-ingestor`: Extracted `services/ingest_service.py` (zero FastAPI imports) and added `api/dependencies.py` for Kafka DI.
+    *   `pandemic-simulator`: Merged `pipeline/` modules into the `services/` layer and structured test directories into `unit/` and `integration/`.
+*   **Automation Improvements**:
+    *   **Makefile Automation**: `make test-*` targets now automatically trigger `make build-*`, ensuring tests always run against the latest image.
+    *   **Cleanup**: Removed legacy service READMEs in favor of the central KDD Knowledge Base in `Docs/`.
+
+### 🧪 Quality & Testing
+*   **Test Backfill**: Added comprehensive unit tests for `data-ingestor` using mocked Kafka producers, achieving 87% coverage.
+*   **CI/CD Alignment**: Verified the full local-ci pipeline (build -> test -> smoke-test) with the new scaffold structure.
+
+---
+
+## [0.3.1] - 2026-04-22
+
+### 🏗️ Architectural Milestone (Scaffold Design)
+*   **Python Microservice Scaffold**: Established the canonical `api/core/services/exceptions` layered architecture within `analytics-api` as the project's blueprint.
+*   **Pure ASGI Middleware**: Replaced `BaseHTTPMiddleware` with a pure ASGI implementation to fix `ContextVar` isolation issues, ensuring `X-Cache-Status` headers are correctly propagated.
+*   **Layered Dependency Injection**: Decoupled the `redis_cache` decorator from FastAPI `Request` objects, moving to explicit DI providers in `api/dependencies.py`.
+*   **Cache Stampede Protection**: Implemented Double-Check Locking within the cache service to prevent database overwhelming during concurrent cache misses.
+
+---
+
+## [0.3.0] - 2026-04-16
+
+### 🛡️ System Hardening
+*   **Worker Hardening (Golang)**: 
+    *   **Memory Leak Fix**: Resolved a critical timer goroutine leak caused by improper `defer cancel()` placement in loops.
+    *   **Go Idiomatic Refactor**: Replaced Java-style factories with package-level constructors (`NewWorker`) and interface-based DI.
+*   **Container-Native Smoke Test**: 
+    *   Migrated from shell-based testing to a Python-based CSV-driven engine (`smoke_test.py`).
+    *   The test engine now runs within a dedicated `safezone-cli-ops` container for consistent CI/CD execution.
+*   **szcli Enhancements**: Added global `--verbose` support for HTTP header inspection and non-interactive `--yes` flags for automation.
 
 ---
 
 ## [0.2.1] - 2025-09-12
 
-### 🚀 關鍵變更 (Critical Changes)
-*   **Kafka 核心現代化**: 從 `segmentio/kafka-go` 遷移至 `twmb/franz-go`。
-    *   *AI 注意*: 此變更解決了 KRaft 模式下的相容性問題，若涉及 Kafka 連線邏輯請務必參考新庫。
-*   **強化消費者位移管理**: Go Worker 禁用自動提交 (Auto-commit)，改為手動管理 Offset，確保 "At-least-once" 語意。
-*   **生產者分區策略優化**: 改用 "Natural Key" (如 city-region) 搭配 Murmur2 分區演算法。
-
-### 🐛 修復與穩定化
-*   **解決 KRaft 靜默失敗問題**: 修復了導致 v0.2.0 無法在 KRaft 叢集部署的關鍵 Bug。
-*   **煙霧測試 (Smoke Test) 強化**: 使用輪詢機制 (`wait_for_infra_services`) 取代固定 `sleep`，消除 CI 流程中的競爭條件 (Race Conditions)。
+### 🚀 Optimization
+*   **Franz-Go Migration**: Switched Kafka client from `segmentio/kafka-go` to `twmb/franz-go` for KRaft support and better performance.
+*   **Manual Offset Management**: Disabled auto-commits in the Go Worker to ensure "At-least-once" delivery semantics.
+*   **Partitioning Logic**: Implemented "Natural Key" partitioning (city-region) to guarantee regional data ordering.
 
 ---
 
 ## [0.2.0] - 2025-09-01
 
-這是 SafeChord 的重大里程碑，從 MVP 進化為具備工業級觀測與自動化能力的平台。
-
-### ✨ 新增功能
-*   **觀測性基礎 (Observability)**: 引入 `Trace ID` 機制，標準化 JSON 日誌格式。
-*   **非同步資料流架構 (Async Architecture)**: 
-    *   以 Kafka 為核心的事件驅動架構。
-    *   `Data Ingestor` 重構為 Producer。
-    *   `Pandemic Simulator` 升級為 `asyncio` + `httpx`。
-*   **Go Worker**: 新增 Golang 實作的消費者，負責批次寫入 PostgreSQL。
-*   **API 快取機制**: `Analytics API` 整合 Redis 快取層。
-*   **時間伺服器 (Time Server)**: 引入 `time-server` 進行集中時間控制。
-
-### 🛠️ 重構與標準化
-*   **服務更名**: 統一名稱空間（例如 `coviddatasimulator` -> `pandemic-simulator`），去耦合特定事件。
-*   **CI/CD 重構**: 使用動態 Git SHA 作為 Tag，引入 `release.yml` 自動化發佈流程。
-*   **統一資料契約 (Unified Contracts)**: 抽取共享 Pydantic 模型至 `utils` 子模組。
+### ✨ Major Features
+*   **Observability Foundation**: Standardized Trace ID propagation and JSON logging across all services.
+*   **Async Data Pipeline**: Fully decoupled the system using Kafka as the central event bus.
+*   **Persistence Layer**: Introduced the Golang Worker for batch PostgreSQL upserts and Redis for API response caching.
+*   **Time Server**: Centralized virtual clock for simulation control.
 
 ---
 
 ## [0.1.0] - 2025-05-16
 
-### 📦 初始 MVP
-*   驗證基礎同步資料流：`simulator` -> `ingestor` -> `analytics-api`。
+### 📦 MVP
+*   Initial synchronous dataflow verification: `simulator` -> `ingestor` -> `analytics-api`.

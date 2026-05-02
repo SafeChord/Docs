@@ -4,62 +4,91 @@ doc_id: safechord.safezone.deployment
 status: active
 authors:
   - bradyhau
-  - Gemini 3 Pro
-last_updated: '2026-01-09'
-summary: SafeZone 部署與運維層的導航地圖。整合了 Helm Charts 架構定義與 GitOps 工作流程，指導如何將應用程式交付至不同環境。
+  - Gemini CLI
+last_updated: '2026-05-02'
+summary: Navigation map and architectural decision records for SafeZone's deployment layer. Defines the tiered Helm Chart design philosophy, deployment stage ordering intent, and the responsibility boundary between App and Deploy layers.
 keywords:
   - Deployment
   - Operations
   - Helm
   - GitOps
-  - SafeZone-Deploy
+  - Umbrella Chart
+  - KEDA
 logical_path: SafeChord.SafeZone.Deployment
 related_docs:
-  - safechord.safezone.deployment.charts.md
   - safechord.safezone.deployment.workflow.md
   - safechord.environment.md
+  - safechord.safezone.md
 parent_doc: safechord.safezone
 archetype: map
-doc_version: 0.2.0
-app_version: 0.2.1
+code_paths:
+  - SafeZone-Deploy/helm-charts
+  - SafeZone-Deploy/deploy
+doc_version: 0.3.0
 ---
 
 # SafeZone Deployment
 
 > "Code is liability, Deployment is delivery."
 
-本章節關注於 **SafeZone-Deploy** 倉庫的職責：如何將 `SafeZone` 產出的 Docker Images，轉化為 Kubernetes 上穩定運行的服務。
+This document defines the **architectural intent** behind SafeZone's deployment
+layer. For implementation details (chart structure, values, manifests), refer
+directly to the `SafeZone-Deploy` repository.
 
 ---
 
-## 📚 核心文檔導航
+## Navigation
 
-| 模組 | 說明 | 關鍵字 |
+| Topic | Document | Focus |
 | :--- | :--- | :--- |
-| [**Helm Chart Architecture**](safechord.safezone.deployment.charts.md) | **靜態結構**。定義了 `safezone-infra`, `safezone-core`, `safezone-ui` 三層 Umbrella Chart 的依賴關係與全域配置策略。 | `Umbrella Chart`, `Configuration`, `Service Discovery` |
-| [**GitOps Workflow**](safechord.safezone.deployment.workflow.md) | **動態流程**。定義了從 `deploy/preview` 到 `staging` 的晉升路徑，以及 **GitHub Actions 驅動** 的編排策略。 | `GitFlow`, `Promotion`, `ArgoCD`, `Preview Env`, `Orchestration` |
+| **GitOps Workflow** | [Deployment Workflow](safechord.safezone.deployment.workflow.md) | Branch promotion, GitHub Actions orchestration, rollback strategy |
+| **Environment Strategy** | [Environment Landscape](safechord.environment.md) | Local / Preview / Staging tiers, service discovery, Chorde PaaS integration |
+
+> *Implementation reference: `SafeZone-Deploy/` repository — Helm charts, ArgoCD manifests, deploy scripts.*
 
 ---
 
-## 🏗️ 部署策略摘要 (v0.2.2)
+## Boundary: App Layer vs. Deployment Layer
 
-在 v0.2.2 版本中，我們的部署策略針對 **非同步架構** 與 **數據生命週期** 進行了以下優化：
-
-1.  **基礎設施優先 (Infra-First)**:
-    *   透過 `safezone-infra` Chart 優先部署 **ConfigMap, Secret, Ingress Controller** 與 `CLI Relay`，為上層應用建立穩固的地基 (Foundation)。
-    *   確保所有服務連線資訊 (Connection Strings) 在應用啟動前皆已就緒。
-
-2.  **彈性伸縮 (Auto-Scaling)**:
-    *   **Worker**: 整合 **KEDA (Kubernetes Event-driven Autoscaling)**。
-    *   **Trigger**: 作為「速率緩衝橋樑」，監聽 Kafka Consumer Lag。當 `data-ingestor` 湧入大量模擬數據時，KEDA 自動擴展 `worker-golang` Pod 數量以調節寫入壓力。
-
-3.  **精細化數據初始化 (Seeding)**:
-    *   **Stage 2 (Init)**: 透過 `safezone-seed-init` 執行 Schema Migration 與 Mock Time 設定，防止應用層 Crash。
-    *   **Stage 4 (Warming)**: 透過 `safezone-seed-data` 注入 **33 天歷史數據** (Cold Start Data)，確保 Dashboard 開箱即有豐富圖表呈現。
+*   **App Layer (`SafeZone`)**: Produces immutable Docker images (artifacts).
+*   **Deployment Layer (`SafeZone-Deploy`)**: Declares how those images run
+    across environments (replicas, env vars, resources, secrets). Fully
+    GitOps-driven — every commit triggers ArgoCD reconciliation.
 
 ---
 
-## 🔄 與 App 層的邊界
+## ADR: Tiered Umbrella Chart Strategy
 
-*   **App Layer (`SafeZone`)**: 負責產出 Immutable 的 Docker Image (Artifacts)。
-*   **Deployment Layer (`SafeZone-Deploy`)**: 負責定義這些 Image 在不同環境 (Preview/Staging) 下的運行參數 (Replicas, Env Vars, Resources)。
+SafeZone uses a **tiered Umbrella Chart** architecture instead of a single
+monolithic Helm chart, primarily to enforce deployment ordering and isolate
+failure domains.
+
+### Why: DAG-Based Deployment Ordering
+
+Services have strict directed acyclic graph (DAG) dependencies. The tiered
+design forces ArgoCD to deploy in the correct sequence via Sync Waves:
+
+| Stage | Layer | Intent |
+| :--- | :--- | :--- |
+| **1. Foundation** | Infrastructure (ConfigMap, Secret, Ingress, CLI Relay) | Ensure all connection strings and platform services are ready before any app starts. |
+| **2. Bootstrap** | Seed-Init (Schema migration, time-server setup) | Prevent Core services from CrashLooping on missing DB schema or time state. |
+| **3. Core** | Business services (write pipeline + read pipeline) | Establish the complete data processing pipeline. |
+| **4. Data Warming** | Seed-Data (historical data injection via live pipeline) | Inject 30+ days of history so Dashboard has meaningful charts on first load. Must run **after** Core, since it depends on the live ingestion pipeline. |
+| **5. Experience** | UI (Dashboard) | User-facing layer — only starts when backend data is ready. |
+
+### Why: Data Lifecycle Orchestration
+
+Separating seed tasks (init vs. data) enables fine-grained control:
+
+*   **Cold-start protection**: Schema migration (`seed-init`) completes before
+    any application pod starts.
+*   **Live traffic simulation**: `seed-data` sends requests through the actual
+    ingestion pipeline (Simulator → Ingestor → Kafka → Worker → DB), doubling
+    as an end-to-end integration test.
+
+### Why: KEDA as Rate Buffering Bridge
+
+The Worker service integrates KEDA to auto-scale based on Kafka consumer lag.
+This acts as a **rate buffering bridge** — absorbing the impedance mismatch
+between Kafka's high-throughput ingestion and the remote Primary DB's write
+capacity, preventing database overload during burst scenarios.

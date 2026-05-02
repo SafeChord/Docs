@@ -4,9 +4,9 @@ doc_id: safechord.chorde
 status: active
 authors:
   - bradyhau
-  - Gemini 2.0 Flash
-last_updated: '2026-03-11'
-summary: Chorde 平台層的導航地圖。定義多叢集管理框架、GitOps v2 同步機制與基礎設施生命週期管理。
+  - Gemini CLI
+last_updated: '2026-05-02'
+summary: Navigational map for the Chorde platform layer. Defines the multi-cluster management framework, GitOps v2 synchronization mechanisms, and infrastructure lifecycle policies.
 keywords:
   - Chorde
   - Platform Layer
@@ -16,86 +16,86 @@ keywords:
   - Hybrid Cloud
 logical_path: SafeChord.Chorde
 related_docs:
-  - safechord.md
+  - index.md
   - safechord.chorde.k3han.md
 parent_doc: safechord
 archetype: map
 code_paths:
   - Chorde/cluster
   - Chorde/gitops
-doc_version: 0.3.0
+doc_version: 0.3.5
 app_version: 0.3.0
 ---
 
-# 🛠️ Chorde 平台層地圖 (Map)
+# 🛠️ Chorde Platform Map
 
-> **Map (地圖型)**：SafeChord 生產環境的「基礎設施總指揮部」。
-> *職責：管理異構叢集、實施 GitOps v2 交付、維護混合雲安全邊界。*
-
----
-
-## 1. 平台願景 (Vision)
-
-**Chorde** (= Cluster + Horde) 旨在建立一個「去中心化但高度協調」的基礎設施部落。在 v0.3.0 中，平台已從單純的 IaC 腳本集轉型為 **Operator-managed** 的現代化平台，實現了「代碼即環境，文檔即來源」的 KDD 閉環。
+> **Type**: Map (Infrastructure Command Center)
+> **Context**: Manages heterogeneous clusters, implements GitOps v2 delivery, and maintains hybrid-cloud security perimeters.
 
 ---
 
-## 2. 倉庫結構 (Repository Structure)
+## 1. Platform Vision
 
-Chorde 採用 **Recursive GitOps v2** 架構，透過 `root.yaml` 實現單一入口的自動化編排。
+**Chorde** (Cluster + Horde) aims to establish a "decentralized yet highly coordinated" infrastructure tribe. As of v0.3.0, the platform has transitioned from simple IaC scripts to an **Operator-managed** modern architecture, realizing the KDD loop of "Code as Environment, Docs as Source."
+
+---
+
+## 2. Repository Structure
+
+Chorde utilizes a **Recursive GitOps v2** architecture, enabling automated orchestration through a single entry point (`root.yaml`).
 
 ```text
 Chorde/
-├── cluster/                 # [Physical] 物理基礎設施定義
+├── cluster/                 # [Physical] Hardware & OS-level definitions
 │   └── k3han/               
-│       ├── ansible/         # 行為紀錄：節點初始化與防火牆硬化
-│       └── k3s/             # 節點描述：K3s 配置備份
+│       ├── ansible/         # Record of Actions: Node initialization & OS hardening
+│       └── k3s/             # Node Descriptors: K3s configuration backups
 │
-├── gitops/                  # [State] GitOps 狀態定義核心 (SSOT)
+├── gitops/                  # [State] GitOps Desired State (SSOT)
 │   └── k3han/               
-│       ├── root.yaml        # 全域入口點 (The Root App)
-│       ├── stages/          # [Layer 0: Orchestrator] 部署階段指令
-│       │   ├── 00-bootstrap.yaml  # 核心：ArgoCD, SealedSecrets
-│       │   ├── 01-platform.yaml   # 維運：Monitoring, Logging, Ingress
-│       │   └── 02-components.yaml # 應用：DB, MQ, SafeZone Services
+│       ├── root.yaml        # Entry Point: The Root Application
+│       ├── stages/          # [Layer 0: Orchestrator] Stage-based ApplicationSets
+│       │   ├── 00-bootstrap.yaml  # Core: ArgoCD, SealedSecrets, Ingress
+│       │   ├── 01-platform.yaml   # Ops: Monitoring, Logging, Operators
+│       │   └── 02-components.yaml # App: DB, MQ, SafeZone Microservices
 │       │
-│       └── manifests/       # [Content] 宣告式資源 (YAML)
-│           ├── alloy/       # 採用 Multiple Sources Pattern 
-│           ├── cnpg-*/      # CloudNativePG 資源定義
-│           └── ...          # 其他 20+ 平台服務
+│       └── manifests/       # [Content] Declarative Resources (YAML/Helm)
+│           ├── alloy/       # Multiple Sources Pattern
+│           ├── cnpg-*/      # CloudNativePG Operator & Clusters
+│           └── ...          # 20+ Platform services
 │
-├── scripts/                 # [Lifecycle] 運作與測試工具
+├── scripts/                 # [Lifecycle] Operational & Validation Tools
 │   ├── ops/                 # bootstrap-cluster.sh, seal.sh
-│   └── test/                # 跨區連線、DB 同步、Ingress 隔離測試
+│   └── test/                # Cross-region connectivity & health checks
 │
-└── legacy/                  # [Archive] 舊版 (v0.1.x / v0.2.x) 歸檔
+└── legacy/                  # [Archive] Historical configurations (v0.1.x / v0.2.x)
 ```
 
 ---
 
-## 3. 核心組件導航 (Navigation)
+## 3. Core Component Navigation
 
-### 3.1 運行叢集 (Runtime Clusters)
-*   [**K3han (Hybrid K3s)**](safechord.chorde.k3han.md):
-    *   **定位**: 高度非對稱的台日混合雲。
-    *   **現況**: 運行 K3s v1.34+，透過 Tailscale Overlay 屏蔽地理差異。
-
----
-
-## 4. 工程實踐 (Engineering Practices v2)
-
-Chorde 嚴格遵循以下 SRE 工程準則：
-
-1.  **ArgoCD Multiple Sources**: 廢棄 `helm-charts/` 本地目錄。直接引引用官方 Helm Chart (Upstream) 並搭配本地 `values-custom.yaml` 進行覆蓋，減少倉庫體積。
-2.  **ApplicationSet Pattern**: 採用 `ApplicationSet` 取代單體 `Application`，實現自動化的服務偵測與層級同步 (Sync Waves)。
-3.  **Operator-First**: 基礎設施服務（DB, Kafka）全面轉向 **Operator-managed** 模式，確保具備自我修復與平滑升級能力。
-4.  **Availability Filter**: 利用 Taints (`PreferNoSchedule`) 建立地端與雲端的可用性分層，保護關鍵負載不誤入非 HA 環境。
-5.  **Test-Driven Ops**: 所有重大配置更動後，必須執行 `scripts/test/` 下的驗證腳本以符合「Test is the Law」政策。
+### 3.1 Runtime Clusters
+*   [**K3han (Hybrid K3s)**](safechord.chorde.k3han.md) ⭐:
+    *   **Context**: Highly asymmetric Taiwan-Japan hybrid cloud.
+    *   **Status**: Running K3s v1.34+, utilizing Tailscale SDN to mask geographic latency.
 
 ---
 
-## 5. 快速跳轉 (Quick Access)
+## 4. Engineering Practices (v2)
 
-*   **叢集地圖**: [K3han 混合雲地圖](safechord.chorde.k3han.md)
-*   **調度策略**: [K3han 排程大腦 (Brain)](safechord.chorde.k3han.scheduling.md)
-*   **倉庫源碼**: [SafeChord/Chorde (GitHub)](https://github.com/SafeChord/Chorde)
+Chorde strictly adheres to the following SRE principles:
+
+1.  **ArgoCD Multiple Sources**: Abandoned local `helm-charts/` copies. Directly references Upstream Helm Charts paired with local `values-custom.yaml` overlays.
+2.  **ApplicationSet Pattern**: Replaced monolithic `Application` manifests with `ApplicationSet` for automated service discovery and tiered synchronization (Sync Waves).
+3.  **Operator-First**: Foundation services (DB, Kafka, Postgres) are entirely **Operator-managed**, ensuring self-healing and zero-downtime upgrades.
+4.  **Availability Tiers**: Leverages Taints (`PreferNoSchedule`) to establish availability zones between on-prem and cloud nodes, preventing critical workloads from landing on non-HA nodes.
+5.  **Test-Driven Ops**: Major configuration changes must be validated via scripts in `scripts/test/` to satisfy the "Test is the Law" policy.
+
+---
+
+## 5. Quick Access
+
+*   **Cluster Map**: [K3han Hybrid Cluster Map](safechord.chorde.k3han.md)
+*   **Scheduling Logic**: [K3han Scheduling Brain](safechord.chorde.k3han.scheduling.md)
+*   **Source Code**: [SafeChord/Chorde (GitHub)](https://github.com/SafeChord/Chorde)
