@@ -1,96 +1,69 @@
----
-title: SafeZone ChangeLog
-doc_id: safechord.safezone.changelog
-last_updated: '2026-04-15'
-status: active
-authors:
-  - bradyhau
-  - Gemini 3 Pro
-context_scope: SafeZone Module
-summary: 記錄 SafeZone 應用層的版本演進。對於 AI Agent 而言，本文件是追蹤架構變更、廢棄功能及新引入技術的重要依據，確保 Context
-  的時效性。
-keywords:
-  - SafeZone
-  - Changelog
-  - Release Notes
-  - v0.3.0
-  - Container-Native Smoke Test
-  - szcli
-logical_path: SafeChord.SafeZone.ChangeLog
-related_docs:
-  - safechord.knowledgetree.md
-  - safechord.safezone.md
-parent_doc: safechord.safezone
-doc_version: 0.3.0
-app_version: 0.3.0-dev
----
+# SafeZone 變更日誌
 
-# SafeZone 版本變更日誌
-
-本文件同步自專案根目錄的 `CHANGELOG.md`，並為 AI 提供語意化的版本導航。
+本文件提供 SafeZone 應用層的語意化版本導覽，與儲存庫中的 `CHANGELOG.md` 保持同步。
 
 ---
-## [0.3.0-dev] - 2026-04-16
 
-### 🚀 關鍵變更 (Critical Changes)
-*   **Worker 服務硬化 (Worker Hardening)**: 
-    *   **記憶體洩漏修復**: 修復了 `worker.go` 中因 `defer cancel()` 放置於迴圈內導致的 Timer Goroutine 堆積問題。
-    *   **Go 慣用化重構**: 移除 Java 風格的 `WorkerFactory` 與 `Orchestrator` 殼，改用地道的 Go Constructor (`NewWorker`) 與 Package-level 執行函式 (`RunWorkers`)。
-    *   **可測試性強化**: 透過 `CacheReader` Interface 抽離對快取層的硬依賴，支援 Mock 測試。
-*   **容器原生煙霧測試架構 (Container-Native Smoke Test)**: 
-    *   （...先前已記錄的變更...）
- 
-    *   廢棄舊有的 `bash` + `jq` 腳本，改為以 Python 實作的 CSV 驅動測試引擎 (`smoke_test.py`)。
-    *   測試引擎運行於獨立的 `safezone-cli-ops` 容器中，直接在 Docker Compose 網路內執行。
-    *   測試案例從 `data/smoke-test/` 遷移至 `toolkit/cli/ops/test_cases/`。
-*   **szcli 功能強化**:
-    *   新增全域 `--verbose` / `-v` 旗標，支援顯示 HTTP Header (如 `X-Cache-Status`)。
-    *   `szcli db clear` 新增 `--yes` / `-y` 旗標，支援非互動式（自動化）執行。
-*   **觀測性提升**: 
-    *   實現 `X-Cache-Status` 標頭的完整傳遞鏈（`analytics-api` -> `cli-relay` -> `szcli`），可用於驗證快取命中狀態。
+## [0.3.2] - 2026-05-02
 
-### 🐛 修復與穩定化
-*   **修復 `dev-up.sh` 啟動錯誤**: 解決了在 `set -e` 下 `((attempt++))` 導致的非預期退出。
-*   **強化非同步驗證**: 在測試引擎中實作自適應輪詢與有狀態斷言 (Stateful Assertion) 機制，有效處理 Kafka 非同步延遲與最終一致性驗證。
+### 🚀 重大變更（模板傳播）
+*   **模板傳播**：Python 微服務模板（v0.3.1）已成功傳播至 `data-ingestor` 與 `pandemic-simulator`。
+*   **目錄重構**：
+    *   `data-ingestor`：抽取出 `services/ingest_service.py`（不含任何 FastAPI 匯入），並新增 `api/dependencies.py` 處理 Kafka DI。
+    *   `pandemic-simulator`：將 `pipeline/` 模組合併至 `services/` 層，並將測試目錄結構化為 `unit/` 與 `integration/`。
+*   **自動化改善**：
+    *   **Makefile 自動化**：`make test-*` 目標現在會自動觸發 `make build-*`，確保測試永遠針對最新映像檔執行。
+    *   **清理作業**：移除舊有服務的 README，改以 `Docs/` 中的集中式 KDD 知識庫取代。
+
+### 🧪 品質與測試
+*   **測試補強**：為 `data-ingestor` 新增完整的單元測試，透過模擬 Kafka 生產者達成 87% 覆蓋率。
+*   **CI/CD 對齊**：驗證完整 local-ci 管線（建置 -> 測試 -> 冒煙測試）在新模板結構下的運作。
+
+---
+
+## [0.3.1] - 2026-04-22
+
+### 🏗️ 架構里程碑（模板設計）
+*   **Python 微服務模板**：在 `analytics-api` 中建立標準化的 `api/core/services/exceptions` 分層架構，作為專案的設計藍圖。
+*   **純 ASGI 中介軟體**：以純 ASGI 實作取代 `BaseHTTPMiddleware`，修復 `ContextVar` 隔離問題，確保 `X-Cache-Status` 標頭能正確傳遞。
+*   **分層依賴注入**：將 `redis_cache` 裝飾器從 FastAPI `Request` 物件解耦，遷移至 `api/dependencies.py` 中明確的 DI 提供者。
+*   **快取雪崩保護**：在快取服務中實作雙重檢查鎖定機制，防止並發快取未命中時造成資料庫過載。
+
+---
+
+## [0.3.0] - 2026-04-16
+
+### 🛡️ 系統強化
+*   **工作者強化（Golang）**：
+    *   **記憶體洩漏修復**：修復因迴圈中 `defer cancel()` 配置不當導致的關鍵計時器 goroutine 洩漏問題。
+    *   **Go 慣用語重構**：以套件層級建構函式（`NewWorker`）與基於介面的 DI 取代 Java 風格的工廠模式。
+*   **容器原生冒煙測試**：
+    *   從基於 Shell 的測試遷移至 Python 驅動的 CSV 引擎（`smoke_test.py`）。
+    *   測試引擎現在在專屬的 `safezone-cli-ops` 容器中執行，確保 CI/CD 執行的一致性。
+*   **szcli 增強功能**：新增全域 `--verbose` 支援 HTTP 標頭檢查，以及非互動式 `--yes` 標誌用於自動化流程。
 
 ---
 
 ## [0.2.1] - 2025-09-12
 
-### 🚀 關鍵變更 (Critical Changes)
-*   **Kafka 核心現代化**: 從 `segmentio/kafka-go` 遷移至 `twmb/franz-go`。
-    *   *AI 注意*: 此變更解決了 KRaft 模式下的相容性問題，若涉及 Kafka 連線邏輯請務必參考新庫。
-*   **強化消費者位移管理**: Go Worker 禁用自動提交 (Auto-commit)，改為手動管理 Offset，確保 "At-least-once" 語意。
-*   **生產者分區策略優化**: 改用 "Natural Key" (如 city-region) 搭配 Murmur2 分區演算法。
-
-### 🐛 修復與穩定化
-*   **解決 KRaft 靜默失敗問題**: 修復了導致 v0.2.0 無法在 KRaft 叢集部署的關鍵 Bug。
-*   **煙霧測試 (Smoke Test) 強化**: 使用輪詢機制 (`wait_for_infra_services`) 取代固定 `sleep`，消除 CI 流程中的競爭條件 (Race Conditions)。
+### 🚀 最佳化
+*   **Franz-Go 遷移**：將 Kafka 客戶端從 `segmentio/kafka-go` 切換至 `twmb/franz-go`，以獲得 KRaft 支援與更好的效能。
+*   **手動偏移量管理**：在 Go Worker 中停用自動提交，確保「至少一次」的傳遞語意。
+*   **分割邏輯**：實作「自然鍵」分割策略（城市-區域），保證區域性資料的排序正確性。
 
 ---
 
 ## [0.2.0] - 2025-09-01
 
-這是 SafeChord 的重大里程碑，從 MVP 進化為具備工業級觀測與自動化能力的平台。
-
-### ✨ 新增功能
-*   **觀測性基礎 (Observability)**: 引入 `Trace ID` 機制，標準化 JSON 日誌格式。
-*   **非同步資料流架構 (Async Architecture)**: 
-    *   以 Kafka 為核心的事件驅動架構。
-    *   `Data Ingestor` 重構為 Producer。
-    *   `Pandemic Simulator` 升級為 `asyncio` + `httpx`。
-*   **Go Worker**: 新增 Golang 實作的消費者，負責批次寫入 PostgreSQL。
-*   **API 快取機制**: `Analytics API` 整合 Redis 快取層。
-*   **時間伺服器 (Time Server)**: 引入 `time-server` 進行集中時間控制。
-
-### 🛠️ 重構與標準化
-*   **服務更名**: 統一名稱空間（例如 `coviddatasimulator` -> `pandemic-simulator`），去耦合特定事件。
-*   **CI/CD 重構**: 使用動態 Git SHA 作為 Tag，引入 `release.yml` 自動化發佈流程。
-*   **統一資料契約 (Unified Contracts)**: 抽取共享 Pydantic 模型至 `utils` 子模組。
+### ✨ 主要功能
+*   **可觀測性基礎**：在全部服務中標準化 Trace ID 傳遞與 JSON 日誌記錄。
+*   **非同步資料管線**：使用 Kafka 作為中央事件匯流排，將系統完全解耦。
+*   **持久層**：引入 Golang Worker 進行批次 PostgreSQL upsert 操作，並使用 Redis 處理 API 回應快取。
+*   **時間伺服器**：集中化虛擬時鐘，用於模擬控制。
 
 ---
 
 ## [0.1.0] - 2025-05-16
 
-### 📦 初始 MVP
-*   驗證基礎同步資料流：`simulator` -> `ingestor` -> `analytics-api`。
+### 📦 MVP
+*   初始同步資料流程驗證：`simulator` -> `ingestor` -> `analytics-api`。

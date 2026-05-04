@@ -1,85 +1,67 @@
----
-title: 'Blueprint: K3han Monitoring Stack'
-doc_id: safechord.chorde.k3han.monitoring
-status: active
-authors:
-  - bradyhau
-  - Gemini 3.5 Pro (Architecture Architect)
-context_scope: Chorde/gitops/k3han/manifests/monitoring
-summary: 定義 K3han 混合雲叢集的可觀測性架構。本規範詳細說明了指標堆疊、日誌加密存儲與異質化採集代理的設計決策與安全規範。
-keywords:
-  - Monitoring Architecture
-  - Observability
-  - Prometheus Operator
-  - Loki S3
-  - Grafana
-  - Zero Trust
-logical_path: SafeChord.Chorde.K3han.Monitoring
-related_docs:
-  - safechord.chorde.k3han.md
-  - safechord.security.md
-parent_doc: safechord.chorde.k3han
-archetype: blueprint
-code_paths:
-  - Chorde/gitops/k3han/manifests/prometheus
-  - Chorde/gitops/k3han/manifests/loki
-  - Chorde/gitops/k3han/manifests/alloy
-  - Chorde/gitops/k3han/manifests/fluent-bit
-doc_version: 0.3.2
-app_version: 0.3.0
+# 可觀測性與監控政策（總覽）
+
+> **核心原則**：採用「零本地足跡」策略，克服異質混合雲環境中邊緣節點磁碟 I/O 限制與儲存留存成本。
+
 ---
 
-# 📊 Monitoring Stack (Architecture Specification)
+## 1. 設計願景
 
-> **Blueprint (藍圖型)**：定義 K3han 混合雲叢集的可觀測性 (Observability) 實作標準。
-> *核心理念：分散式採集、雲端化存儲、零信任存取。*
+K3han 利用雲端原生儲存卸載及異質代理程式，在不耗費本機資源的前提下實現高可觀測性。
 
-## 1. 架構決策與設計願景 (Design Rationale)
-在跨國、異質節點的混合雲環境中，傳統的單體監控面臨資料一致性與本地 IO 瓶頸。K3han 採用以下策略達成 **MVA (Minimum Viable Architecture)**：
+*   **S3 卸載**：所有日誌資料非同步推送至雲端物件儲存（S3），將日誌持久性與節點正常運作時間解耦。
+*   **異質代理程式**：
+    *   **Alloy**：在高效能節點上執行較重的重新標籤任務。
+    *   **Fluent-bit**：在資源受限的邊緣節點上佔用極小資源。
+*   **GitOps 驅動**：監控 CRD 優先同步（`sync-wave: 1`），以啟用應用程式的自動探索。
 
-*   **雲端化日誌後端 (S3-Offloading)**：為了解決邊緣節點硬碟 I/O 限制與長期留存成本，日誌數據被非同步推送至物件存儲 (Object Storage)，實現地端節點的「零留存 (Zero-Local-Footprint)」目標。
-*   **異質採集代理 (Heterogeneous Agents)**：
-    *   **Alloy (Power Agent)**：部署於高效能節點，利用其強大的邏輯處理能力進行複雜的 Relabeling 與多維度標籤提取。
-    *   **Fluent-bit (Lightweight Agent)**：部署於資源受限節點，確保在極低資源消耗下完成日誌推送。
-*   **GitOps 驅動與分層部署**：利用 ArgoCD `ApplicationSet` 與 `sync-wave` 確保監控基礎設施 (Operators) 優先於服務實例 (Instances) 啟動。
+---
 
-## 2. 指標監控：Prometheus Stack (Metrics)
-基於 `kube-prometheus-stack` 構建的自動化監控體系。
+## 2. 指標與日誌架構
 
-### 部署與可靠性規範
-*   **Namespace**: `monitoring` (受網路隔離策略保護)。
-*   **Storage Strategy**: 採用 10Gi Local PV 作為快取，設定 7 天 (7d) 的指標留存，平衡運維除錯需求與存儲開銷。
-*   **Orchestration**: `sync-wave: "1"`。確保 Prometheus Operator 在所有應用部署前已完成 CRD 註冊。
+### 2.1 Prometheus（指標）
 
-### Grafana 存取與入口安全性 (Edge Gating)
-*   **Ingress Class**: `nginx-private` (僅限內網/VPN 存取)。
-*   **Zero-Trust Layer**: 強制整合 Cloudflare Access (OIDC/MFA)，確保管理介面完全不暴露於公網。
-*   **Sub-path Configuration**: 啟用 `serve_from_sub_path: true`，將 Grafana 隱蔽於 `${GRAFANA_ROOT_URL}/grafana/` 下，增加探針掃描難度。
+*   **保留目標**：僅短期保留（天數，非週數）——長期分析依賴 Grafana 儀表板與以 S3 為後端的 Loki 日誌。
+*   **儲存限制**：必須能放入單一小型 Local PV，避免與應用程式工作負載（Postgres/Kafka）競爭磁碟 I/O。
+*   **安全**：Grafana 透過 `nginx-private`（Tailscale）加上 Cloudflare Access（OIDC）進行閘道控管。
 
-## 3. 日誌分析：Loki (Logs)
-採用 `SingleBinary` 模式並搭配雲端物件存儲，達成高擴展性與低維護成本。
+> *目前保留與儲存數值定義在 Prometheus CRD 的 `code_paths` 中。*
 
-### 存儲架構：冷熱分離 (Cloud-Native Storage)
-*   **Ingestion Path**: 
-    1. Agent 採集 -> 2. Loki (Single Binary) -> 3. Object Storage (S3)。
-*   **Object Store**: 使用 Amazon S3 (`${LOKI_S3_REGION}`)。
-*   **Credential Masking**: 所有 S3 存取憑證均透過 `SealedSecrets` 加密，並以 `SecretKeyRef` 注入 Pod 環境變數，落實 **Credential-less Configuration**。
+### 2.2 Loki（日誌）
 
-## 4. 採集代理標準 (Collection Standard)
-所有日誌必須結構化為具備可檢索性的標籤。
+*   **模式**：SingleBinary——為 MVA 簡單性而選擇；當日誌量超過單節點容量時，再遷移至微服務模式。
+*   **後端限制**：雲端物件儲存應位於與 Control Plane 相同的地區，以最小化輸出延遲。
+*   **憑證遮罩**：S3 金鑰嚴格透過 `SealedSecrets` 管理；Pod 僅看到 `SecretKeyRefs`。
 
-### 標籤正規化 (Label Normalization)
-採集代理必須自動提取並格式化以下標籤：
-*   `namespace`: K8s 命名空間。
-*   `pod`: Pod 名稱。
-*   `container`: 容器名稱。
-*   `node_name`: 具體物理節點 ID。
-*   `job`: 採集源分類 (例如 `alloy` 或 `fluent-bit`)。
+> *後端配置（供應商、區域、儲存桶）定義在 Loki 清單的 `code_paths` 中。*
 
-### 安全清理規則 (Log Sanitization)
-*   **Sensitive Data Dropping**: 採集代理層級配置正則過濾規則，自動丟棄包含 `password`, `bearer token`, `api_key` 等敏感關鍵字的日誌行。
+---
 
-## 5. 可觀測性運維 (Operations)
-*   **LogCLI**: 提供 SRE 命令行式的日誌檢索能力。
-*   **ServiceMonitor / PodMonitor**: 應用程式監控對象由 `SafeZone-Deploy` 定義，`Chorde` 負責提供基礎設施。
-*   **Auditability**: 監控配置的每一次變更均需經過 GitOps 審核，並記錄於 [Changelog](safechord.chorde.k3han.changelog.md)。
+## 3. 實作標準
+
+### 🏷️ 標籤標準化（強制）
+
+代理程式必須自動提取並正規化以下標籤，以便跨叢集查詢：
+
+*   `namespace`：K8s 命名空間
+*   `pod`：Pod 名稱
+*   `container`：容器名稱
+*   `node_name`：實體主機 ID
+*   `job`：刮取器類別（例如 `alloy`、`fluent-bit`）
+
+### 🛡️ 日誌清理
+
+*   **規則**：代理程式必須使用正則表達式過濾器，在將日誌卸載至 S3 前，捨棄包含 `password`、`bearer` 或 `api_key` 的日誌行。
+
+---
+
+## 4. 取捨與影響
+
+*   **優點**：本機磁碟 I/O 完全可用於應用程式工作負載（Postgres/Kafka）
+*   **優點**：即使家用實驗室節點被清除，日誌仍永久存在
+*   **缺點**：引入 S3 營運成本與跨區域輸出流量
+*   **緩解措施**：積極捨棄非必要的噪音（sidecar 心跳、偵錯等級探測）
+
+## 5. 參考資料
+
+*   **日誌查詢**：使用 `LogCLI` 進行終端機式檢索
+*   **應用程式監控**：透過 `SafeZone-Deploy`（ServiceMonitors）定義

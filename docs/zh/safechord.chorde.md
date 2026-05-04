@@ -1,101 +1,72 @@
----
-title: 'Map: Chorde Platform Framework'
-doc_id: safechord.chorde
-status: active
-authors:
-  - bradyhau
-  - Gemini 2.0 Flash
-last_updated: '2026-03-11'
-summary: Chorde 平台層的導航地圖。定義多叢集管理框架、GitOps v2 同步機制與基礎設施生命週期管理。
-keywords:
-  - Chorde
-  - Platform Layer
-  - Multi-cluster
-  - GitOps v2
-  - ApplicationSet
-  - Hybrid Cloud
-logical_path: SafeChord.Chorde
-related_docs:
-  - safechord.md
-  - safechord.chorde.k3han.md
-parent_doc: safechord
-archetype: map
-code_paths:
-  - Chorde/cluster
-  - Chorde/gitops
-doc_version: 0.3.0
-app_version: 0.3.0
----
+# 🛠️ Chorde 平台地圖
 
-# 🛠️ Chorde 平台層地圖 (Map)
-
-> **Map (地圖型)**：SafeChord 生產環境的「基礎設施總指揮部」。
-> *職責：管理異構叢集、實施 GitOps v2 交付、維護混合雲安全邊界。*
+> **類型**：地圖（基礎設施指揮中心）
+> **範圍**：管理異質叢集，實作 GitOps v2 部署，並維護混合雲安全邊界。
 
 ---
 
-## 1. 平台願景 (Vision)
+## 1. 平台願景
 
-**Chorde** (= Cluster + Horde) 旨在建立一個「去中心化但高度協調」的基礎設施部落。在 v0.3.0 中，平台已從單純的 IaC 腳本集轉型為 **Operator-managed** 的現代化平台，實現了「代碼即環境，文檔即來源」的 KDD 閉環。
+**Chorde**（Cluster + Horde）旨在建立一個「去中心化但高度協調」的基礎設施部落。截至 v0.3.0，本平台已從簡單的 IaC 腳本轉變為 **Operator 管理**的現代架構，實現了「以程式碼為環境，以文件為源頭」的 KDD 循環。
 
 ---
 
-## 2. 倉庫結構 (Repository Structure)
+## 2. 儲存庫結構
 
-Chorde 採用 **Recursive GitOps v2** 架構，透過 `root.yaml` 實現單一入口的自動化編排。
+Chorde 採用**遞迴式 GitOps v2** 架構，透過單一入口點（`root.yaml`）實現自動化編排。
 
 ```text
 Chorde/
-├── cluster/                 # [Physical] 物理基礎設施定義
+├── cluster/                 # [實體] 硬體與 OS 層級定義
 │   └── k3han/               
-│       ├── ansible/         # 行為紀錄：節點初始化與防火牆硬化
-│       └── k3s/             # 節點描述：K3s 配置備份
+│       ├── ansible/         # 操作記錄：節點初始化與作業系統強化
+│       └── k3s/             # 節點描述符：K3s 設定備份
 │
-├── gitops/                  # [State] GitOps 狀態定義核心 (SSOT)
+├── gitops/                  # [狀態] GitOps 預期狀態（SSOT）
 │   └── k3han/               
-│       ├── root.yaml        # 全域入口點 (The Root App)
-│       ├── stages/          # [Layer 0: Orchestrator] 部署階段指令
-│       │   ├── 00-bootstrap.yaml  # 核心：ArgoCD, SealedSecrets
-│       │   ├── 01-platform.yaml   # 維運：Monitoring, Logging, Ingress
-│       │   └── 02-components.yaml # 應用：DB, MQ, SafeZone Services
+│       ├── root.yaml        # 入口點：根應用程式
+│       ├── stages/          # [第 0 層：編排器] 基於階段的 ApplicationSet
+│       │   ├── 00-bootstrap.yaml  # 核心：ArgoCD、SealedSecrets、Ingress
+│       │   ├── 01-platform.yaml   # 維運：監控、日誌、Operator
+│       │   └── 02-components.yaml # 應用：資料庫、訊息佇列、SafeZone 微服務
 │       │
-│       └── manifests/       # [Content] 宣告式資源 (YAML)
-│           ├── alloy/       # 採用 Multiple Sources Pattern 
-│           ├── cnpg-*/      # CloudNativePG 資源定義
-│           └── ...          # 其他 20+ 平台服務
+│       └── manifests/       # [內容] 宣告式資源（YAML/Helm）
+│           ├── alloy/       # 多重來源模式
+│           ├── cnpg-*/      # CloudNativePG Operator 與叢集
+│           └── ...          # 20+ 平台服務
 │
-├── scripts/                 # [Lifecycle] 運作與測試工具
-│   ├── ops/                 # bootstrap-cluster.sh, seal.sh
-│   └── test/                # 跨區連線、DB 同步、Ingress 隔離測試
+├── scripts/                 # [生命週期] 維運與驗證工具
+│   ├── ops/                 # bootstrap-cluster.sh、seal.sh
+│   └── test/                # 跨區域連線與健康檢查
 │
-└── legacy/                  # [Archive] 舊版 (v0.1.x / v0.2.x) 歸檔
+└── legacy/                  # [歸檔] 歷史設定（v0.1.x / v0.2.x）
 ```
 
 ---
 
-## 3. 核心組件導航 (Navigation)
+## 3. 核心元件導覽
 
-### 3.1 運行叢集 (Runtime Clusters)
-*   [**K3han (Hybrid K3s)**](safechord.chorde.k3han.md):
-    *   **定位**: 高度非對稱的台日混合雲。
-    *   **現況**: 運行 K3s v1.34+，透過 Tailscale Overlay 屏蔽地理差異。
-
----
-
-## 4. 工程實踐 (Engineering Practices v2)
-
-Chorde 嚴格遵循以下 SRE 工程準則：
-
-1.  **ArgoCD Multiple Sources**: 廢棄 `helm-charts/` 本地目錄。直接引引用官方 Helm Chart (Upstream) 並搭配本地 `values-custom.yaml` 進行覆蓋，減少倉庫體積。
-2.  **ApplicationSet Pattern**: 採用 `ApplicationSet` 取代單體 `Application`，實現自動化的服務偵測與層級同步 (Sync Waves)。
-3.  **Operator-First**: 基礎設施服務（DB, Kafka）全面轉向 **Operator-managed** 模式，確保具備自我修復與平滑升級能力。
-4.  **Availability Filter**: 利用 Taints (`PreferNoSchedule`) 建立地端與雲端的可用性分層，保護關鍵負載不誤入非 HA 環境。
-5.  **Test-Driven Ops**: 所有重大配置更動後，必須執行 `scripts/test/` 下的驗證腳本以符合「Test is the Law」政策。
+### 3.1 執行時期叢集
+*   [**K3han（混合 K3s）**](safechord.chorde.k3han.md) ⭐：
+    *   **範圍**：高度不對稱的台灣－日本混合雲。
+    *   **狀態**：運行 K3s v1.34+，利用 Tailscale SDN 掩蓋地理延遲。
 
 ---
 
-## 5. 快速跳轉 (Quick Access)
+## 4. 工程實踐（v2）
 
-*   **叢集地圖**: [K3han 混合雲地圖](safechord.chorde.k3han.md)
-*   **調度策略**: [K3han 排程大腦 (Brain)](safechord.chorde.k3han.scheduling.md)
-*   **倉庫源碼**: [SafeChord/Chorde (GitHub)](https://github.com/SafeChord/Chorde)
+Chorde 嚴格遵循下列 SRE 原則：
+
+1.  **ArgoCD 多重來源**：捨棄本機 `helm-charts/` 副本。直接參考上游 Helm Charts，並搭配本地 `values-custom.yaml` 覆蓋。
+2.  **ApplicationSet 模式**：以 `ApplicationSet` 取代單體式的 `Application` 清單，實現自動服務發現與分層同步（Sync Waves）。
+3.  **Operator 優先**：基礎服務（資料庫、Kafka、Postgres）完全由 **Operator 管理**，確保自我修復與零停機升級。
+4.  **可用性層級**：利用 Taints（`PreferNoSchedule`）在本地端與雲端節點之間建立可用區域，避免關鍵工作負載落到非 HA 節點上。
+5.  **測試驅動維運**：主要的設定變更必須透過 `scripts/test/` 中的腳本驗證，以符合「測試即法規」原則。
+
+---
+
+## 5. 快速存取
+
+*   **叢集地圖**：[K3han 混合叢集地圖](safechord.chorde.k3han.md)
+*   **排程邏輯**：[K3han 排程大腦](safechord.chorde.k3han.scheduling.md)
+*   **原始碼**：[SafeChord/Chorde (GitHub)](https://github.com/SafeChord/Chorde)

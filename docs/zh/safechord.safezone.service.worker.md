@@ -1,136 +1,81 @@
----
-title: 'Service: Worker (Golang)'
-doc_id: safechord.safezone.service.worker
-status: active
-authors:
-  - bradyhau
-  - Gemini 3 Pro
-last_updated: '2026-04-16'
-summary: Worker 是 SafeZone 系統的資料處理核心，採用 Golang 1.24 與 Franz-Go 實作。負責從 Kafka 高效消費數據，並透過批次寫入
-  (Batch Insert) 與等冪更新 (Idempotent Upsert) 機制，將數據持久化至 PostgreSQL。
-keywords:
-  - Worker
-  - Kafka Consumer
-  - Golang
-  - Franz-Go
-  - PostgreSQL
-  - Batch Processing
-logical_path: SafeChord.SafeZone.Service.Worker
-related_docs:
-  - safechord.safezone.changelog.md
-  - safechord.safezone.service.dataingestor.md
-  - safechord.safezone.service.analyticsapi.md
-parent_doc: safechord.safezone.service
-archetype: blueprint
-code_paths:
-  - SafeZone/services/worker-golang
-tech_stack:
-  - Golang 1.24
-  - Franz-Go (Kafka)
-  - pgx/v5 (PostgreSQL)
-  - sqlx
-doc_version: 0.3.0
-app_version: 0.3.0-dev
----
+# Worker - Golang（服務藍圖）
 
-# Worker - Golang (Service Blueprint)
-
-> ⚠️ **Scope Warning**: This blueprint defines the `worker-golang` microservice.
+> ⚠️ **範圍警告**：此藍圖定義的是 `worker-golang` 微服務。
 > *繼承自 `archetype.blueprint.microservice.md`*
 
-## 1. 職責與定位 (Responsibility)
-*   **角色**: Consumer (Kafka) / Persister
-*   **特性**: High-Throughput, Idempotent, Batch-Oriented
-*   **核心目標**: 作為高吞吐量的數據落盤組件。利用 Golang 的併發特性消化 Kafka 峰值流量，並負責將非結構化的事件流轉化為結構化的關聯式數據 (Relational Data)。
+## 1. 職責與定位
+*   **角色**：消費者 (Kafka) / 持久化者 (Persister)
+*   **特性**：高吞吐量、冪等性、批次導向、具狀態 (Connection-wise)
+*   **核心目標**：作為高吞吐量資料消費引擎，運用 Golang 的並發模型處理尖峰 Kafka 流量，並將非結構化事件持久化為 PostgreSQL 中的結構化關聯資料。
 
-## 2. 檔案結構 (File Structure)
+## 2. 檔案結構
 ```text
 SafeZone/services/worker-golang/
 ├── app/
-│   ├── main.go                     # Entry Point (Signal Handling & Lifecycle)
-│   ├── service/
-│   │   ├── worker.go               # Core Business Logic (Batch & Flush)
-│   │   ├── worker_test.go          # [Unit Test] Flow verification
-│   │   └── orchestrator.go         # Worker Pool Execution (Parallelism control)
-│   ├── adapter/                    # [Ports] Input Adapters
-│   │   ├── source.go               # Interface: EventSource
-│   │   ├── kafkaSource.go          # Impl: Franz-Go Consumer
-│   │   └── mockSource.go           # Impl: Channel-based Mock (for Testing)
-│   ├── strategy/                   # [Ports] Output Ports
-│   │   ├── sink.go                 # Interface: EventSink
-│   │   ├── dbSink.go               # Impl: PostgreSQL Batch Upsert
-│   │   └── mockSink.go             # Impl: Capture-based Mock (for Testing)
-│   ├── schema/
-│   │   ├── event.go                # Data Models (Contracts)
-│   │   ├── validator.go            # Validation Logic (Depends on CacheReader)
-│   │   └── validator_test.go       # [Unit Test] Rule verification
-│   ├── config/                     # Configuration Loader
-│   └── pkg/                        # Shared Utilities (Logger, Cache)
-├── go.mod / go.sum                 # Dependency Management
-├── Dockerfile                      # Production Builder
-└── Dockerfile.test                 # Test Runner (used in CI)
+│   ├── main.go                     # 進入點 (訊號處理與生命週期)
+│   ├── service/                    # 核心業務邏輯：工作者池與批次策略
+│   ├── adapter/                    # 輸入適配器：Kafka 消費者 (Franz-Go)
+│   ├── strategy/                   # 輸出埠：PostgreSQL 批次 Upsert
+│   ├── schema/                     # 資料模型與業務驗證邏輯
+│   ├── config/                     # 設定載入器
+│   └── pkg/                        # 內部共用套件：Logger、Redis Cache
+├── go.mod                          # 相依性定義
+└── Dockerfile                      # 多階段映像建構工具
 ```
+*(注意：Go 服務遵循六邊形架構原則；實作細節位於程式碼庫中。)*
 
-## 3. 接口規範 (Interfaces)
+## 3. 業務需求
 
-### 資料契約 (Contracts)
-*   **Input**: `CovidEvent` (定義於 `app/schema/event.go`)
-    *   對應 Kafka Topic `covid.raw.data` 的 JSON Payload。
-*   **Output**: Database Table `covid_cases`
+服務的核心意圖是在從非同步訊息佇列轉換到持久儲存的過程中，確保資料完整性與高吞吐量。
 
-### 輸入 (Ingress)
-*   **Type**: Worker Consumer
-*   **Source**: Kafka Topic `covid.raw.data`
-*   **Consumer Group**: `covid-worker-group` (可配置)
+### 3.1 高效處理 (功能性)
+*   **批次持久化**：不得針對每條訊息單獨呼叫資料庫。實作基於大小或時間的緩衝機制，將訊息分組為批次，以執行 SQL Upsert 操作。
+*   **並行消費**：支援多個消費者 goroutine 平行處理 Kafka 分割區，利用工作者池來達成運算與 I/O 的平行化。
 
-### 輸出 (Egress)
-*   **Dest**: PostgreSQL Database
-*   **Behavior**: Batch Upsert (`ON CONFLICT DO UPDATE`)
+### 3.2 完整性與冪等性 (一致性)
+*   **冪等 Upsert**：必須處理「至少一次」消費情境。使用 `(Date, City, Region)` 作為唯一鍵，執行 `ON CONFLICT DO UPDATE` 以維持最終一致性。
+*   **酬載驗證**：在資料庫插入前驗證訊息內容（例如地理 ID、非負值）。無效訊息會被記錄並捨棄，不影響批次中其餘資料。
 
-## 4. 依賴與控制 (Dependencies & Control)
+### 3.3 資源治理 (效率)
+*   **優雅關機**：收到 SIGTERM 後，服務必須停止消費，並在結束前將剩餘緩衝資料沖刷至資料庫。
 
-| 依賴對象 | 類型 | 說明 |
+### 3.4 可觀測性
+*   **消費者延遲監控**：提供反映當前消費進度與 Kafka 高水位間 offset 差距的指標。
+
+## 4. 相依性與控制
+
+| 相依元件 | 類型 | 說明 |
 | :--- | :--- | :--- |
-| **Kafka Cluster** | Upstream | 數據來源。在 `TEST` 模式下可被 `MockSource` 替換。 |
-| **PostgreSQL** | Downstream | 數據去向。在 `TEST` 模式下可被 `MockSink` 替換。 |
-| **Control Plane** | Trigger | 服務啟動後持續運行 (Daemon)，由 Kubernetes 控制生命週期。 |
+| **Kafka 叢集** | 上游 (來源) | 原始疫情事件的來源。 |
+| **PostgreSQL** | 下游 (匯入端) | 結構化事實的最終目的地。 |
+| **控制平面** | 不適用 | 由 Kubernetes 管理的 Daemon 服務。 |
 
-## 5. 行為驗證 (Behavior Verification)
-本服務採用 **Ports & Adapters** 模式，支援在無基礎設施的情況下驗證邏輯。
+## 5. TDD 收斂邊界
 
-| 範疇 | 驗證策略 | 業務意圖 (Business Intent) |
+作為使用 Ports & Adapters 的 Go 服務，其正確性透過隔離的邏輯測試來驗證：
+
+| 維度 | 約束意圖 | 測試範圍 |
 | :--- | :--- | :--- |
-| **核心邏輯** | `go test ./...` | 透過 `MockSource` 注入固定事件，驗證 `Worker` 的去重複 (De-duplication) 與驗證邏輯是否正確。 |
-| **等冪寫入** | `Integration Test` | 發送重複的 `(Date, City, Region)` 數據，驗證 DB 最終狀態的一致性 (Upsert)。 |
-| **批次處理** | `Benchmark` | 模擬高流量場景，驗證 Batch Flush 機制是否如期觸發 (Time-based or Size-based)。 |
+| **批次邏輯** | 驗證緩衝區僅在大小或時間閾值達到時才沖刷，且沖刷後保持為空。 | `app/service/` (單元) |
+| **冪等 Upsert** | 模擬重複主鍵寫入，並驗證資料庫狀態反映最終輸入。 | `app/strategy/` (整合) |
+| **驗證韌性** | 確保單一訊息驗證失敗不會導致 worker 崩潰或阻塞後續消費。 | `app/schema/` (單元) |
+| **資源洩漏** | 確保 goroutine 迴圈中的 Context 被正確取消，且連線池被妥善管理。 | `app/pkg/` (單元) |
 
-## 6. 實作決策 (Implementation Decisions)
+## 6. 架構決策記錄 (ADR)
 
-*   **Idiomatic Go Refactor (v0.3.0)**:
-    *   **Decision**: 移除 Java 風格的 `WorkerFactory` 與 `Orchestrator` struct，改用 Package-level 函式（如 `NewWorker`, `RunWorkers`）進行依賴注入與生命週期管理。
-    *   **Rationale**: 減少不必要的抽象層與物件狀態，利用 Go 的組合性與函式化特性提升程式碼可讀性與測試便利性。
-*   **Interface-based Testability**:
-    *   **Decision**: 引入 `CacheReader` Interface 並透過消費者定義 (Consumer-defined) 介面實作 `CovidValidator`。
-    *   **Rationale**: 徹底解耦 `schema` 與 `pkg/cache` 實作，讓單元測試能在完全不連線資料庫的情況下驗證複雜的業務規則。
-*   **Memory Leak Hardening**:
-    *   **Decision**: 嚴格管控 Context 的 `cancel` 呼叫，確保 `defer cancel()` 位於正確的作用域（即迴圈外或立即呼叫）。
-    *   **Why**: 避免在長時間運行的 Worker 循環中堆積未釋放的 Timer goroutines，確保生產環境的記憶體穩定性。
-*   **Franz-Go Library**:
-    *   **Decision**: 使用 `twmb/franz-go` 取代 `segmentio/kafka-go`。
-    *   **Why**: 為了更好的效能與 KRaft 協議支援 (詳見 ADR: Ingestor Evolution)。
-*   **Explicit Commit Strategy**:
-    *   **Decision**: 讀取後立即 Commit (At-most-once 傾向)，但在 DB 層使用 Upsert 保證一致性。
-    *   **Why**: 為了追求極致的消費吞吐量。雖然理論上有丟失風險，但在 `k3han` 的架構權衡下，我們優先保證即時性，並依賴上游重送機制補償。
+*   **[v0.3.0] 慣用 Go 重構**
+    *   **決策**：以套件層級建構子與介面注入取代 Java 風格的工廠模式。
+    *   **理由**：簡化程式碼層次，符合 Go 慣例，大幅簡化單元測試中適配器的 mock。
+*   **[v0.3.0] Franz-Go 用戶端遷移**
+    *   **決策**：從 `segmentio/kafka-go` 切換至 `twmb/franz-go`。
+    *   **理由**：更優越的效能與完整的 KRaft 協定支援，降低尖峰消費期間的 CPU 開銷。
+*   **[v0.2.5] 批次優先持久化**
+    *   **決策**：設定預設批次大小為 1000 筆記錄。
+    *   **理由**：單筆 SQL 插入是資料庫效能的主要瓶頸。將壓力從資料庫 IOPS 轉移至記憶體，使系統能有效處理模擬器爆發流量。
+*   **[v0.2.0] 至多一次精簡策略**
+    *   **決策**：實作激進的 offset 提交策略，並搭配資料庫 Upsert。
+    *   **理由 (取捨)**：優先考慮吞吐量而非嚴格的恰好一次語意。在 SafeZone 等非金融場景中，此取捨簡化了狀態管理，同時仍可透過上游重新播放來復原。
 
-## 7. 部署與維運 (Deployment & Ops)
-
-*   **Docker Image**: `safezone-worker-golang`
-*   **Health Check**: 
-    *   Liveness Probe: 檢查 Process 是否存活。
-    *   Startup Probe: 檢查 Kafka 連線是否建立。
-*   **Configuration**:
-    *   **關鍵環境變數**:
-        *   `ENVIRONMENT`: `PROD` (Default) 或 `TEST` (啟用 Mock)。
-        *   `KAFKA_BROKERS`: Kafka 位址。
-        *   `POSTGRES_DSN`: DB 連線字串。
-        *   `BATCH_SIZE`: 批次寫入筆數 (Default: 1000)。
+## 7. 外部連結
+*   **資料庫結構**：`SafeChord-Deploy/helm-charts/safezone-foundation/templates/db/init.sql` (參考)
+*   **上游合約**：[Data Ingestor 藍圖](safechord.safezone.service.dataingestor.md)

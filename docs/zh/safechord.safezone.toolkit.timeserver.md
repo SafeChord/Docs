@@ -1,112 +1,73 @@
----
-title: 'Toolkit: Time Server'
-doc_id: safechord.safezone.toolkit.timeserver
-status: active
-authors:
-  - bradyhau
-  - Gemini 3 Pro
-last_updated: '2026-01-08'
-summary: Time Server 是 SafeZone 的時間中樞 (Time Nexus)。它負責維持全系統唯一的「模擬時間 (System Date)」，提供時光旅行
-  (Mock Date) 與時間加速 (Acceleration) 功能，使系統能脫離物理時間限制進行演練。
-keywords:
-  - Time Server
-  - Mock Time
-  - Time Travel
-  - Redis
-  - FastAPI
-logical_path: SafeChord.SafeZone.Toolkit.TimeServer
-related_docs:
-  - safechord.safezone.toolkit.cli.md
-  - safechord.safezone.service.dashboard.md
-parent_doc: safechord.safezone.toolkit
-archetype: blueprint
-code_paths:
-  - SafeZone/toolkit/time-server
-tech_stack:
-  - Python 3.13
-  - FastAPI
-  - Redis (State Store)
-doc_version: 0.2.0
-app_version: 0.3.0
+# 時間伺服器（工具包藍圖）
+
+> **類型**：藍圖（技術規格書）
+> **重點**：存在的理由、必須達成的功能、以及如何驗證正確性。
+> **限制**：實作細節（資料結構、測試案例）放在程式碼庫中。
+
 ---
 
-# Time Server (Toolkit Blueprint)
+## 1. 責任與定位
+*（必填）*
+*   **角色**：Time Nexus / 時間事實來源
+*   **核心目標**：
+    *   **時間解耦**：確保系統元件（儀表板、模擬器）依賴此服務取得「當前系統日期」，而非實體系統時鐘。
+    *   **時間旅行**：支援設定「虛擬今天」，便於歷史資料測試或未來情境預測。
+    *   **時間加速**：支援加速系統時間流（例如 1 物理秒 = 1 虛擬小時），用於壓力測試。
+*   **特性**：無狀態計算邏輯、有狀態持久化（Redis）。
 
-> ⚠️ **Scope Warning**: This blueprint defines the `time-server` toolkit service.
-> *繼承自 `archetype.blueprint.md`*
-
-## 1. 職責與定位 (Responsibility)
-*   **角色**: Time Nexus / Source of Truth (Time)
-*   **特性**: Stateless Logic, Stateful Persistence (Redis)
-*   **核心目標**:
-    *   **時間去耦合**: 確保系統組件（Dashboard, Simulator）不依賴物理時間，而是向本服務請求當前「系統日期」。
-    *   **時光旅行 (Time Travel)**: 支援手動設定「虛擬今天」，便於測試歷史數據或模擬未來場景。
-    *   **時間加速 (Acceleration)**: 支援加速系統時間流速（如 1秒=1小時），用於壓力測試或縮短演練週期。
-
-## 2. 檔案結構 (File Structure)
+## 2. 檔案結構
+*（建議 — 僅列出目錄層級）*
 ```text
 SafeZone/toolkit/time-server/
 ├── app/
-│   ├── main.py                   # Entry Point (FastAPI Factory)
+│   ├── main.py                   # 進入點（FastAPI Factory）
 │   ├── api/
-│   │   └── endpoints.py          # REST Interface (/now, /set, /status)
+│   │   └── endpoints.py          # REST 介面 (/now, /set, /status)
 │   └── config/
-│       └── settings.py           # App Settings (Redis Config)
-├── Dockerfile                    # Production Environment Builder
-└── requirements.txt              # Service Dependencies
+│       └── settings.py           # 應用程式設定（Redis 配置）
+├── Dockerfile                    # 正式環境映像建置
+└── requirements.txt              # 服務相依套件
 ```
 
-## 3. 接口規範 (Interfaces)
+## 3. 業務需求
+*（必填）*
 
-### 資料契約 (Contracts)
-*   **Input**: `SetTimeModel` (定義於 `utils/pydantic_model/request.py`).
-*   **Output**: `SystemDateResponse`, `MocktimeStatusResponse` (定義於 `utils/pydantic_model/response.py`).
-
-### 輸入 (Ingress)
-*   **Type**: API (HTTP)
-*   **Endpoints**:
-    *   `GET /now`: 獲取當前模擬日期。
-    *   `POST /set`: 設定模擬參數（mock_date, acceleration）。
-    *   `GET /status`: 獲取詳細的時間伺服器狀態與配置。
-
-### 輸出 (Egress)
-*   **State Store**: Redis (Hash Key: `safezone:mock_date:config`).
-
-## 4. 核心邏輯 (Time Logic)
-
-系統時間 (`system_date`) 的計算採用 **動態位移算法**，而非靜態儲存。
+### 功能邏輯（時間演算法）
+系統時間 (`system_date`) 透過偏移演算法動態計算，而非靜態儲存：
 
 $$ SystemDate = MockDate + (CurrentTime - MockUpdateTime) \times Acceleration $$
 
-> **⚠️ Implementation Status**:
-> *   ✅ **時光旅行 (Mock Date)**: 已完整實作。設定後，系統會鎖定在該日期。
-> *   ✅ **午夜換日同步 (Midnight Sync)**: 已實作。基準點自動對齊物理午夜，確保模擬時間與物理日期更替同步，避免 CronJob 衝突。
-> *   🚧 **時間加速 (Acceleration)**: 介面與資料庫Schema已預留欄位，但 **加速運算邏輯尚未完全實作**。目前系統預設倍率固定為 `1`。
+> **⚠️ 實作狀態**：
+> *   ✅ **時間旅行（模擬日期）**：已完整實作。系統鎖定於設定的日期。
+> *   ✅ **午夜同步**：已實作。基準時間會自動對齊物理午夜，確保虛擬日期切換與物理日期同步，避免 CronJob 衝突。
+> *   🚧 **加速**：API 介面與資料庫結構已保留欄位，但計算邏輯尚未完整實作。預設倍率為 `1`。
 
-*   **MockDate**: 使用者設定的模擬起始日期。
-*   **MockUpdateTime**: 設定指令下達時的物理時間基準點。**系統會強制將其對齊至該日凌晨 00:00:00**，以確保換日規律。
-*   **Acceleration**: 步進倍率 (Reserved)。
+### 非功能性需求
+*   **狀態持久化**：設定的時間狀態必須在容器重啟後依然存在。
 
-## 5. 依賴與控制 (Dependencies & Control)
+## 4. 相依與控制
+*（必填）*
 
-| 依賴對象 | 類型 | 說明 |
+| 相依項目 | 類型 | 說明 |
 | :--- | :--- | :--- |
-| **Redis** | Storage | 用於持久化配置。即使 Pod 重啟，模擬時間也會根據最後的位移參數繼續前進。 |
-| **szcli** | Controller | 唯一受推薦的控制端，用於設定模擬參數。 |
-| **Dashboard** | Consumer | 依賴本服務來決定圖表的起始點與「今天」的標記。 |
+| **Redis** | 儲存 | 持久化時間設定。即使 Pod 重啟，模擬時間也會從上一次的偏移量繼續前進。 |
+| **szcli** | 控制器 | 設定模擬參數的主要推薦客戶端。 |
+| **儀表板** | 消費端 | 依賴此服務來決定圖表的起始點與「今天」標記。 |
 
-## 6. 行為驗證 (Behavior Verification)
+## 5. TDD 收斂邊界
+*（必填）*
 
-> **⚠️ Note on QA**: 本服務定位為開發輔助工具，目前採 **Manual/E2E** 驗證模式。
+> ⚠️ **KDD 注意事項**：作為內部工具包，此元件過去依賴手動驗證。為符合 KDD 2.0 的 AI 協作標準，未來任何功能開發都必須建立以下自動化測試邊界。
 
-| 範疇 | 驗證策略 | 業務意圖 (Business Intent) |
+| 面向 | 限制意圖 | 測試範圍 |
 | :--- | :--- | :--- |
-| **加速邏輯** | `Manual` | 設定 `acceleration=3600`，等待 2 秒後呼叫 `/now`，確認日期是否前進了 2 小時。 |
-| **重置邏輯** | `Manual` | 執行 `POST /set {"mock": false}`，驗證 `/now` 是否立即回歸真實世界日期。 |
+| **時間演算法準確性** | 驗證設定模擬日期後查詢 `/now` 確實反映出偏移計算（包含午夜同步行為）。 | `test/integration/`（未來需補齊） |
+| **狀態持久化** | 確保 `POST /set` 正確修改底層 Redis 的 hash 結構。 | `test/integration/`（未來需補齊） |
+| **端點契約** | 驗證 `mock_date` 與 `acceleration` 參數解析是否正常，並對無效格式拋出標準 422 錯誤。 | `test/integration/`（未來需補齊） |
 
-## 7. 部署與配置 (Deployment & Config)
+## 6. 架構決策記錄 (ADR)
+*（選填 — 隨元件演進而追加）*
 
-*   **Docker Image**: `safezone-time-server`
-*   **Configuration**:
-    *   **REDIS_HOST/PORT**: Redis 連線資訊。
-    *   **SERVICE_NAME**: 預設為 `time-server`。
+*   **[v0.1.0] 無 TDD 的快速原型**
+    *   **決策**：在未具備自動化測試覆蓋的情況下部署初始時間伺服器。
+    *   **原因**：在 MVP 階段優先追求內部工具開發速度。然而這會對 AI 驅動的重構造成嚴重回歸風險。未來修改必須補齊整合測試，建立「物理紅線」。

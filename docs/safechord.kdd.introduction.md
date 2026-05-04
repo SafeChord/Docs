@@ -45,7 +45,7 @@ KDD is an AI-native development philosophy. It treats structured **Knowledge** a
 
 Why do we move away from traditional Spec-Driven development in the AI era?
 
-*   **Micro-management stifles AI potential**: Traditional specs act like construction manuals, dictating implementation details. Modern AI models (like Claude 3.5 or Gemini 1.5 Pro) often possess a broader understanding of algorithms and implementation patterns than the humans writing the specs. Restricting them with low-level instructions turns a senior collaborator into a mere typewriter.
+*   **Micro-management stifles AI potential**: Traditional specs act like construction manuals, dictating implementation details. Modern frontier AI models often possess a broader understanding of algorithms and implementation patterns than the humans writing the specs. Restricting them with low-level instructions turns a senior collaborator into a mere typewriter.
 *   **Knowledge is living; Specs are static**: KDD abandons telling the AI "How" to do something. Instead, it provides the **"What"** (the real problem we face), the **"Why"** (the architectural intent), and the **"Context"** (past attempts and why they failed - ADRs).
 *   **Empowering AI Implementation**: In KDD, humans act as Architects and Commanders, providing the most complete "Background Knowledge" and "Context." Once equipped with this knowledge, AI agents are free to find the optimal implementation path.
 

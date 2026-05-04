@@ -1,100 +1,53 @@
----
-title: 'K3Han: Changelog'
-doc_id: safechord.chorde.k3han.changelog
-status: active
-authors:
-  - bradyhau
-  - Gemini 2.5 Pro
-last_updated: '2025-05-16'
-summary: 本文檔記錄了 K3Han 模塊各個版本的變更歷史，包括新功能、改進、錯誤修復以及重要的更新說明。
-keywords:
-  - K3Han
-  - changelog
-  - version history
-  - release notes
-  - updates
-  - bug fixes
-  - features
-  - SafeChord
-logical_path: SafeChord.Chorde.K3Han.Changelog
-related_docs:
-  - safechord.knowledgetree.md
-  - safechord.chorde.k3han.md
-parent_doc: safechord.chorde.k3han
-tech_stack: []
-doc_version: 0.3.0
-app_version: 0.3.0
----
-# 📜 SafeChord · Chorde · K3Han - 版本變更紀錄
+# K3han 平台版本更新記錄
 
-> 本文件記錄 K3Han 架構自 v0.1.0 起的重要變更點，涵蓋節點佈局、模組部署、調度邏輯與設計哲學的轉變。每個版本皆對應可查閱之 `.md` 文件，供對比與回溯使用。
+本文件記錄 K3han 叢集的重要架構變動，作為技術債分析與決策追溯的歷史參考。
 
 ---
 
-## 🔖 [v0.3.0 - Latest] - 2026-03-07
+## 🔖 [v0.3.5] - 2026-05-02
 
-**本版核心變更：**
-
-* **GitOps v2 架構重構**：
-    * 引入 `ApplicationSet` 取代單一 `Application` 模式，實現動態服務註冊與層級編排。
-    * 實施三階段同步策略 (Stages)：`00-bootstrap` (基礎)、`01-platform` (維運)、`02-components` (應用組件)。
-    * 建立 `root.yaml` 作為全域 GitOps 入口點 (Entry Point)。
-* **配置模式現代化**：
-    *   **基礎設施 Operator 化**：正式完成從 Bitnami 系單體 Helm Charts 轉向 **Operator-managed** 部署模式。
-        *   **PostgreSQL**: 採用 CloudNativePG (CNPG) 替代原先的 Bitnami PostgreSQL Chart，實現更原生的備援與擴展管理。
-        *   **Kafka**: 採用 Strimzi Operator 替代 Bitnami Kafka Chart，並統一使用官方 Helm Chart 進行 Operator 的生命週期管理。
-    *   **ArgoCD Multiple Sources Pattern**：直接引用各組件官方 Helm Chart (Upstream) 並搭配本地 `$chorde-repo` 的 `values-custom.yaml` 進行客製化。
-    *   正式廢棄並移除 `helm-charts/` 本地目錄，降低倉庫維護複雜度。
-* **基礎設施與維運優化**：
-    * 固化所有 Manifests 路徑至 `main` 分支。
-    * 明確 Ansible Playbooks 作為「行為紀錄 (Record of Actions)」之定位，以應對高變異度的節點環境。
-    * 完成 Loki 存儲後端遷移至 S3 (Amazon S3 JP)。
-    * 優化 Prometheus 抓取規則，消除 Grafana 指標抓取的日誌噪音。
-* **代理人治理規範**：
-    * 更新 `.rule/10-chorde.md`，在授權前提下開放 `kubectl`、`argocd`、`logcli` 等工具存取權，強化 AI 代理人的故障排除能力。
-
-📂 對應文件：
-
-* `safechord.chorde.k3han.md` (架構總覽)
-* `safechord.chorde.k3han.cluster.md` (叢集細節)
-* `safechord.chorde.k3han.monitoring.md` (監控優化)
+### 🏗️ 文件現代化
+*   **原型轉換**：正式將所有 Infrastructure 規格從 `Blueprint` 原型遷移至 `Brain` 原型。
+*   **英文優先 SSOT**：完成 Chorde 文件堆疊的全文英文重寫，將根目錄 `/docs/` 建立為單一事實來源（SSOT）。
+*   **策略整併**：將高層級路線圖與演化指南合併至核心平台地圖中。
 
 ---
 
-## 🔖 [v0.2.0] - 2024-05-09 
+## 🔖 [v0.3.0] - 2026-03-07
 
-**本版核心變更：**
+### 🚀 GitOps v2 重構
+*   **遞迴編排**：引入 ArgoCD `ApplicationSet` 取代單體式 `Application` 清單，實現動態服務註冊與分層相依性管理。
+*   **三階段同步（Stages）**：實施強制同步波策略：
+    *   `00-bootstrap`：安全性、Ingress 與 Controllers。
+    *   `01-platform`：監控、日誌與 Operators。
+    *   `02-components`：資料庫、佇列與 SafeZone 服務。
+*   **全域入口點**：建立 `root.yaml` 作為整個叢集的集中編排器。
 
-* 移除 `hz-serv-sin`、`gce-agent-1`、`gce-agent-2` 等初期測試節點
-* 引入單一 control-plane：`ct-serv-jp`（Contabo 日本高配 VPS）
-* 建立台灣對外入口節點 `gce-agent-tw`，並移除 UI 模組直接暴露的設計
-* 將所有展示模組與 PostgreSQL replica 集中至 `acer-agent`
-* 更新 cluster latency 拓撲、overlay 架構與 tailscale 覆蓋節點
-* 重新設計 node label/taint，反映 tier 與 avail 優先順序
-* 更新模組部署表與 affinity 排程語法，採用三層節點策略（control / ingress / dev）
+### 🛡️ Operator 優先遷移
+*   **資料庫**：從 Bitnami 風格的 Helm charts 遷移至 **CloudNativePG (CNPG)**，實現自動故障轉移與原生 Kubernetes 備份整合。
+*   **訊息佇列**：將 Kafka 從標準 charts 遷移至 **Strimzi Operator**，簡化 broker 與 topic 的生命週期管理。
+*   **ArgoCD 多來源**：採用 Multiple Sources 模式引用上游官方 Helm charts，同時覆蓋本地 `values-custom.yaml`，大幅減少儲存庫膨脹。
+*   **棄用**：正式退役 Chorde 儲存庫中的本地 `helm-charts/` 目錄。
 
-📂 對應文件：
-
-* `safechord.chorde.k3han.md`
-* `safechord.chorde.k3han.cluster.md`
-* `safechord.chorde.k3han.scheduling.md`
+### 📊 可觀測性強化
+*   **S3 日誌卸載**：成功將 Loki 儲存後端遷移至 Amazon S3（日本區域），實現零本機儲存足跡的日誌保留。
+*   **遙測強化**：最佳化 Prometheus 刮取規則，濾除來自 Grafana 與 sidecar 探針的雜訊。
 
 ---
 
-## 🏁 \[v0.1.0] - 2024-05-04
+## 🔖 [v0.2.0] - 2024-05-09
 
-**初始版本特性：**
+### 🏗️ 拓撲穩定化
+*   **單一控制平面**：將控制平面整合至 `ct-serv-jp`（Contabo 日本）。
+*   **邊緣閘道**：將 `gce-agent-tw` 建立為台灣流量的唯一公開 ingress 點，防止內部 UI 模組直接暴露。
+*   **資料本地化**：將顯示模組與 PostgreSQL 副本集中於 `acer-agent`（台灣家中），充分利用本地高速 I/O。
+*   **網格強化**：重新設計節點標籤與污點，反映可靠性分層（雲端 vs. 本地）。
 
-* 採用 Hetzner 新加坡為主控節點（`hz-serv-sin`）
-* GCP 台灣區雙節點部署 Dashboard / API
-* PostgreSQL 主從部署於 Hetzner + GCP
-* 基於 tailscale overlay 實現初步跨區連線測試
-* 各節點設定初步 label 與 taint，用於功能隔離與容錯測試
-* 模組皆以單節點配置為主，驗證可行性與資源佔用比
+---
 
-📂 對應文件：
+## 🏁 [v0.1.0] - 2024-05-04
 
-* `archive/chorde/k3han/v0.1.0/safechord.chorde.k3han.md`
-* `archive/chorde/k3han/v0.1.0/safechord.chorde.k3han.cluster.md`
-* `archive/chorde/k3han/v0.1.0/safechord.chorde.k3han.scheduling.md`
-* `archive/chorde/k3han/v0.1.0/safechord.chorde.k3han.spec.md`
+### 📦 初始 MVP（概念驗證）
+*   驗證使用新加坡（Hetzner）與台灣（GCP）節點的混合雲可行性。
+*   實作初始 Tailscale 覆蓋網路，用於 NAT 穿越。
+*   建立跨地理區域的基本主從 PostgreSQL 同步。

@@ -1,134 +1,90 @@
----
-title: Environment Landscape & Evolution
-doc_id: safechord.environment
-last_updated: '2026-03-23'
-status: active
-authors:
-  - bradyhau
-  - Gemini 3.5 Pro
-context_scope: Global
-summary: 定義 SafeChord 系統的環境策略。闡述我們如何依據開發生命週期的不同階段（Local, Preview, Staging），在資源隔離與平台整合之間做出務實的架構權衡。
-keywords:
-  - Environment
-  - Docker Compose
-  - Kubernetes
-  - GitOps
-  - Service Discovery
-  - PaaS
-  - Valkey
-  - Kafka
-logical_path: SafeChord.Environment
-related_docs:
-  - safechord.chorde.k3han.md
-  - safechord.safezone.deployment.md
-parent_doc: safechord
-doc_version: 0.3.0
-archetype: map
-app_version: null
----
+# 環境演進
 
-# 環境演進論 (Environment Evolution)
+SafeChord 運行於 **Chorde/K3han 混合雲 Kubernetes 平台**上。考量混合雲節點的物理限制（見 [K3han 叢集](safechord.chorde.k3han.cluster.md)），我們採用務實的 **MVA（最小可行架構）** 策略。不維護正式的 Production 環境，而是將資源集中於 **Staging**，將其視為系統穩定性的最高標準。
 
-SafeChord 運行在 **混合雲 Kubernetes 平台 (Chorde/K3han)** 之上。考量到混合雲節點的物理限制（詳見 [K3han Cluster](safechord.chorde.k3han.cluster.md)），我們採取務實的 **MVA (Minimum Viable Architecture)** 策略。我們不追求形式上的 Production 環境，而是將資源集中於 **Staging**，將其打造為系統穩定運行的最高標準。
-
-本文件定義了三種環境形態，以及它們如何與 Chorde 平台互動。
+本文定義三個環境層級及其與 Chorde 平台的互動方式。
 
 ---
 
-## 🌍 環境分級概覽 (The Environment Tier)
+## 🌍 環境層級總覽
 
-| 特徵 | 🟢 Level 1: Local (Dev) | 🟡 Level 2: Preview (CI) | 🔴 Level 3: Platform (Staging) |
+| 特性 | 🟢 Level 1: 本地開發 (Dev) | 🟡 Level 2: 預覽環境 (CI) | 🔴 Level 3: 平台環境 (Staging) |
 | :--- | :--- | :--- | :--- |
-| **定位** | **開發體驗 (DX)** | **隔離驗證 (Isolation)** | **穩定性交付 (Stability)** |
-| **核心目標** | 極速迭代、熱重載、除錯 | 獨立 PR 沙盒、資料不污染 | **浸潤測試 (Soak Test)**、技術演示 |
-| **基礎設施來源** | **SafeZone** (隨開隨用) | **SafeZone-Deploy** (自帶降級版 Infra) | **Chorde PaaS** (公用 SaaS 服務) |
-| **配置來源** | `SafeZone/docker-compose/` | `SafeZone-Deploy/deploy/preview/infras/` | `Chorde/gitops/` |
-| **配置類型** | Docker Compose | ArgoCD Application (Manifests) | ArgoCD ApplicationSet (Helm) |
-| **資料持久性** | Bind Mounts (可重置) | **Ephemeral** (EmptyDir, 用完即丟) | **Persistent** (PVC / Cloud Volume) |
-| **部署方式** | `docker compose up` | GitHub Actions 自動觸發 | 平台維運 / ArgoCD Sync |
+| **定位** | **開發者體驗 (DX)** | **隔離與驗證** | **穩定性與交付** |
+| **主要目標** | 快速迭代、熱重載與除錯 | 獨立 PR 沙箱，避免資料污染 | **Soak Testing** 與技術展示 |
+| **基礎設施來源** | **SafeZone** (臨時) | **SafeZone-Deploy** (降級基礎設施) | **Chorde PaaS** (共享 SaaS) |
+| **設定來源** | `SafeZone/docker-compose/` | `SafeZone-Deploy/deploy/preview/` | `Chorde/gitops/` |
+| **設定類型** | Docker Compose | ArgoCD Application (Manifest) | ArgoCD ApplicationSet (Helm) |
+| **持久性** | Bind Mount (可重置) | **臨時** (EmptyDir / 暫時) | **持久** (PVC / 雲端磁碟) |
+| **部署方式** | `docker compose up` | GitHub Actions (自動觸發) | Platform Ops / ArgoCD Sync |
 
-> **提示**: 配置來源路徑的**首個區段**代表倉庫名稱（如 `SafeZone`），實際路徑請參照各倉庫結構。
+> **註**：設定路徑的第一個區段代表儲存庫名稱（例如 `SafeZone`）。
 
 ---
 
-## 🟢 Level 1: 本地開發 (The Local Origin)
-> *"這是系統的最小功能集，一切從這裡開始。"*
+## 🟢 Level 1: 本地開發 (一切的起點)
+> *「最小功能集合，萬事由此開始。」*
 
-在本地端，我們的首要目標是 **開發者體驗 (DX)**。在此階段，我們刻意屏蔽 K8s 的複雜度，讓開發者專注於業務邏輯。
+在本地層級，我們優先考量**開發者體驗 (DX)**。刻意讓開發者避開 Kubernetes 的複雜性，專注於業務邏輯。
 
-### 啟動機制 (Profiles Strategy)
-我們利用 Docker Compose 的 `profiles` 來管理依賴：
-
-*   **`infra`**: 啟動本地版的 PostgreSQL, Valkey (State & Cache), Kafka。這是開發時的標準依賴。
-*   **`core/ui`**: 核心服務通常直接在 Host (IDE) 執行，透過 `localhost` 連接 Docker 內的基礎設施，以獲得最快的除錯回饋循環。
+### 設定檔策略
+我們利用 Docker Compose 的 `profiles` 管理相依性：
+* **`infra`**：啟動本機的 PostgreSQL、Valkey (狀態與快取) 與 Kafka。這是開發環境的標準相依集合。
+* **`core/ui`**：核心服務通常在 Host (IDE) 上直接運行，並透過 `localhost` 連線到 Docker 基礎設施，以達到最快的除錯迴圈。
 
 ```bash
-# 啟動基礎設施，核心程式碼保留在 Host 運行
+# 啟動基礎設施，同時保留核心程式碼在主機上執行
 docker compose --profile infra up -d
 ```
 
 ---
 
-## 🟡 Level 2: 預覽沙盒 (The Preview Sandbox)
-> *"為測試構建的臨時隔離區。"*
+## 🟡 Level 2: 預覽沙箱 (隔離緩衝區)
+> *「專為測試而建立的臨時隔離區域。」*
 
-這是 **CI/CD 的核心**。為了避免並行開發的 PR 互相干擾，也不讓測試髒資料污染 Staging，Preview 環境採用 **「自給自足 (Self-Contained)」** 的隔離策略，輔以高佔用組件的共享機制。
+這是 **CI/CD 的核心**。為避免平行 PR 互相干擾，或測試資料污染 Staging，Preview 環境採用 **「自給自足」** 隔離策略，必要時輔以共享資源機制。
 
-### 1. 降級與隔離 (Downgrade Strategy)
-Preview 環境透過 GitHub Actions 安裝 `infras` 路徑下的 Manifests，在獨立的 Namespace 內部署一套「輕量版」設施：
+### 1. 降級與隔離策略
+Preview 環境透過 GitHub Actions 使用 `infras` 路徑中的 Manifest 進行安裝，在獨立 namespace 中部署「輕量級」套件：
+* **臨時基礎設施**：使用 CNPG 部署單一 Primary 叢集，無讀寫分離。Valkey 使用 `emptyDir` 部署以加速重啟。
+* **共享 Kafka 叢集**：由於 Kafka 資源密集，Preview 環境共用平台層級的 Kafka 叢集，但透過 `preview.` 主題前綴保持邏輯隔離。
+* **一次性 Namespace**：PR 合併或關閉後，整個環境立即銷毀。
 
-*   **Ephemeral Infra**: 
-    *   **PostgreSQL**: 使用 CNPG 部署單一 Primary Cluster，不進行讀寫分離。
-    *   **Valkey**: 部署兩個獨立實體 (`valkey-state`, `valkey-cache`) 並使用 `emptyDir` 以提高重啟效率與磁碟整潔。
-*   **Shared Kafka Cluster**: 由於 Kafka 資源佔用極大，Preview 環境共用平台級 Kafka 叢集，但透過 `preview.` Topic 前綴實現邏輯上的數據隔離。
-*   **Sealed Secrets**: 使用開發用的簡易金鑰，降低管理成本。
-*   **拋棄式 Namespace**: 測試結束或 PR 合併後，整個環境即刻銷毀。
-
-### 2. 配置管理
-所有 Preview 的特殊配置（如關閉持久化、連線至共享 Kafka）都封裝在 `SafeZone-Deploy/deploy/preview/infras` 中。這確保了核心邏輯與生產環境一致，但運行成本大幅降低。
+### 2. 設定管理
+所有 Preview 特定的設定（例如停用持久化、連接共享 Kafka）都封裝在 `SafeZone-Deploy/deploy/preview/infras` 中。這確保核心邏輯與正式環境相同，同時顯著降低營運成本。
 
 ---
 
-## 🔴 Level 3: 平台整合 (The Platform Staging)
-> *"最接近真實世界的運行環境。"*
+## 🔴 Level 3: 平台 Staging (現實的匯集處)
+> *「最接近現實世界的模擬。」*
 
-這是長期運行的展示環境。在這裡，SafeZone 從獨立運作轉型為 **Chorde 平台的租戶 (Tenant)**，以驗證系統在真實平台架構下的行為。
+Staging 是長期運行的展示環境。在此階段，SafeZone 從獨立實體轉變為 **Chorde 平台的租戶**，在真實的平台架構中驗證系統行為。
 
-### 1. 核心任務：浸潤測試 (Soak Testing)
-建立 Staging 的戰略目的在於：
-*   **浸潤測試 (Soak Testing)**：捕捉僅在長期運行後才會浮現的問題，例如記憶體洩漏 (Memory Leak) 或連線池耗盡 (Connection Exhaustion)。
-*   **技術演示 (Portfolio Showcase)**：作為對外展示技術實力的窗口，此環境需具備高可用性，並累積足夠的歷史數據以呈現真實感。
+### 1. 核心任務：Soak Testing
+Staging 的策略目標是：
+* **Soak Testing**：捕捉僅在長時間運行後才會出現的問題，例如記憶體洩漏或連線池枯竭。
+* **技術展示**：作為技術展示的窗口，此環境需要高可用性，並擁有足夠的歷史資料以呈現真實感。
 
-### 2. 整合 Chorde SaaS
-在 Staging 環境，SafeZone 不再自建基礎設施，而是透過 `ExternalName` 或 Connection String，對接由 **Chorde** 維運團隊管理的平台級服務：
-
-*   **PostgreSQL**: 連接具備完整備份、監控機制且**物理讀寫分離**的資料庫叢集。
-*   **Kafka**: 接入共用的 Message Bus (Strimzi Operator 管理)。
-*   **Valkey**: 使用 平台級 Valkey (State) 與應用端管理的 Valkey (Cache)。
-
-### 3. 通往 Production 的最後一哩 (The Gap to Prod)
-我們目前止步於 Staging。若需升級至 Production，配置邏輯將保持一致，僅需在基礎設施層面進行強化：
-*   **容錯增強**：升級為多 AZ (Availability Zone) 節點部署。
-*   **參數調優**：針對 OS Kernel 與 Runtime 進行細緻的效能優化。
+### 2. Chorde SaaS 整合
+在 Staging 環境中，SafeZone 不再自行管理基礎設施層。取而代之，它透過 `ExternalName` 或連線字串連接到由 **Chorde** 營運團隊管理的平台級服務：
+* **PostgreSQL**：連接到具備完整備份策略、實體隔離且受監控的資料庫叢集。
+* **Kafka**：接入由 Strimzi Operator 管理的共享訊息匯流排。
+* **Valkey**：利用平台層級的狀態儲存與應用程式管理的快取。
 
 ---
 
-## 🗺️ 服務發現對照表 (Service Discovery Map)
+## ⚙️ 設定校準原則
 
-開發者在切換環境時，需注意連線目標的變化。Preview 環境強調「臨時隔離」，而 Staging 環境則強調「平台整合」。
+為確保環境切換時系統穩定，我們遵循 **「意圖在文件，值在程式碼」** 的原則。具體的服務發現 DNS 位址、連線字串與主題名稱被視為高度變動的實作細節，應直接從各環境的原始碼中取得：
 
-| 服務組件 | Local (Compose) | Preview (Ad-hoc Infra) | Staging (Platform PaaS) |
-| :--- | :--- | :--- | :--- |
-| **PostgreSQL (RW)** | `db:5432` | `db-primary-rw.safezone-preview.svc` | `db-primary-rw.database.svc` |
-| **PostgreSQL (RO)** | `db:5432` | `db-primary-rw.safezone-preview.svc` (指向 Primary) | `db-replica-rw.database.svc` (修正為使用 rw 服務以支持單節點副本) |
-| **Valkey (State)** | `redis-state:6379` | `valkey-state.safezone-preview.svc` | `valkey.redis.svc` |
-| **Valkey (Cache)** | `redis-cache:6379` | `valkey-cache.safezone-preview.svc` | `valkey-cache.safezone.svc` (應用端) |
-| **Kafka** | `kafka:9092` | `k3han-cluster-kafka-bootstrap.kafka.svc` (共享叢集) | `k3han-cluster-kafka-bootstrap.kafka.svc` |
-| **Kafka Topic** | `covid.case.data` | `preview.covid.case.data` (隔離前綴) | `covid.case.data` |
+* **本地 (Compose)**：查閱 `SafeZone/docker-compose/` 中的 `.yml` 與 `.env` 檔案。
+* **預覽 (CI)**：查閱 `SafeZone-Deploy/deploy/preview/` 中的 Kustomize patches 與 manifests。
+* **Staging (平台)**：查閱 `Chorde/gitops/` 中的 Helm values 與 ArgoCD 設定。
 
-> **CNPG Replica 連線備註**: 在 Staging 環境中，當副本叢集設定為 `instances: 1` 時，該唯一的節點會被標記為 `primary`。由於 `db-replica-ro` 服務僅篩選標記為 `replica` 的節點，這會導致該服務沒有 Endpoints。目前的修正方案是連線至 `db-replica-rw.database.svc`，這能確保連線至該叢集的指定主節點 (Designated Primary)，並利用 PostgreSQL 的 `hot_standby=on` 特性執行唯讀查詢。
-
-> **注意**: Staging 環境依賴 K8s 的跨 Namespace DNS 解析 (`<svc>.<namespace>.svc`) 來存取 Chorde 資源；Preview 環境則盡可能將變動隔離在專屬 Namespace 內，除非是像 Kafka 這種高資源佔用的共用組件。
+### 服務發現機制
+* **內部通訊**：服務間呼叫優先使用 K8s 內部 Service 名稱 (`<svc-name>`)。
+* **跨 Namespace 存取**：存取共享的 Chorde 平台服務時，使用完全限定網域名稱 (FQDN, 例如 `<svc>.<namespace>.svc.cluster.local`)。
+* **讀寫分離**：在 Staging 環境中，應用層必須區分 Primary (RW) 與 Replica (RO) 連線，以充分利用資料庫叢集的資源。
 
 ---
-> ⚠️ **後記**: 以上配置描述反映了當前的架構決策，具體實作細節可能會隨專案演進而調整，請以實際程式碼為準。
+> ⚠️ **補充說明**：上述設定反映當前的架構決策。具體的實作細節（例如憑證、金鑰）可能隨時間演進；請務必以實際程式碼為最終依據。

@@ -1,147 +1,76 @@
----
-title: 'Toolkit: SafeZone CLI (szcli)'
-doc_id: safechord.safezone.toolkit.cli
-status: active
-authors:
-  - bradyhau
-  - Gemini 3 Pro
-last_updated: '2026-04-15'
-summary: SafeZone CLI (szcli) 是系統的指揮官與控制台。採用 Client-Relay 架構，Client 端提供 Typer CLI
-  介面，Relay 端則作為 K8s 內部的受信任 Gateway，負責執行特權操作並驗證 Google OAuth 憑證。
-keywords:
-  - SafeZone CLI
-  - szcli
-  - Client-Relay Pattern
-  - Typer
-  - FastAPI
-  - Headless OAuth
-  - Ops Automation
-logical_path: SafeChord.SafeZone.Toolkit.CLI
-related_docs:
-  - safechord.safezone.toolkit.cli.reference.md
-  - safechord.safezone.md
-  - safechord.security.md
-parent_doc: safechord.safezone.toolkit
-archetype: blueprint
-code_paths:
-  - SafeZone/toolkit/cli
-tech_stack:
-  - Python 3.13
-  - Typer (CLI Framework)
-  - FastAPI (Relay Server)
-  - Google OAuth 2.0 (Headless)
-  - Rich (Terminal UI)
-doc_version: 0.3.0
-app_version: 0.3.0-dev
+# SafeZone CLI（工具包技術藍圖）
+
+> **類型**：Blueprint（技術規格）
+> **焦點**：編排、安全中繼模式與維運自動化。
+> **限制**：實作細節（CLI 子命令、OAuth 流程）存放於程式碼庫中。
+
 ---
 
-# SafeZone CLI (Toolkit Blueprint)
+## 1. 職責與定位
+*（必要）*
+*   **角色**：編排器／閘道／維運工具
+*   **核心目標**：
+    *   **統一入口(Unified Ingress)**：作為系統的單一控制點，開發者無需處理複雜的內部 K8s 連線字串。
+    *   **安全邊界**：採用中繼(Relay)模式，允許外部使用者執行受控操作（例如資料庫播種），同時不直接暴露 DB/Redis 埠。
+    *   **自動化驗證**：整合**煙霧測試引擎(Smoke Test Engine)**，透過 CSV 驅動的腳本驗證端到端資料流。
+*   **特性**：Client-Relay 架構、有狀態認證（本地 Token 快取）。
 
-> ⚠️ **Scope Warning**: This blueprint defines the `szcli` toolkit.
-> *繼承自 `archetype.blueprint.md`*
-
-## 1. 職責與定位 (Responsibility)
-*   **角色**: Orchestrator / Gateway / Ops Tool
-*   **特性**: Client-Relay Architecture, Stateful Auth (Local Token Cache)
-*   **核心目標**:
-    *   **統一入口**: 作為系統的單一控制點，屏蔽 K8s 內部的複雜連線資訊。
-    *   **安全邊界**: 透過 Relay 模式，允許外部使用者（開發者）在不直接暴露 DB/Redis 端口的情況下，執行受控的維運指令。
-    *   **自動化驗證**: 整合 **Smoke Test Engine**，透過 CSV 驅動的自動化腳本驗證全系統資料流。
-
-## 2. 設計哲學 (Design Philosophy)
-> **"Utility First, Purity Second"**
-
-本工具性質屬於 **開發輔助 (Dev Enabler)**，其開發模式具有高度的 **探索性 (Exploratory)**。
-*   **動態需求**: 功能常因應臨時的 Debug 需求或架構調整而新增（例如臨時需要重置 Time Server）。
-*   **權衡 (Trade-off)**: 我們選擇 **犧牲單元測試覆蓋率**，以換取功能的即時交付。
-*   **緩解 (Mitigation)**: 不強制 TDD，而是依賴 **Smoke Test** 覆蓋最關鍵的 Happy Path，確保核心資料流操作正常。
-
-## 3. 檔案結構 (File Structure)
-專案結構劃分為 `command` (Client), `relay` (Server) 與 `ops` (Automation) 三大部分。
-
+## 2. 檔案結構
+*（建議 — 僅目錄層級）*
 ```text
 SafeZone/toolkit/cli/
-├── command/                      # [Client] Typer App (Run on Host/Bastion)
-│   ├── main.py                   # Entry Point & Command Registry
-│   ├── bin/
-│   │   ├── client.py             # HTTP Client with Auto-Refresh Auth
-│   │   └── command.py            # Command Decorators
-│   └── config/settings.py        # Client Config (Secrets from Env)
-├── relay/                        # [Server] FastAPI App (Run inside Cluster)
-│   ├── main.py                   # Entry Point
-│   ├── api/endpoints.py          # REST Interface & RBAC Logic
-│   ├── bin/                      # Business Logic Helpers
-│   └── config/settings.py        # Server Config (Secrets from Env)
-├── ops/                          # [Ops] 自動化測試與維運指令集
-│   ├── smoke_test.py             # CSV-driven Test Engine (Container-native)
-│   ├── test_cases/               # Smoke Test 定義檔 (*.csv)
-│   └── routines/                 # [Macros] 各環境初始化與資料預熱腳本 (init, seed)
-└── Dockerfile                    # 支援不同組件的多階段建置 (command/relay/ops)
+├── command/                      # [客戶端] Typer 應用程式（執行於主機／堡壘機）
+│   ├── main.py                   # 子命令註冊
+│   └── bin/client.py             # 感知認證的 HTTP 客戶端
+├── relay/                        # [伺服器] FastAPI 應用程式（執行於叢集內）
+│   ├── api/endpoints.py          # 受信任操作與 RBAC
+│   └── bin/                      # 領域邏輯輔助函式
+└── ops/                          # [自動化] CSV 驅動的測試引擎
+    ├── smoke_test.py             # 引擎核心
+    └── test_cases/               # 測試定義 (*.csv)
 ```
 
-## 4. 接口規範 (Interfaces)
+## 3. 業務需求
+*（必要）*
 
-### 輸入 (Ingress)
-*   **User Interface (Client)**:
-    *   `szcli dataflow {simulate, verify}`
-    *   `szcli system {time, health}`
-    *   `szcli db {init, reset}`
-    *   **詳細操作範式**: 請參閱 **[CLI Instruction Set (szcli)](safechord.safezone.toolkit.cli.reference.md)**。
-*   **API Interface (Relay)**:
-    *   **Endpoint**: `POST /dataflow/simulate`, `GET /system/health`, etc.
-    *   **Auth**: `Authorization: Bearer <ID_TOKEN>` (Google OAuth2).
+### 功能性
+*   **資料流控制**：必須提供觸發模擬與驗證資料持久性的命令。
+*   **系統維護**：提供資料庫初始化、快取清除、虛擬時間調整等命令。
+*   **安全性中繼**：中繼必須驗證 Google ID Token，並根據白名單強制執行 RBAC。
 
-### 輸出 (Egress)
-*   **Client Output**: 使用 `Rich` 函式庫渲染的格式化終端輸出 (JSON/Table)。
-*   **Relay Actions**:
-    *   **Database**: 直接連線 PostgreSQL 執行 DDL/DML。
-    *   **Redis**: 寫入 Time Server 配置或讀取 Cache 狀態。
-    *   **Internal API**: 呼叫 `pandemic-simulator` 或 `analytics-api`。
+### 非功能性
+*   **無頭操作(Headless Operation)**：必須支援在 CI/CD 環境（GitHub Actions）中使用 Refresh Token 進行全自動執行。
+*   **可觀測性(Observability)**：CLI 輸出必須同時具備機器可讀（JSON）與人類友善（Rich Tables）的格式。
 
-## 5. 依賴與控制 (Dependencies & Control)
+## 4. 相依性與控制
+*（必要）*
 
-| 依賴對象 | 類型 | 說明 |
+| 相依項目 | 類型 | 說明 |
 | :--- | :--- | :--- |
-| **Google Identity** | Auth Provider | Relay 依賴 Google Public Keys 驗證 Token 簽章；Client 依賴 Token Endpoint 換取 ID Token。 |
-| **Internal Services** | Downstream | Relay 需能解析並連線至叢集內的 DB, Redis, Simulator Service。 |
-| **Environment** | Configuration | Client 必須注入 `REFRESH_TOKEN` 才能運作 (Headless Mode)。 |
+| **Google Identity** | 認證提供者 | Relay 使用 Google 公開金鑰進行 Token 驗證。 |
+| **叢集基礎設施** | 資料接收端 | Relay 需要直接連線至 PostgreSQL 與 Redis。 |
+| **時間伺服器** | 下游服務 | CLI 透過呼叫時間伺服器 API 管理模擬時間。 |
 
-## 6. 安全機制 (Security Architecture)
+## 5. TDD 收斂邊界
+*（必要）*
 
-### Headless OAuth 2.0 Flow
-鑑於 CLI 通常在 CI Runner 或 Docker 容器中執行，我們棄用了互動式登入，改採 **Refresh Token** 機制。
+> ⚠️ **KDD 注意事項**：此元件在早期是以快速原型方式開發，未全面實施 TDD。為符合 KDD 2.0 標準，任何未來的重構或功能新增都必須建立下列自動化驗證邊界。
 
-1.  **Token Injection**: `REFRESH_TOKEN` 作為環境變數注入 Client 容器。
-2.  **Auto-Refresh**: `bin/client.py` 偵測到 Token 過期或不存在時，自動向 Google 換取新的 `ID_TOKEN`。
-3.  **Relay Verification**:
-    *   **Signature**: 驗證 Token 是否由 Google 簽發。
-    *   **RBAC**: 解析 Token 中的 `email`，並比對 `relay/roles.example.yml` 中的白名單 (Admin/User)。
-
-## 7. 行為驗證 (Behavior Verification)
-
-> **⚠️ Note on Quality Assurance**:
-> 本工具定位為「快速開發原型 (Rapid Prototype)」，優先追求開發速度與維運便利性。目前 **未實作** 完整的單元測試 (TDD)，主要依賴 **手動驗證** 與 **全系統煙霧測試**。
-
-| 範疇 | 驗證策略 | 業務意圖 (Business Intent) |
+| 維度 | 約束意圖 | 測試範圍 |
 | :--- | :--- | :--- |
-| **Auth Flow** | `Manual` | 移除 `TOKEN_FILE` 後執行指令，觀察 Log 是否顯示 `Refreshing authentication token...` 且指令執行成功。 |
-| **RBAC** | `Manual` | 使用非白名單 Email 的 Token 執行指令，確認 Relay 回傳 `403 Forbidden`。 |
-| **Dataflow** | `Smoke Test` | 依賴 `scripts/smoke-test.sh` 的 E2E 流程：`simulate` -> `verify` (返回值為 0) -> `wait` -> `verify` (有返回值)。 |
+| **命令解析** | 確保子命令參數與旗標能透過 `typer.testing.CliRunner` 正確解析。 | `command/`（後續補寫） |
+| **Relay RBAC** | 驗證 Relay 對未授權 Token 回應 403 Forbidden，並接受白名單中的 Email。 | `relay/`（後續補寫） |
+| **煙霧引擎邏輯** | 驗證 CSV 解析器能正確將測試步驟轉換為 API 呼叫。 | `ops/`（後續補寫） |
 
-## 8. 部署與配置 (Deployment & Config)
+## 6. 架構決策記錄 (ADR)
+*（選擇性 — 隨著元件演進而追加）*
 
-*   **Docker Image**: `safezone-cli` (Client) / `safezone-cli-relay` (Server)
-*   **Configuration**:
-    *   **Client Env**: `RELAY_URL`, `CLIENT_ID`, `CLIENT_SECRET`, `REFRESH_TOKEN`.
-    *   **Relay Env**: `DB_URL`, `REDIS_HOST`, `ROLE_FILE`.
+*   **[v0.3.0] Client-Relay 架構**
+    *   **決策**：將 CLI 拆分為瘦客戶端與受信任的叢集中繼。
+    *   **原因**：解決將資料庫憑證暴露給開發者筆電的安全風險。Relay 在 VPC 內扮演「信任代理」。
+*   **[v0.1.0] 優先速度而非覆蓋率**
+    *   **決策**：在早期 MVP 階段省略 CLI 的初始單元測試。
+    *   **原因**：功能需求高度不穩定。**修正**：根據 KDD 2.0，此決策現已視為技術負債。未來工作必須補寫測試，為 AI 代理提供「實體紅線(Physical Red Wall)」。
 
-## 9. 技術債與未來展望 (Tech Debt & Roadmap)
-
-雖然本工具採取 MVA 策略，但隨著系統演進，以下關鍵組件將優先納入修復計畫：
-
-*   **Security Hardening (資安補強)**:
-    *   **Observation**: 目前 Relay 的 RBAC 邏輯 (`endpoints.py`) 缺乏測試保護，若修改錯誤可能導致權限旁路。
-    *   **Action**: 開立 **[Issue #25: Hardening CLI Relay Security](https://github.com/SafeChord/SafeZone/issues/25)**，針對 Auth Middleware 補上嚴格的單元測試。
-*   **Legacy Cleanup**:
-    *   **Observation**: 代碼庫中仍殘留舊版互動式 Login 邏輯。
-    *   **Action**: 開立 **[Issue #26: Cleanup Legacy Auth Code](https://github.com/SafeChord/SafeZone/issues/26)**，規劃在下一次重構中移除 `client.py` 中的 Legacy Auth Code。
+## 7. 外部連結
+*   **命令參考**：[CLI 指令集 (szcli)](safechord.safezone.toolkit.cli.reference.md)
