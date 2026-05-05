@@ -37,17 +37,20 @@ This document defines three environment tiers and their interactions with the Ch
 
 ## 🌍 Environment Tier Overview
 
-| Feature | 🟢 Level 1: Local (Dev) | 🟡 Level 2: Preview (CI) | 🔴 Level 3: Platform (Staging) |
+| Feature | 🟢 Level 1: Local | 🟡 Level 2: Preview | 🔴 Level 3: Staging |
 | :--- | :--- | :--- | :--- |
 | **Positioning** | **Developer Experience (DX)** | **Isolation & Validation** | **Stability & Delivery** |
 | **Primary Goal** | Rapid iteration, hot-reloading, and debugging. | Independent PR sandboxing without data pollution. | **Soak Testing** and technical showcases. |
 | **Infra Source** | **SafeZone** (Ad-hoc) | **SafeZone-Deploy** (Degraded infra) | **Chorde PaaS** (Shared SaaS) |
 | **Config Source** | `SafeZone/docker-compose/` | `SafeZone-Deploy/deploy/preview/` | `Chorde/gitops/` |
-| **Config Type** | Docker Compose | ArgoCD Application (Manifests) | ArgoCD ApplicationSet (Helm) |
-| **Persistence** | Bind Mounts (Resettable) | **Ephemeral** (EmptyDir/Temporary) | **Persistent** (PVC / Cloud Volumes) |
-| **Deployment** | `docker compose up` | GitHub Actions (Auto-trigger) | Platform Ops / ArgoCD Sync |
+| **Config Type** | Docker Compose | ArgoCD Application (with Helm Chart) | ArgoCD Application (with Helm Chart) |
+| **Persistence** | Bind Mounts (Resettable) | **Ephemeral** (EmptyDir/Temporary) | **Persistent** (PVC / Cloud Volumes / AWS S3) |
+| **Deployment** | `docker compose up` | GitHub Actions (via kubectl) | GitHub Actions (via kubectl) |
 
-> **Note**: The first segment of the configuration path represents the repository name (e.g., `SafeZone`).
+> **Note**: The first segment of the Config Source represents the repository name (e.g., `SafeZone`).
+> **Deployment Workflow**: Preview and Staging deployments are orchestrated via GitHub Actions. Specifically, Actions workflows (referencing `SafeZone-Deploy/.github/workflows/init-deploy.yml`) are manually triggered to execute `kubectl apply` on ArgoCD Application manifests. ArgoCD then reconciles these manifests to synchronize the underlying Helm charts with the cluster.
+>
+> **Architectural Choice**: We use **GitHub Actions** for orchestration instead of **ArgoCD Sync Waves** to enforce strict sequential dependency control. This prevents race conditions during initialization by ensuring complex Jobs (e.g., DB provisioning) are fully completed before subsequent phases begin—a level of execution locking that native Waves/Hooks cannot reliably guarantee.
 
 ---
 

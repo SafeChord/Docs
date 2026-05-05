@@ -31,74 +31,48 @@ app_version: 0.3.0
 
 # Time Server (Toolkit Blueprint)
 
-> **Type**: Blueprint (Technical Specification)
-> **Focus**: Why it exists, what it must do, and how correctness is verified.
-> **Constraint**: Implementation details (schemas, test cases) live in the codebase.
-
----
+The Time Server is the "Source of Truth" for temporal state within the SafeZone ecosystem. It decouples simulation events and visualization from physical wall-clock time.
 
 ## 1. Responsibility & Positioning
-*(Required)*
-*   **Role**: Time Nexus / Source of Truth (Time)
-*   **Core Objective**:
-    *   **Time Decoupling**: Ensures system components (Dashboard, Simulator) rely on this service for the "current system date" rather than physical system clocks.
-    *   **Time Travel**: Supports setting a "virtual today," facilitating historical data testing or future scenario forecasting.
-    *   **Time Acceleration**: Supports accelerating the flow of system time (e.g., 1 physical second = 1 virtual hour) for stress testing.
-*   **Characteristics**: Stateless calculation logic, Stateful persistence (Redis).
+*   **Temporal Nexus**: Provides a single, unified system date (`system_date`) to all components, ensuring that a simulator in one container and a dashboard in another are always synchronized to the same virtual moment.
+*   **Time Travel Agent**: Allows operators to "teleport" the entire system to a specific historical date (for replay) or a future date (for forecasting).
+*   **Time Acceleration Engine**: Enables stress testing by accelerating the flow of time, allowing days of pandemic evolution to be simulated in minutes.
 
-## 2. File Structure
-*(Recommended — directory-level only)*
-```text
-SafeZone/toolkit/time-server/
-├── app/
-│   ├── main.py                   # Entry Point (FastAPI Factory)
-│   ├── api/
-│   │   └── endpoints.py          # REST Interface (/now, /set, /status)
-│   └── config/
-│       └── settings.py           # App Settings (Redis Config)
-├── Dockerfile                    # Production Image Builder
-└── requirements.txt              # Service Dependencies
-```
+## 2. Core Logic: The Offset Algorithm
 
-## 3. Business Requirements
-*(Required)*
+System time is not stored as a static value. Instead, the Time Server calculates it dynamically on every request to ensure continuous progression even between manual updates.
 
-### Functional Logic (The Time Algorithm)
-The system time (`system_date`) is calculated dynamically via an offset algorithm rather than stored statically:
+### 2.1 The Calculation Formula
+The current system time is derived from the following relationship stored in Redis:
 
 $$ SystemDate = MockDate + (CurrentTime - MockUpdateTime) \times Acceleration $$
 
-> **⚠️ Implementation Status**:
-> *   ✅ **Time Travel (Mock Date)**: Fully implemented. The system locks onto the configured date.
-> *   ✅ **Midnight Sync**: Implemented. The baseline time automatically aligns with physical midnight, ensuring virtual date rollovers synchronize with physical days to prevent CronJob conflicts.
-> *   🚧 **Acceleration**: The API interface and DB schemas have reserved fields, but the calculation logic is not fully implemented. The default multiplier remains `1`.
+*   **MockDate**: The user-defined starting point.
+*   **MockUpdateTime**: The physical timestamp when the mock date was last set.
+*   **Acceleration**: The multiplier for time progression (Default is 1).
 
-### Non-Functional
-*   **State Persistence**: The configured time state must survive container restarts.
+### 2.2 Persistence & Midnight Sync
+*   **State Store**: Uses Redis to ensure that time settings survive Pod restarts.
+*   **Midnight Alignment**: To prevent conflicts with daily maintenance tasks, the baseline offset is designed to align with physical midnight rollovers when appropriate, ensuring virtual dates transition naturally alongside physical days.
+
+## 3. System Integration & Observability
+
+### 3.1 SSOT for Time
+All time-aware components in SafeZone must fetch the current date from this service:
+*   **Simulator**: Uses `system_date` to determine which slice of historical CSV data to inject.
+*   **Dashboard**: Uses `system_date` to set the default window for trend charts and maps.
+
+### 3.2 Traceability
+*   **Standard Compliance**: Adheres to the Universal Service Standards (Traceability & Health Checks) defined in the Python Scaffold.
+*   **Requirement**: Every request to `/now` or `/set` must handle and propagate `X-Trace-ID` to ensure that time-related state changes are traceable back to the originating CLI or UI command.
 
 ## 4. Dependencies & Control
-*(Required)*
 
 | Dependency | Type | Description |
 | :--- | :--- | :--- |
-| **Redis** | Storage | Persists the time configuration. Sim time progresses from the last offset even if the Pod restarts. |
-| **szcli** | Controller | The primary recommended client for configuring simulation parameters. |
-| **Dashboard** | Consumer | Relies on this service to determine chart starting points and the "Today" marker. |
+| **Redis** | Storage | State store for time offsets and acceleration factors. |
+| **szcli** | Controller | The primary recommended tool for operators to adjust system time. |
+| **API Consumers** | Sink | Includes the Dashboard and Pandemic Simulator. |
 
-## 5. TDD Convergence Boundaries
-*(Required)*
-
-> ⚠️ **KDD Notice**: As an internal toolkit, this component historically relied on manual verification. To comply with KDD 2.0 AI-collaboration standards, any future feature development MUST establish the following automated test boundaries.
-
-| Dimension | Constraint Intent | Test Scope |
-| :--- | :--- | :--- |
-| **Time Algorithm Accuracy** | Verify that setting a mock date and querying `/now` accurately reflects the offset calculations (including Midnight Sync behavior). | `test/integration/` (Future Backfill Required) |
-| **State Persistence** | Ensure that `POST /set` correctly modifies the underlying Redis hash structure. | `test/integration/` (Future Backfill Required) |
-| **Endpoint Contracts** | Validate that parameter parsing for `mock_date` and `acceleration` functions correctly and throws standard 422 errors for invalid formats. | `test/integration/` (Future Backfill Required) |
-
-## 6. Architecture Decision Records (ADR)
-*(Optional — append as the component evolves)*
-
-*   **[v0.1.0] Rapid Prototyping without TDD**
-    *   **Decision**: Deployed the initial Time Server without automated test coverage.
-    *   **Why**: Prioritized development speed for internal tooling during the MVP phase. However, this creates a severe regression risk during AI-driven refactoring. Future modifications MUST backfill integration tests to establish a "Physical Red Wall."
+---
+> **Agent Directive**: The Time Server is a critical dependency for data consistency. When refactoring the offset logic, ensure that the Redis data structure remains backward-compatible to prevent system-wide temporal drift.

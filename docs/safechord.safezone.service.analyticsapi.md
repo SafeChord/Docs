@@ -36,29 +36,15 @@ app_version: 0.3.1
 
 # Analytics API (Service Blueprint)
 
-> ⚠️ **Scope Warning**: This blueprint defines the `analytics-api` microservice.
-> *Inherits from `archetype.blueprint.microservice.md`*
-
 ## 1. Responsibility & Positioning
 *   **Role**: Reader / Aggregator / Gateway
 *   **Characteristics**: Stateless, High-Concurrency, Read-Heavy, Read-Only
 *   **Core Objective**: Acts as the primary data egress for the system. It aggregates raw pandemic events from PostgreSQL based on user-requested geographic tiers (National/City/Region). By implementing a sophisticated multi-layer caching strategy, it ensures millisecond-level response times even during peak traffic loads.
 *   **Architecture Reference**: [Python Microservice Scaffold](safechord.safezone.service.python_scaffold.md)
 
-## 2. File Structure
-```text
-SafeZone/services/analytics-api/
-├── app/
-│   ├── main.py                   # App Factory, Middleware, Lifespan
-│   ├── api/                      # Routing Layer: HTTP handling & Dependency Injection
-│   ├── services/                 # Business Logic: Aggregation & Caching (Decoupled from Web Framework)
-│   ├── core/                     # Configuration & Global State (Settings, Lifecycle, Context)
-│   └── exceptions/               # Domain Exceptions & Global Exception Handlers
-├── test/                         # TDD Convergence Boundaries (Unit, Integration, E2E)
-├── Dockerfile                    # Production Image Builder
-└── requirements.txt              # Production Dependencies
-```
-*(Note: Detailed Pydantic Models and specific test cases are implemented within the codebase; this document defines business boundaries only.)*
+## 2. Structural Design
+*   **Directory Layout**: Adheres to the standardized structure defined in the [Python Microservice Scaffold](safechord.safezone.service.python_scaffold.md).
+*   **Tech Stack**: Python 3.13, FastAPI 0.115, Redis, SQLAlchemy 2.0.
 
 ## 3. Business Requirements
 
@@ -69,18 +55,16 @@ Provides an HTTP interface for querying pandemic data across three geographic di
 *   **National**: Total trends across the entire country for a specified interval.
 *   **City**: Epidemic metrics for a specific city.
 *   **Region**: Fine-grained data for specific administrative regions.
-*   **Query Flexibility**: All queries must support filtering by time interval, reference date, and optional calculations (e.g., ratio metrics).
-> *Implementation Reference: Query parameters are defined in `app/api/endpoints.py` within the codebase.*
 
 ### 3.2 Performance & Cache Protection
-*   **Database Shielding**: Since aggregation queries are resource-intensive, a robust caching mechanism is mandatory. All identical read requests must be intercepted by Redis; direct penetration to the relational database is strictly prohibited during cache validity.
+*   **Database Shielding**: All identical read requests must be intercepted by Redis; direct penetration to the relational database is strictly prohibited during cache validity.
 
 ### 3.3 Consistency & Invalidation
-*   **Global Cache Invalidation**: The service must remain aware of underlying data changes. When the Write Pipeline updates raw data and publishes a new "Cache Version," this service must invalidate stale data to ensure consumers do not receive outdated metrics.
+*   **Global Cache Invalidation**: The service must invalidate stale data when the Write Pipeline publishes a new "Cache Version."
 
 ### 3.4 Observability & Ops
+*   **Technical Standards**: Adheres to the Universal Service Standards (Traceability & Health Checks) defined in the [Python Microservice Scaffold](safechord.safezone.service.python_scaffold.md).
 *   **Cache Status Tracking**: Every API request must explicitly indicate its cache state (e.g., `X-Cache-Status: Hit/Miss`) in the HTTP headers for monitoring and analysis.
-*   **Health Checks**: Must provide a health check endpoint for Kubernetes Liveness/Readiness probes.
 
 ## 4. Dependencies & Control
 

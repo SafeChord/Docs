@@ -1,5 +1,5 @@
 ---
-title: 'Blueprint: Python Microservice Scaffold'
+title: 'Python Microservice Scaffold'
 doc_id: safechord.safezone.service.python_scaffold
 last_updated: '2026-05-02'
 status: active
@@ -22,7 +22,7 @@ archetype: blueprint
 doc_version: 0.3.1
 ---
 
-# Blueprint: Python Microservice Scaffold
+# Python Microservice Scaffold
 
 This document defines the **standardized internal directory structure and layering conventions** for all Python microservices within SafeZone. It is a "Convention over Framework" standard designed to eliminate architectural entropy across microservices, ensuring consistent context for both AI agents and human engineers.
 
@@ -31,12 +31,13 @@ This document defines the **standardized internal directory structure and layeri
 ### In-Scope
 *   Internal directory layout of a single Python microservice.
 *   Responsibilities of each layer and Dependency Injection (DI) rules.
+*   **Containerization Standards**: Standardized Dockerfile and Dockerfile.test patterns.
+*   **Testing Strategy**: Integration of unit/integration tests within the container lifecycle.
+*   **Universal Technical Contracts**: Traceability and Health Check protocols.
 
 ### Out-of-Scope
-*   **Cross-service contracts**: Pydantic models, DB schemas, logging, tracing, and event schemas. These are defined in the `utils/` git submodule. Microservices **must never** redefine models already present in `utils/`.
-*   **Deployment artifacts**: Dockerfiles, Helm charts, and CI pipelines are governed elsewhere.
-*   **Presentation Layer**: Dashboard services (planned migration to React SPA) do not follow this backend-only scaffold.
-
+*   **Cross-service contracts**: Pydantic models, DB schemas, logging, tracing, and event schemas. These are defined in the `utils/` git submodule.
+*   **Deployment artifacts**: Helm charts, and global CI pipelines are governed elsewhere.
 ---
 
 ## 2. Canonical Directory Layout
@@ -44,30 +45,24 @@ This document defines the **standardized internal directory structure and layeri
 Any new or refactored Python microservice must strictly adhere to the following structure:
 
 ```text
-app/
+app/                        # Source Code
 ├── main.py                 # Application Assembly
-├── api/
-│   ├── endpoints.py        # HTTP Transport Layer
-│   └── dependencies.py     # DI Providers
+├── api/                    # Transport Layer (Endpoints & DI)
 ├── services/               # Business Logic Layer (Framework-Free)
-│   └── *.py
-├── core/
-│   ├── settings.py         # Environment Configuration
-│   └── lifecycle.py        # Resource Lifecycle Management
-└── exceptions/
-    ├── custom.py           # Domain Exceptions
-    └── handlers.py         # Framework Exception Handlers
+├── core/                   # Settings & Lifecycle
+└── exceptions/             # Domain Exceptions & Handlers
 
-test/
+test/                       # Test Suite
 ├── conftest.py             # Standardized Fixtures
-├── unit/
-│   └── test_*.py           # Fast isolated logic tests
-├── integration/
-│   └── test_*.py           # API level TestClient tests
-├── cases/
-│   └── *.json              # Data-driven test parameters
-└── data/
-    └── *                   # Static test assets (e.g. CSV)
+├── unit/                   # Isolated logic tests
+├── integration/            # API level TestClient tests
+├── cases/                  # Data-driven parameters
+└── data/                   # Static test assets
+
+Dockerfile                  # Multi-stage Production Image Builder
+Dockerfile.test             # Test Image Overlay (Inherits from Production)
+requirements.txt            # Production dependencies
+requirements.test.txt       # Test-only dependencies
 ```
 
 ---
@@ -115,18 +110,42 @@ Testing is the primary defense against regression during refactoring.
 
 ---
 
-## 5. Legacy Migration Map
+## 5. Dockerization & Testing Strategy: "Test Image Overlay"
 
-When upgrading legacy services (e.g., `data-ingestor` or `pandemic-simulator`) to the v0.3.x scaffold, follow this mapping:
+To ensure environmental parity between development, testing, and production, SafeZone follows a strict image layering pattern:
 
-| Legacy Path | Scaffold Path | Action |
-| :--- | :--- | :--- |
-| `pipeline/orchestrator.py` | `services/*.py` | Rename and refactor (remove Request dependency) |
-| `pipeline/query_service.py` | `services/query_service.py` | Direct move |
-| `config/settings.py` | `core/settings.py` | Direct move |
-| `config/cache.py` | Split into `services/` & `api/` | Move connection logic to `dependencies.py`, calculation to `services/cache_service.py` |
-| `test/tests/unit_test/` | `test/unit/` | Flatten directory |
-| `test/tests/integration_test/`| `test/integration/` | Flatten directory |
+### 5.1 Production Image (`Dockerfile`)
+*   **Multi-Stage Build**: Utilizes a `builder` stage for dependencies and a `runner` stage for the minimal runtime environment.
+*   **Resource Inclusion**: Explicitly copies required `utils/` submodules from the project root into the container's Python path.
+
+### 5.2 Test Image (`Dockerfile.test`)
+*   **Overlay Principle**: Must inherit `FROM` the production image of the same service (ensuring "Test what you fly").
+*   **Content**: Adds `test/` directory, `requirements.test.txt`, and necessary test configurations.
+*   **Benefit**: Guarantees that the code running in tests is identical to the production artifact, with only test-specific dependencies and suites added on top.
+
+### 5.3 Automated Validation Workflow
+*   **Make Integration**: Use `make test-<service-name>` to automate the cycle:
+    1.  Build the Production Image (tag: `latest`).
+    2.  Build the Test Image (tag: `latest_test`) using the production image as a base.
+    3.  Run the test container to execute unit and integration tests.
+*   **Smoke Test**: After all service-level tests pass, the CI pipeline triggers `make smoke-test` to perform End-to-End validation across the full Docker Compose stack.
+
+---
+
+## 6. Universal Service Standards (The Contract)
+
+All services inheriting from this scaffold must implement the following technical standards to ensure system-wide interoperability and observability.
+
+### 6.1 Distributed Traceability
+*   **Requirement**: Every service must support cross-service request tracing.
+*   **Inheritance**: Must inherit `X-Trace-ID` from incoming HTTP headers (for API services) or Kafka headers/payloads (for consumers).
+*   **Generation**: If a trace ID is missing, the service must generate a new UUID.
+*   **Propagation**: The `trace_id` must be injected into the application context (e.g., Python `contextvars` or Go `context`), included in all structured logs, and forwarded to all downstream dependencies.
+
+### 6.2 Standard Health Checks (API Services)
+*   **Liveness Probe (`/healthz`)**: Confirms the process is running and not in a deadlocked state.
+*   **Readiness Probe (`/readyz`)**: Confirms the service is fully initialized and its critical dependencies (e.g., Database, Redis, Kafka) are reachable and healthy.
+*   **Non-API Services**: Workers or CLI tools must implement equivalent health reporting (e.g., via log signals or file-based heartbeats) suitable for their execution environment.
 
 ---
 > **Agent Directive**: When creating a new microservice or refactoring an existing one, you MUST load this document into your context as the sole standard for structural compliance.

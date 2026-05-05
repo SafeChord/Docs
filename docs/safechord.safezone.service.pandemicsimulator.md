@@ -36,49 +36,33 @@ app_version: 0.3.1
 
 # Pandemic Simulator (Service Blueprint)
 
-> ⚠️ **Scope Warning**: This blueprint defines the `pandemic-simulator` microservice.
-> *Inherits from `archetype.blueprint.microservice.md`*
-
 ## 1. Responsibility & Positioning
 *   **Role**: Source / Generator
 *   **Characteristics**: Passive-Triggered, Stateless, AsyncIO, Read-Only (CSV)
 *   **Core Objective**: Transforms static CSV pandemic data into a live event stream. It solves the lack of a real live data source during development and testing phases and provides precisely controllable traffic simulation for stress testing the entire pipeline.
 *   **Architecture Reference**: [Python Microservice Scaffold](safechord.safezone.service.python_scaffold.md)
 
-## 2. File Structure
-```text
-SafeZone/services/pandemic-simulator/
-├── app/
-│   ├── main.py                   # App Factory & Routes Registration
-│   ├── api/                      # Routing Layer: Receives simulation trigger requests
-│   ├── services/                 # Business Logic: Orchestrator, Productor (Pandas), Sender (httpx)
-│   ├── core/                     # Configuration & Global State
-│   └── exceptions/               # Domain Exceptions & Global Exception Handlers
-├── data/                         # Static data source directory (mounted CSV)
-├── test/                         # TDD Convergence Boundaries (Unit, Integration, E2E)
-├── Dockerfile                    # Production Image Builder
-└── requirements.txt              # Production Dependencies
-```
-*(Note: Detailed data production logic and test cases are implemented within the codebase.)*
+## 2. Structural Design
+*   **Directory Layout**: Adheres to the standardized structure defined in the [Python Microservice Scaffold](safechord.safezone.service.python_scaffold.md).
+*   **Tech Stack**: Python 3.13, FastAPI 0.115, AsyncIO, Pandas.
 
 ## 3. Business Requirements
 
 The service's core intent is to provide a flexible "Time Machine" that allows the system to replay or preview pandemic dataflows from any time period.
 
 ### 3-1 Data Generation & Replay (Functional)
-*   **Daily Replay**: Reads all geographic region data for a specific date from CSV and transforms them into events.
-*   **Interval Replay**: Supports batch simulation across multiple dates, sent in strict chronological order.
-*   **Data Activation**: Ensures generated events contain correct `event_time` and `payload`, adhering to the `CovidDataModel` spec.
+*   **Daily Replay**: Reads geographic region data for a specific date from CSV and transforms them into events.
+*   **Interval Replay**: Supports batch simulation across multiple dates in strict chronological order.
 
 ### 3-2 Traffic Control (Performance)
-*   **Concurrency Throttling**: Limits concurrent requests to prevent overwhelming the downstream Ingestor.
-*   **High-Efficiency Transmission**: Leverages AsyncIO to send data points concurrently, minimizing I/O wait time.
+*   **Concurrency Throttling**: Limits concurrent requests via `asyncio.Semaphore` to prevent overwhelming the downstream Ingestor.
 
 ### 3-3 Resilience
-*   **Invalid Date Handling**: When requested dates do not exist in the CSV or are in the future, the service should return empty sets or clear error codes instead of crashing.
-*   **Downstream Fault Isolation**: If the Ingestor returns an error, the Simulator should log the failure and continue with the rest of the batch to ensure simulation completion.
+*   **Invalid Date Handling**: Returns clear error codes for non-existent or future dates.
+*   **Downstream Fault Isolation**: Continues batch processing even if individual ingest requests fail.
 
-### 3-4 Observability
+### 3.4 Observability & Ops
+*   **Technical Standards**: Adheres to the Universal Service Standards (Traceability & Health Checks) defined in the [Python Microservice Scaffold](safechord.safezone.service.python_scaffold.md).
 *   **Simulation Feedback**: Each simulation request should return the total count of successful and failed transmissions.
 
 ## 4. Dependencies & Control

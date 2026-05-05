@@ -35,12 +35,9 @@ app_version: 0.3.1
 
 # Worker - Golang (Service Blueprint)
 
-> ⚠️ **Scope Warning**: This blueprint defines the `worker-golang` microservice.
-> *Inherits from `archetype.blueprint.microservice.md`*
-
 ## 1. Responsibility & Positioning
-*   **Role**: Consumer (Kafka) / Persister
-*   **Characteristics**: High-Throughput, Idempotent, Batch-Oriented, Stateful (Connection-wise)
+*   **Role**: Consumer (Kafka) / Persister 
+*   **Characteristics**: High-Throughput, Idempotent, In-Memory Buffered (Soft-Stateful)
 *   **Core Objective**: Acts as a high-throughput data consumption engine, leveraging Golang's concurrency model to process peak Kafka traffic and persist unstructured events as structured relational data in PostgreSQL.
 
 ## 2. File Structure
@@ -72,10 +69,12 @@ The service's core intent is to ensure data integrity and high throughput when t
 *   **Payload Validation**: Validates message content (e.g., geographic IDs, non-negative values) before DB insertion. Invalid messages are logged and discarded without affecting the rest of the batch.
 
 ### 3.3 Resource Governance (Efficiency)
-*   **Graceful Shutdown**: Upon receiving a SIGTERM, the service must stop consuming and flush remaining buffered data to the database before exiting.
+*   **Graceful Shutdown**: Upon receiving a SIGTERM, the service must stop consuming and flush remaining buffered data to the database before exiting. This is critical as the internal buffer represents in-flight "Soft State."
 
 ### 3.4 Observability
+*   **Technical Standards**: Inspired by the Universal Service Standards (Traceability) defined in the system's architecture. While not an HTTP service, the Worker ensures end-to-end visibility of pandemic events.
 *   **Consumer Lag Monitoring**: Provides metrics reflecting the offset gap between current consumption and Kafka's high watermark.
+*   **Traceability**: Must extract `trace_id` from the `CovidEvent` JSON payload. This `trace_id` is injected into the Go `context` and must be present in all structured logs (via `ContextLogger`) and database transaction metadata.
 
 ## 4. Dependencies & Control
 
