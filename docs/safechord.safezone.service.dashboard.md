@@ -40,28 +40,44 @@ app_version: 0.3.1
 *   **Characteristics**: Stateless, Time-Aware, Component-Based, Read-Only
 *   **Core Objective**: Acts as the system's primary visualization window. It transforms complex time-series data into intuitive heatmaps and trend lines. A key differentiator is its **"Time Awareness"**: the Dashboard does not rely on the browser's local time; instead, it renders the simulation state (past or future) based on the global clock provided by the `Time Server`.
 
-## 2. Structural Design
-*   **Directory Layout**: Adheres to the standardized structure defined in the [Python Microservice Scaffold](safechord.safezone.service.python_scaffold.md).
-*   **Tech Stack**: Python 3.13, Plotly Dash 2.18, Dash Bootstrap Components.
+## 2. File Structure
+```text
+SafeZone/services/dashboard/
+├── app/
+│   ├── main.py                   # Dash App Factory & Entry Point
+│   ├── layout/                   # UI Skeleton: Global Layout Container
+│   ├── components/               # UI Layer: Reusable components (Map, Trend Charts, Stat Cards)
+│   ├── callbacks/                # Logic Layer: Event handlers for UI interactions and time sync
+│   ├── services/                 # Infrastructure Layer: External API clients (Analytics API & Time Server)
+│   └── config/                   # Configuration & Environment management
+├── test/                         # Integration & Logic verification
+├── Dockerfile                    # Production Image Builder
+└── requirements.txt              # Production Dependencies
+```
+*(Note: UI interaction logic and component implementations are located in the codebase.)*
 
 ## 3. Business Requirements
 
 The dashboard's core intent is to provide a user-friendly view of pandemic trends while maintaining strict synchronization with the backend simulation.
 
 ### 3.1 Visualization & Interaction (Functional)
-*   **Interactive Risk Map**: Renders heatmaps based on geographic tiers (National/City/Region).
-*   **Pandemic Trend Analysis**: Displays time-series charts for key indicators.
-*   **"Time Travel" Control**: Ensures all charts re-render automatically when the system clock changes.
+*   **Interactive Risk Map**: Renders heatmaps based on geographic tiers (National/City/Region) with zoom and hover capabilities for detailed metrics.
+*   **Pandemic Trend Analysis**: Displays time-series charts for infections, recoveries, and other key indicators.
+*   **"Time Travel" Control**: The UI must display the current system date in real-time and ensure all charts re-render automatically when the system clock changes.
 
 ### 3.2 Resilience & Synchronization
-*   **Clock Polling Strategy**: Polls the `Time Server` at regular intervals to maintain synchronization.
-*   **Degraded Mode (Fallback)**: Fallback to local time if the Time Server is unreachable.
+*   **Clock Polling Strategy**: Must poll the `Time Server` at regular intervals to maintain synchronization with the rest of the pipeline.
+*   **Degraded Mode (Fallback)**: If the `Time Server` is unreachable, the dashboard must fallback to the server's local date and indicate "Local Time Mode" in the UI.
+*   **API Error Handling**: Displays user-friendly messages (e.g., "Data Loading" or "Data Unavailable") instead of crashing when the Analytics API returns errors or timeouts.
 
 ### 3.3 User Experience
-*   **Asynchronous Loading**: Leverages Dash's async capabilities to prevent blocking UI interactions.
+*   **Asynchronous Loading**: Leverages Dash's async capabilities to ensure that map loading does not block other UI interactions.
 
 ### 3.4 Observability
-*   **Technical Standards**: Adheres to the Universal Service Standards (Traceability & Health Checks) defined in the [Python Microservice Scaffold](safechord.safezone.service.python_scaffold.md).
+*   **Traceability (Genesis)**: Every request sent to the Analytics API generates a new `uuid4` as a `trace_id` within the `api_caller` service. This ID is injected into the outgoing `X-Trace-ID` header and recorded in the structured logs, serving as a primary origin point for UI-driven dataflows.
+*   **Health Checks**: Must provide standard Kubernetes probes:
+    *   **Liveness**: `/healthz` (Process status)
+    *   **Readiness**: `/readyz` (Traffic readiness, including dependency health)
 
 ## 4. Dependencies & Control
 

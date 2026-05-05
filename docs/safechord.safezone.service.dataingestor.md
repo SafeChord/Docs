@@ -35,29 +35,15 @@ app_version: 0.3.1
 
 # Data Ingestor (Service Blueprint)
 
-> ⚠️ **Scope Warning**: This blueprint defines the `data-ingestor` microservice.
-> *Inherits from `archetype.blueprint.microservice.md`*
-
 ## 1. Responsibility & Positioning
 *   **Role**: Gateway / Producer (Kafka)
 *   **Characteristics**: Stateless, High-Throughput, Event-Driven, Write-Only
-*   **Core Objective**: Acts as the single entry point for all pandemic data ingestion. It focuses on receiving HTTP event requests from external sources (e.g., Simulator or CLI), performing structural and business constraint validation, and offloading them as `CovidContract` messages to Kafka buffers for downstream consumption.
+*   **Core Objective**: Acts as the single entry point for all pandemic data ingestion. It validates raw events and offloads them to Kafka buffers for downstream consumption.
 *   **Architecture Reference**: [Python Microservice Scaffold](safechord.safezone.service.python_scaffold.md)
 
-## 2. File Structure
-```text
-SafeZone/services/data-ingestor/
-├── app/
-│   ├── main.py                   # App Factory & Kafka Producer Lifecycle
-│   ├── api/                      # Routing Layer: Ingress handling & Schema validation
-│   ├── services/                 # Business Logic: Event wrapping & Kafka production
-│   ├── core/                     # Configuration & Kafka Producer state management
-│   └── exceptions/               # Domain Exceptions & Global Exception Handlers
-├── test/                         # TDD Convergence Boundaries (Unit, Integration, E2E)
-├── Dockerfile                    # Production Image Builder
-└── requirements.txt              # Production Dependencies
-```
-*(Note: Detailed Pydantic Models and specific test cases are implemented within the codebase; this document defines business boundaries only.)*
+## 2. Structural Design
+*   **Directory Layout**: Adheres to the standardized structure defined in the [Python Microservice Scaffold](safechord.safezone.service.python_scaffold.md).
+*   **Tech Stack**: Python 3.13, FastAPI 0.115, Kafka (aiokafka 0.12).
 
 ## 3. Business Requirements
 
@@ -65,18 +51,18 @@ The service's core intent is to provide a highly available, low-latency window f
 
 ### 3.1 Data Reception & Validation (Functional)
 *   **Single Point of Entry**: Provides a standard HTTP interface to receive pandemic events matching the `CovidDataModel`.
-*   **Structural Validation**: Uses Pydantic for strict type checking, preventing malformed data from propagating downstream.
+*   **Structural Validation**: Uses Pydantic for strict type checking.
 *   **Contract Wrapping**: Wraps raw payloads into a `CovidContract` containing metadata like `trace_id`, `event_time`, and `version`.
 
 ### 3.2 Performance & Reliability
-*   **Asynchronous Decoupling**: Implements an asynchronous producer to ensure HTTP requests return immediately once the message is buffered, rather than waiting for downstream processing.
+*   **Asynchronous Decoupling**: Implements an asynchronous producer to ensure HTTP requests return immediately.
 *   **Load Leveling**: Uses Kafka as an intermediary to shield the database and compute clusters from sudden traffic bursts.
 
 ### 3.3 Consistency & Ordering
-*   **Regional Ordering Guarantee**: Ensures events from the same "City-Region" maintain strict chronological order during transmission, enabling accurate cumulative statistics in the Worker layer.
+*   **Regional Ordering Guarantee**: Ensures events from the same "City-Region" maintain strict chronological order via partitioning keys.
 
 ### 3.4 Observability
-*   **Health Checks**: Must expose a health check endpoint reflecting both API liveness and Kafka Producer connectivity status.
+*   **Technical Standards**: Adheres to the Universal Service Standards (Traceability & Health Checks) defined in the [Python Microservice Scaffold](safechord.safezone.service.python_scaffold.md).
 
 ## 4. Dependencies & Control
 
