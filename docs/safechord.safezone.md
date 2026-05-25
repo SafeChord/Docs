@@ -69,7 +69,8 @@ graph LR
     %% Read Path
     subgraph ReadPath [Read Pipeline]
         API(Analytics API<br/>Aggregator):::process
-        Dash(Dashboard<br/>Interactive UI):::view
+        Dash(Dashboard v1<br/>Legacy UI):::view
+        DashV2(Dashboard v2<br/>React SPA):::view
     end
 
     %% Interactions
@@ -83,7 +84,9 @@ graph LR
     API -->|"6. Query"| DB
     API -.->|"Cache"| Redis
     Dash -->|"7. Visualize"| API
+    DashV2 -->|"7. Visualize"| API
     Time -.->|"Sync Time"| Dash
+    Time -.->|"Sync Time"| DashV2
 ```
 
 ---
@@ -107,7 +110,8 @@ Responsible for data aggregation and user presentation.
 | Service | Role | Key Tech | Documentation |
 | :--- | :--- | :--- | :--- |
 | **Analytics API** | **Aggregator** | FastAPI, Redis, SQLAlchemy | [Blueprint](safechord.safezone.service.analyticsapi.md) |
-| **Dashboard** | **Visualizer** | Plotly Dash, httpx | [Blueprint](safechord.safezone.service.dashboard.md) |
+| **Dashboard (v1)** | **Visualizer** | Plotly Dash, httpx | [Blueprint](safechord.safezone.service.dashboard.md) |
+| **Dashboard v2** | **Visualizer (SPA)** | React, MapLibre GL, Recharts | [Blueprint](safechord.safezone.service.dashboard-v2.md) |
 
 ### 2.3 Toolkit & Orchestration
 Supporting components that maintain the simulation's state and operation.

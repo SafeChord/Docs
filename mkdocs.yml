@@ -48,6 +48,7 @@ nav:
           - Worker (Golang): safechord.safezone.service.worker.md
           - Analytics API: safechord.safezone.service.analyticsapi.md
           - Dashboard: safechord.safezone.service.dashboard.md
+          - Dashboard v2: safechord.safezone.service.dashboard-v2.md
       - Toolkit:
           - CLI (szcli): safechord.safezone.toolkit.cli.md
           - Command Ref: safechord.safezone.toolkit.cli.reference.md

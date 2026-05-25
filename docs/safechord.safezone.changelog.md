@@ -1,7 +1,7 @@
 ---
 title: SafeZone ChangeLog
 doc_id: safechord.safezone.changelog
-last_updated: '2026-05-02'
+last_updated: '2026-05-25'
 status: active
 authors:
   - bradyhau
@@ -12,22 +12,37 @@ keywords:
   - SafeZone
   - Changelog
   - Release Notes
-  - v0.3.1
-  - v0.3.2
-  - Scaffold
-  - KDD
+  - v0.3.5
+  - React SPA
+  - Nginx Decoupling
 logical_path: SafeChord.SafeZone.ChangeLog
 related_docs:
   - safechord.knowledgetree.md
   - safechord.safezone.md
 parent_doc: safechord.safezone
 doc_version: 0.3.5
-app_version: 0.3.2
+app_version: 0.3.5
 ---
 
 # SafeZone ChangeLog
 
 This document provides a semantic version navigation for the SafeZone application layer, synchronized with the repository's `CHANGELOG.md`.
+
+---
+
+## [0.3.5] - 2026-05-25
+
+### 📊 Major Features (React SPA Dashboard)
+*   **React SPA Dashboard v2**: Replaced the legacy Python Plotly Dash implementation with a fast, modern single-page application built on Vite + React 19 + TypeScript.
+*   **Geospatial & Trend Analytics**: Renders high-resolution vector maps via MapLibre GL with responsive drill-down, and interactive case charts using Recharts.
+*   **Nginx Decoupling Strategy**: Decoupled `nginx.conf` from the Docker image to ensure the built artifact remains completely environment-agnostic. Nginx configurations are now dynamically mounted via local volumes (Docker Compose) or K8s ConfigMaps.
+
+### ⚙️ CI/CD & Automation Optimizations
+*   **Language-Aware Pipeline Ordering**: Refactored Makefile aggregate targets (`ci-all`, `ci-%`) to run optimized build sequences per compiler: `test -> build` for compiled services (TypeScript, Go), and `build -> test` for interpreted overlay setups (Python).
+
+### 🐛 Fixed & Hardened
+*   **TopCities Scoreboard 7-Day Lock**: Extracted a specialized `useTopCities` hook that locks all queries to a 7-day rolling window, preventing the global time filter from incorrectly modifying the Top 10 cities scoreboard.
+*   **Dashboard Test Target Dependency**: Added missing build requirements to the Python `test-dashboard` target to prevent container execution failures on missing base dependencies.
 
 ---
 

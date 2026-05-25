@@ -1,22 +1,19 @@
 ---
-title: 'Service: Dashboard'
+title: 'Service: Dashboard (v1)'
 doc_id: safechord.safezone.service.dashboard
-status: active
+status: legacy
 authors:
   - bradyhau
   - Gemini CLI
 last_updated: '2026-05-02'
-summary: The Dashboard is the interactive user interface of SafeZone, built with Plotly Dash. It features "Time Awareness" to synchronize with the global system clock via the Time Server, visualizing aggregated pandemic data from the Analytics API through dynamic maps and trend charts.
+summary: The Legacy Dashboard (v1) is the original interactive user interface of SafeZone, built with Plotly Dash. Succeeded by Dashboard v2.
 keywords:
   - Dashboard
   - Plotly Dash
-  - Data Visualization
-  - Time Travel
-  - Interactive Map
-  - Time Awareness
+  - Legacy
 logical_path: SafeChord.SafeZone.Service.Dashboard
 related_docs:
-  - safechord.safezone.changelog.md
+  - safechord.safezone.service.dashboard-v2.md
   - safechord.safezone.service.analyticsapi.md
   - safechord.safezone.toolkit.timeserver.md
 parent_doc: safechord.safezone.service
@@ -33,7 +30,11 @@ doc_version: 0.3.0
 app_version: 0.3.1
 ---
 
-# Dashboard (Service Blueprint)
+# Legacy Dashboard v1 (Service Blueprint)
+
+> [!WARNING]
+> **LEGACY SERVICE**: This document outlines the original Python Plotly Dash implementation (v1). It has been succeeded by the new React SPA implementation (v2) for improved performance and modular design.
+> - **New Service Blueprint**: [Dashboard v2](safechord.safezone.service.dashboard-v2.md)
 
 ## 1. Responsibility & Positioning
 *   **Role**: Client / Visualizer
