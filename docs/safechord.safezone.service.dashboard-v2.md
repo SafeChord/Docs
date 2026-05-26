@@ -34,11 +34,6 @@ tech_stack:
 
 # Dashboard v2 (Service Blueprint)
 
-> Inherits from `archetype.blueprint.md`. Specialized for containerized
-> microservices within `safechord.safezone.service.*`.
-
----
-
 ## 1. Responsibility
 
 *   **Role**: Aggregator / Visualizer (SPA Client)

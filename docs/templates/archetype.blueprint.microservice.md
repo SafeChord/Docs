@@ -27,6 +27,9 @@ tech_stack:
 
 > Inherits from `archetype.blueprint.md`. Specialized for containerized
 > microservices within `safechord.safezone.service.*`.
+> 
+> [!IMPORTANT]
+> **Template Cleanup**: Delete all helper instructions, status placeholders (e.g., `*(Required)*`, `*(Recommended)*`), and structural tips once this blueprint is populated.
 
 ## 1. Responsibility
 *(Required)*
