@@ -1,7 +1,7 @@
 ---
 title: SafeChord Knowledge Tree
 doc_id: safechord.knowledgetree
-last_updated: '2026-05-02'
+last_updated: '2026-05-26'
 status: active
 authors:
   - bradyhau
@@ -69,7 +69,8 @@ SafeChord utilizes a **Decoupled 4-Layer** architecture. Choose your reading pat
             *   [📄 safechord.safezone.service.dataingestor.md](safechord.safezone.service.dataingestor.md) (Ingestor: Kafka Producer Gateway)
             *   [📄 safechord.safezone.service.worker.md](safechord.safezone.service.worker.md) (Worker: Golang / Franz-Go Consumer)
             *   [📄 safechord.safezone.service.analyticsapi.md](safechord.safezone.service.analyticsapi.md) (API: Aggregator & Scaffold Blueprint)
-            *   [📄 safechord.safezone.service.dashboard.md](safechord.safezone.service.dashboard.md) (UI: Time-Aware Visualization)
+            *   [📄 safechord.safezone.service.dashboard.md](safechord.safezone.service.dashboard.md) (UI: Time-Aware Visualization - Legacy)
+            *   [📄 safechord.safezone.service.dashboard-v2.md](safechord.safezone.service.dashboard-v2.md) (UI: React SPA & Time Travel)
         *   **Toolkit & Workflow**
             *   [📄 safechord.safezone.toolkit.timeserver.md](safechord.safezone.toolkit.timeserver.md) (Time Server: Virtual Clock Controller)
             *   [📄 safechord.safezone.toolkit.cli.md](safechord.safezone.toolkit.cli.md) (SZCLI: Operations Tooling & CLI Relay)
