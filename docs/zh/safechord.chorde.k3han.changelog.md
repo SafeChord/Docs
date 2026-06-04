@@ -4,6 +4,23 @@
 
 ---
 
+## 🔖 [v0.3.6] - 2026-06-04
+
+### 🌐 NGINX Gateway Fabric & Gateway API 遷移 (Issue #4, #6)
+*   **Ingress 引擎轉換**：退役 EOL `kubernetes/ingress-nginx` (CVE-2026-42945)，全面標準化採用 **NGINX Gateway Fabric (NGF v2.6.3)** 與 **Kubernetes Gateway API (v1.5)**。
+*   **控制與資料平面解耦**：
+    *   統一將控制平面（Control Plane）綁定至日本主節點 (`ct-serv-jp`)。
+    *   私有資料平面 (`private-gateway`) 以 `ClusterIP` 服務方式運行於 `ct-serv-jp`。
+    *   公開資料平面 (`public-gateway`) 透過節點標籤 `chorde.io/purpose=proxy-only` 綁定至台灣 GCE 邊緣節點，並啟用 `hostPort 80/443`，嚴格限制其記憶體資源以保護 1GB RAM 的邊緣節點。
+*   **零信任私有通道**：將原本由主機 systemd 管理的 Cloudflare Tunnel 以及 Tailscale 虛擬網卡綁定，遷移為**叢集內 `cloudflared` 部署 (Deployment)**，將流量安全轉發至私有閘道的 `ClusterIP`。
+*   **閘道過濾器安全強化**：
+    *   在 Gateway Listener 層級統一以泛域名憑證進行 SSL 終端。
+    *   套用 Gateway API 過濾器：`AuthenticationFilter` (基礎認證)、`URLRewrite` (路徑重寫)、`ResponseHeaderModifier` (剝除 `X-Powered-By`)。
+    *   在台灣邊緣節點強制執行單一 IP `RateLimitPolicy` (HTTP 429)。
+    *   配置 `NginxProxy.rewriteClientIP` 還原真實用戶 IP（並與 GCP VPC 防火牆規則同步）。
+
+---
+
 ## 🔖 [v0.3.5] - 2026-05-02
 
 ### 🏗️ 文件現代化

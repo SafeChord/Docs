@@ -5,14 +5,14 @@ status: active
 authors:
   - bradyhau
   - Gemini CLI
-last_updated: '2026-05-02'
-summary: Defines the stratified ingress strategy for the K3han cluster. Covers isolation between public and private channels, GCP firewall hardening, and the enforcement of Full (Strict) TLS encryption.
+last_updated: '2026-06-04'
+summary: Consolidates the architectural rationale and design constraints of the K3han cluster's edge topology using NGINX Gateway Fabric (NGF).
 keywords:
   - Ingress Policy
   - Zero Trust
-  - Cloudflare Full (Strict)
-  - GCP Firewall
-  - Dual-Channel
+  - Gateway API
+  - Design Constraints
+  - Edge Topology
 logical_path: SafeChord.Chorde.K3han.Networking.Ingress
 related_docs:
   - safechord.chorde.k3han.md
@@ -20,30 +20,29 @@ related_docs:
 parent_doc: safechord.chorde.k3han
 archetype: brain
 code_paths:
-  - Chorde/gitops/k3han/manifests/ingress-nginx
-  - Chorde/cluster/k3han/ansible/roles/firewall
+  - Chorde/gitops/k3han/manifests/nginx-gateway-fabric
+  - Chorde/gitops/k3han/manifests/private-gateway
+  - Chorde/gitops/k3han/manifests/public-gateway
+  - Chorde/gitops/k3han/manifests/cloudflared
 tech_stack:
-  - Kubernetes Ingress-Nginx
+  - NGINX Gateway Fabric
+  - Gateway API
   - Cloudflare Tunnel
-  - Cloudflare Origin CA
-doc_version: 0.3.5
+  - GCP Firewall
+doc_version: 0.3.6
 app_version: 0.3.0
 ---
 
 # Ingress & Network Policy (Brain)
 
-> **Strategic Focus**: Defense in Depth, Origin Hardening, and end-to-end encryption.
+> **Strategic Focus**: Defense in Depth, Origin Hardening, Zero-Trust private tunneling, and resource boundaries for resource-constrained edge environments.
 
 ---
 
-## 1. Strategy Overview
+## 1. Architectural Rationale & Topology
 
-SafeChord employs a **Stratified Ingress Strategy** combining GCP infrastructure, Cloudflare CDN, and Nginx controllers to build a layered defense system.
+The K3han cluster employs a decoupled ingress topology separating the **Control Plane** from physically segregated **Data Planes** to achieve high availability, geo-locality, and structural security isolation.
 
-*   **Public Channel**: Services users via Cloudflare WAF + GCP Firewall IP locking.
-*   **Private Channel**: Reserved for ops/admin, exposed ONLY via the Tailscale virtual mesh.
-
-### Detailed Traffic Flow
 ```mermaid
 graph LR
     %% Styles
@@ -60,62 +59,89 @@ graph LR
         subgraph Agent ["GCE Edge (TW)"]
             direction TB
             GCP_FW["GCP Firewall<br/>(CF IP Allowlist)"]:::public
-            PubIng["nginx-public<br/>HostPort: 80/443"]:::public
+            PubDP["public-gateway (NGF Data Plane)<br/>hostPort: 80/443"]:::public
         end
 
         subgraph Master ["Contabo Core (JP)"]
-            PrivIng["nginx-private<br/>Tailscale Interface Only"]:::private
+            direction TB
+            CF_Tunnel["cloudflared<br/>(in-cluster deployment)"]:::private
+            PrivDP["private-gateway (NGF Data Plane)<br/>ClusterIP Service"]:::private
+            NGF_Ctrl["NGF Control Plane"]:::k8s
         end
         
-        App(SafeZone App):::k8s
-        Ops(ArgoCD/Prometheus):::k8s
+        App(echo-server):::k8s
+        Ops(ArgoCD / Grafana):::k8s
     end
 
     User -->|"Cloudflare Proxy"| GCP_FW
-    GCP_FW -->|"Authorized Source"| PubIng
-    PubIng -->|"Route"| App
+    GCP_FW -->|"Authorized Source"| PubDP
+    PubDP -->|"HTTPRoute"| App
     
-    Admin -->|"Tailscale VPN"| PrivIng
-    PrivIng -->|"Internal Route"| Ops
+    Admin -->|"CF Access + OAuth"| CF_Tunnel
+    CF_Tunnel -->|"Internal Request"| PrivDP
+    PrivDP -->|"HTTPRoute"| Ops
+    
+    NGF_Ctrl -.->|"Controls"| PubDP
+    NGF_Ctrl -.->|"Controls"| PrivDP
 ```
 
----
-
-## 2. Channel Specifications
-
-### 2.1 Public Channel (`nginx-public`)
-*   **Ingress Class**: `nginx-public` (Isolated controller).
-*   **Origin Hardening**: Nodes are tagged as `ingress-public`. GCP VPC rules allow ONLY Cloudflare CIDR blocks to access 80/443, **blocking 100% of direct IP attacks**.
-*   **SSL Policy**: **Full (Strict)**. End-to-end encryption with Cloudflare-issued Origin CA certificates deployed within the cluster.
-*   **Security Layering**: Combines global token verification with specific **Basic Authentication** for internal mock services (e.g., `echo-server`).
-
-### 2.2 Private Channel (`nginx-private`)
-*   **Ingress Class**: `nginx-private` (Hidden by default).
-*   **Listen Mode**: `HostNetwork + Tailscale`. Binds exclusively to the Tailscale virtual NIC (100.x.x.x), making it **inaccessible from the public internet**.
+### Rationale: Control/Data Plane Split
+- **Resilience**: The central NGF Control Plane runs on the stable Contabo Master node in Japan, managing active routing rules. If a data plane node goes offline, the control plane persists.
+- **Latency Invariant**: Public edge traffic is routed directly to the GCE Taiwan edge node (Taiwan-to-Taiwan traffic), keeping latency low, while administrative operations run isolated on the Japan control plane.
 
 ---
 
-## 3. Security & Connectivity Verification Log
+## 2. Channel Design Constraints ("Red Walls")
 
-> 💡 **Behavioral Snapshot**: The following table consolidates the routing and authentication behaviors verified against the GitOps manifests (as of v0.3.0).
+### 2.1 Public Channel: Edge Hardening & Protection
+The public data plane accepts traffic from the public internet but operates under strict structural constraints to protect resource-constrained edge nodes and verify traffic.
 
-| Subject | Access Path | Access Method | Expected Behavior | Actual Result |
+#### 🟥 Constraints & Boundaries
+1.  **Capacity Hardening**: 
+    - The GCE Taiwan Edge is a **1GB RAM micro-instance**.
+    - **Constraint**: Manifests *must* define strict CPU and Memory resource limits for the public data plane container. The proxy must be configured to fail-close or rate-limit rather than OOMing the host node.
+2.  **Origin Source-Locking**:
+    - **Constraint**: Direct ingress via host ports `80/443` is prohibited. GCP Firewall rules *must* permit only Cloudflare CIDR ranges.
+    - **Constraint**: Real client IP extraction config within the cluster *must* align exactly with the firewall's trusted proxy ranges to prevent spoofing.
+3.  **Unified SSL Termination**:
+    - **Constraint**: TLS termination occurs strictly at the Gateway listener level. Individual application manifests should not contain certificates, establishing a centralized boundary for ingress SSL configurations.
+4.  **Edge Defense Policies**:
+    - **Constraint**: Rate-limiting and path rewrites (stripping server details) must be enforced at the gateway boundaries to protect upstream applications.
+
+### 2.2 Private Channel: Structural Zero-Trust Isolation
+The private channel handles administrative resources (ArgoCD, Grafana). It eliminates the traditional host-network exposure risk by shifting to a purely structural isolation model.
+
+#### 🟥 Constraints & Boundaries
+1.  **Zero Host-IP Bindings**:
+    - **Constraint**: The private data plane must **never** run on HostNetwork or bind to a host interface (e.g., `0.0.0.0` or Tailscale overlay interface directly).
+    - **Isolation**: It must be deployed as a `ClusterIP` Service, accessible only from within the Kubernetes overlay network.
+2.  **Identity-Aware Ingress Tunnels**:
+    - **Constraint**: Admin entry is routed exclusively via an in-cluster Cloudflare Tunnel integrated with Cloudflare Access (GitHub OAuth). 
+    - **Rule**: If the identity provider authentication fails, the traffic never reaches the ClusterIP.
+3.  **Break-glass Fallback**:
+    - **Constraint**: In case of tunnel failures, direct administrative access must be available over the Tailscale VPN mesh via direct Pod-IP connection, bypassing the Ingress controller.
+
+---
+
+## 3. Security Boundary Verification Log
+
+The following matrix documents verified boundaries enforcing the design constraints:
+
+| Ingress Path | Entry Interface | Identity / Auth Challenge | Target Resolution | Intended Isolation |
 | :--- | :--- | :--- | :--- | :--- |
-| **Origin IP** | `http://<GCE_IP>:80` | Direct Public IP | ❌ Blocked by GCP Firewall | Timeout |
-| **echo-server** | `/echo` | CF Domain Name | ❌ Identity Challenge | 401 Unauthorized |
-| **echo-server** | `/echo` | With Basic Auth | ✅ Successful Access | 200 OK |
-| **echo-server** | `/echo?token=5566`| With Token | ✅ Higher Priority Auth | 401 (Basic Auth Required) |
-| **Private UI** | `/nginx` | Tailscale IP | ✅ Authorized Access | 200 OK |
+| **Direct IP** | GCE Edge Host | None (Direct Network) | GCP Firewall Drop (Timeout) | Block 100% of origin-bypass attacks |
+| **Public Route** | Cloudflare Proxy | Enforced Basic Auth | Upstream Pod (200 OK) | Restricted public mocks exposure |
+| **Private UI** | Cloudflare Tunnel | CF Access (OAuth Challenge) | Admin Dashboard (200 OK) | Prevent unauthenticated admin panel exposure |
+| **Emergency Bypass** | Tailscale NIC | None (Network Local) | Direct Pod IP (200 OK) | Break-glass admin bypass |
 
 ---
 
-## 4. Operational Maintenance
-
-*   **Protecting New Services**: Apply the `kubernetes.io/ingress.class: "nginx-public"` annotation and reference the appropriate `SealedSecret` for Basic Auth.
-*   **Firewall Updates**: Ansible playbooks in `Chorde/cluster/` automate the synchronization of the GCP Firewall with Cloudflare's rotating IP ranges.
+## 4. Operational Principles
+- **Route Authorization**: New endpoints are registered strictly through Gateway API `HTTPRoute` resources. They must explicitly bind to either the public or private Gateway.
+- **Security Audit**: Modifications to public IP scopes (e.g., Cloudflare CIDR updates) must be synchronized bi-directionally between `NginxProxy` configurations and GCP Firewall playbooks.
 
 ---
 
-## 5. References
-*   **Networking Submodule**: `Chorde/gitops/k3han/manifests/argocd/`
-*   **GCP Config**: `Chorde/cluster/k3han/ansible/roles/firewall/`
+## 5. Knowledge Map References
+- **Ingress Configuration Manifests**: [Chorde/gitops/k3han/manifests/](file:///home/bradyhau/workspace/SafeChord/Chorde/gitops/k3han/manifests/)
+- **Infrastructure Firewall Specs**: [Chorde/cluster/k3han/ansible/gce_firewall.yaml](file:///home/bradyhau/workspace/SafeChord/Chorde/cluster/k3han/ansible/gce_firewall.yaml)
