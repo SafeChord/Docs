@@ -10,7 +10,7 @@
 
 | 主題 | 文件 | 重點 |
 | :--- | :--- | :--- |
-| **GitOps 工作流程** | [部署工作流程](safechord.safezone.deployment.workflow.md) | 分支推進、GitHub Actions 編排、回滾策略 |
+| **GitOps 工作流程** | [統一交付工作流程](safechord.safezone.delivery.workflow.md) | 分支推進、GitHub Actions 編排、回滾策略 |
 | **環境策略** | [環境總覽](safechord.environment.md) | 本機 / 預覽 / 暫存層級、服務發現、Chorde PaaS 整合 |
 
 > *實作參考：`SafeZone-Deploy/` 儲存庫 — Helm charts、ArgoCD 資源清單、部署腳本。*

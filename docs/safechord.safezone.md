@@ -142,5 +142,5 @@ Supporting components that maintain the simulation's state and operation.
 ## 4. Operational Links
 
 *   **Deployment Architecture**: [Deployment & Operations](safechord.safezone.deployment.md)
-*   **CI/CD Pipeline**: [CI/CD Workflow](safechord.safezone.workflow.md)
+*   **CI/CD Pipeline**: [Unified Delivery Workflow](safechord.safezone.delivery.workflow.md)
 *   **API Specifications**: Refer to the **Interface** section within each individual Service Blueprint.

@@ -16,7 +16,7 @@ keywords:
   - KEDA
 logical_path: SafeChord.SafeZone.Deployment
 related_docs:
-  - safechord.safezone.deployment.workflow.md
+  - safechord.safezone.delivery.workflow.md
   - safechord.environment.md
   - safechord.safezone.md
   - safechord.chorde.k3han.cluster.md
@@ -49,7 +49,7 @@ This document maps the **architectural intent** behind SafeZone's deployment lay
 
 | Topic | Document | Focus |
 | :--- | :--- | :--- |
-| **GitOps Workflow** | [Deployment Workflow](safechord.safezone.deployment.workflow.md) | Branch promotion, GitHub Actions orchestration, rollback strategy |
+| **GitOps Workflow** | [Unified Delivery Workflow](safechord.safezone.delivery.workflow.md) | Branch promotion, GitHub Actions orchestration, rollback strategy |
 | **Environment Strategy** | [Environment Landscape](safechord.environment.md) | Local / Preview / Staging tiers, service discovery, Chorde PaaS integration |
 | **Cluster Constraints** | [K3han Cluster Topology](safechord.chorde.k3han.cluster.md) | Node specs, cross-border latency measurements — the physical reality this layer must respect |
 

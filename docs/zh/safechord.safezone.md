@@ -109,5 +109,5 @@ SafeZone 遵循**關注點分離**原則，將邏輯解耦至各專業微服務�
 ## 4. 運維連結
 
 *   **部署架構**：[部署與運維](safechord.safezone.deployment.md)
-*   **CI/CD 管線**：[CI/CD 工作流程](safechord.safezone.workflow.md)
+*   **CI/CD 管線**：[統一交付工作流程](safechord.safezone.delivery.workflow.md)
 *   **API 規格**：請參閱各服務藍圖中的**介面**章節。

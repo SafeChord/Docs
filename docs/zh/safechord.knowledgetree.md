@@ -50,12 +50,12 @@ SafeChord 採用**解耦四層**架構。請根據您的角色與目標選擇閱
         *   **工具包與工作流程**
             *   [📄 safechord.safezone.toolkit.timeserver.md](safechord.safezone.toolkit.timeserver.md)（時間伺服器：虛擬時鐘控制器）
             *   [📄 safechord.safezone.toolkit.cli.md](safechord.safezone.toolkit.cli.md)（SZCLI：維運工具與 CLI 轉送）
-            *   [📄 safechord.safezone.workflow.md](safechord.safezone.workflow.md) ⭐（腳本：CI 工作流程與冒煙測試規格）
+            *   [📄 safechord.safezone.delivery.workflow.md](safechord.safezone.delivery.workflow.md) ⭐（腳本：統一交付工作流程）
 
     *   🟨 **部署層（Repo: SafeZone-Deploy）**
         *   *焦點：設定、Helm、GitOps CD*
         *   [📄 safechord.safezone.deployment.md](safechord.safezone.deployment.md) ⭐（部署架構與全域 ADR）
-            *   [📄 safechord.safezone.deployment.workflow.md](safechord.safezone.deployment.workflow.md)（腳本：GitOps 工作流程與環境推進）
+            *   [📄 safechord.safezone.delivery.workflow.md](safechord.safezone.delivery.workflow.md)（腳本：統一交付工作流程）
 
     *   🟥 **基礎設施層（Repo: Chorde）**
         *   *焦點：Kubernetes、平台運算子、排程*

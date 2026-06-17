@@ -53,11 +53,11 @@ nav:
           - CLI (szcli): safechord.safezone.toolkit.cli.md
           - Command Ref: safechord.safezone.toolkit.cli.reference.md
           - Time Server: safechord.safezone.toolkit.timeserver.md
-      - Workflow: safechord.safezone.workflow.md
+      - Workflow: safechord.safezone.delivery.workflow.md
       - ChangeLog: safechord.safezone.changelog.md
   - Deployment:
       - Overview: safechord.safezone.deployment.md
-      - Workflow: safechord.safezone.deployment.workflow.md
+      - Workflow: safechord.safezone.delivery.workflow.md
   - Chorde (Platform):
       - Overview: safechord.chorde.md
       - K3han Cluster:

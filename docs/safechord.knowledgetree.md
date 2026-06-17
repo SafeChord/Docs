@@ -74,12 +74,12 @@ SafeChord utilizes a **Decoupled 4-Layer** architecture. Choose your reading pat
         *   **Toolkit & Workflow**
             *   [📄 safechord.safezone.toolkit.timeserver.md](safechord.safezone.toolkit.timeserver.md) (Time Server: Virtual Clock Controller)
             *   [📄 safechord.safezone.toolkit.cli.md](safechord.safezone.toolkit.cli.md) (SZCLI: Operations Tooling & CLI Relay)
-            *   [📄 safechord.safezone.workflow.md](safechord.safezone.workflow.md) ⭐ (Script: CI Workflow & Smoke Test Specifications)
+            *   [📄 safechord.safezone.delivery.workflow.md](safechord.safezone.delivery.workflow.md) ⭐ (Script: Unified Delivery Workflow)
 
     *   🟨 **Deployment Layer (Repo: SafeZone-Deploy)**
         *   *Focus: Configuration, Helm, GitOps CD*
         *   [📄 safechord.safezone.deployment.md](safechord.safezone.deployment.md) ⭐ (Deployment Architecture & Global ADRs)
-            *   [📄 safechord.safezone.deployment.workflow.md](safechord.safezone.deployment.workflow.md) (Script: GitOps Workflow & Environment Promotion)
+            *   [📄 safechord.safezone.delivery.workflow.md](safechord.safezone.delivery.workflow.md) (Script: Unified Delivery Workflow)
 
     *   🟥 **Infrastructure Layer (Repo: Chorde)**
         *   *Focus: Kubernetes, Platform Operators, Scheduling*
