@@ -99,7 +99,7 @@ The public data plane accepts traffic from the public internet but operates unde
 #### 🟥 Constraints & Boundaries
 1.  **Capacity Hardening**: 
     - The GCE Taiwan Edge is a **1GB RAM micro-instance**.
-    - **Constraint**: Manifests *must* define strict CPU and Memory resource limits for the public data plane container. The proxy must be configured to fail-close or rate-limit rather than OOMing the host node.
+    - **Constraint**: Manifests *must* define strict Memory resource limits for the public data plane container. The proxy must be configured to fail-close or rate-limit rather than OOMing the host node.
 2.  **Origin Source-Locking**:
     - **Constraint**: Direct ingress via host ports `80/443` is prohibited. GCP Firewall rules *must* permit only Cloudflare CIDR ranges.
     - **Constraint**: Real client IP extraction config within the cluster *must* align exactly with the firewall's trusted proxy ranges to prevent spoofing.

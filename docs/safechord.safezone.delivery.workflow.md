@@ -3,14 +3,14 @@ title: 'Script: SafeZone Unified Delivery Workflow'
 doc_id: safechord.safezone.workflow.delivery
 doc_version: 0.3.6
 app_version: 0.3.6
-last_updated: '2026-06-17'
+last_updated: '2026-06-18'
 status: active
 authors:
   - bradyhau
   - Claude Code
   - Gemini CLI
 context_scope: SafeZone App & Deploy Repos
-summary: Defines the unified, end-to-end delivery pipeline across SafeZone (App) and SafeZone-Deploy (Deploy) repositories, employing a hybrid GitOps + IssueOps promotion model.
+summary: Defines the unified, end-to-end delivery pipeline across SafeZone (App) and SafeZone-Deploy (Deploy) repositories, employing a hybrid GitOps + IssueOps promotion model with decoupled versioning rules.
 keywords:
   - CI/CD
   - GitOps
@@ -89,7 +89,7 @@ code_paths:
 ### Phase D — Staging deploy + soak (`SafeZone-Deploy`)
 - **D1.** Teardown staging — app + infra (leave external / platform services). 🟡
 - **D2.** Plain-**merge** `preview/0.X.Y` → `staging` (no promote branch, no PR).
-- **D3.** On `staging` (direct commits): set `values-staging` to `:0.X.Y` + fix env deltas.
+- **D3.** On `staging` (direct commits): set `values-staging` image tags to the correct target `appVersion` (if App version changed; otherwise leave tag unchanged) + fix env deltas.
 - **D4.** `SETUP_INFRA` — bring up the staging infra.
 - **D5.** Run `init-deploy.yml` (env=staging).
 - **D6.** Run `/validate-release`. 🟡
@@ -108,7 +108,18 @@ code_paths:
 - **Release recovery**: `main^2` resolved an unvalidated sha → re-run `release.yml` via `workflow_dispatch source_sha=<validated>`.
 - **Staging rescue**: live breakage → pin ArgoCD `targetRevision` to last-good `v*-staging` (≥ floor) → forward-fix → un-pin. *(§8; never exercised.)*
 - **Fast path**: change *provably* doesn't cross the deploy boundary → GATE 1 may suffice.
-- **Hotfix**: **flow TBD** — today, forward-fix into the next patch via the normal flow.
+- **Deployment-layer Config Hotfix (Staging/Showcase Re-entry)**: For fixes involving only environment configurations or values tweaks during soak/showcase:
+  1. **Objective Environment Routing Checklist**:
+     - *Route A: Must Return to Preview (GATE 2)*: If the change modifies App code (requires a new image), Database Schema/DDL scripts (`safezone-ops-schema`), or Ingress/Network/Security border configurations.
+     - *Route B: Direct Staging Patch*: If it is a config-only/values modification, or staging-only component (like the `scheduler` CronJob), not touching App code, DB schemas, or ingress gates.
+  2. **Auditing Ticket**:
+     - If found during active soak: Tracked directly on the existing open `release: v0.X.Y` issue.
+     - If found during Showcase: Tracked on a new spontaneous configuration issue (e.g., `Deploy #12`).
+  3. **Scoped Re-soak (The N-Cycles Rule)**:
+     - Do not reset the 3-day stability soak timer. Establish a shortened observation window determined objectively by the component's execution frequency:
+       - *Scheduled Tasks*: Cover at least 2 complete execution cycles (N=2) to verify trigger correctness and idempotency (e.g., **48 hours / 2 days** for a daily scheduler).
+       - *Continuous Services*: Cover **6 to 12 hours** to verify steady-state resource and memory profiles.
+     - Validate via `/validate-soak` (automated data freshness invariant check). If passed, tag `v0.X.Y-staging` on `staging` and PR staging to `main` (archive) tagging `v0.X.Y`.
 
 ---
 
@@ -119,7 +130,7 @@ code_paths:
 2. **Soak / real traffic is post-release monitoring, never a pre-tag gate** — tag → deploy → *then* soak; soak fails → forward-fix.
 3. **The gate is risk-proportional** — app-shaped change → compose + CI (**GATE 1**); boundary-shaped change → preview in-cluster (**GATE 2**, incl. a real browser pass + external-DNS probes for UI releases).
 4. **Forward-fix only; tags are immutable** — never re-tag, never un-tag. A snapshot is a valid rollback target only *within its platform generation* (§8).
-5. **One product version across app + deploy (for now)** — locked equal until the first post-release, app-unchanged config fix (§7).
+5. **Decoupled versioning via double-pointer** — App and Deploy versions drift independently. App releases track functional changes; Deploy releases track env/contract changes. They are mapped via Helm's `version` (Deploy config) and `appVersion` (App code) in the charts.
 6. **Everything goes through the preview gate; `hotfix/*` does NOT bypass it** — no prod SLA (showcase), so no urgency justifies shipping unvalidated.
 
 ## 5. Deployment model — hybrid + prerequisites
@@ -129,7 +140,8 @@ code_paths:
 - **Ordering, by layer** — ArgoCD's health-driven sync-waves don't span Applications or reliably gate Jobs:
   - **Infra** → ArgoCD-native **sync-waves** (`ApplicationSet`: foundation `-2` → security `1` → workloads `2` → init `3`).
   - **App** → **`init-deploy.yml`** applies the Application CRs in order and gates between phases on rollout/Job health (foundation → seed-schema → core → **3.5 smoke (hard gate)** → seed-cases → ui → scheduler[staging]). A phased *bootstrapper + gate*, not an imperative deployer — once a CR exists, ArgoCD reconciles it. (See ADR-9.)
-- **Staging release deploy = teardown + rebuild** (not in-place rolling update). At 0.x the architecture still changes materially between releases, so an in-place path would carry per-release persistent-data / migration reasoning that doesn't pay off; a full rebuild is **deterministic** and **recovers in < 10 min**. Zero-downtime rolling replacement is a **product-phase direction**, deferred. *(Not yet exercised as written — §9.)*
+- **Staging release deploy = teardown + rebuild** (not in-place rolling update). At 0.x the architecture still changes materially between releases, so an in-place path would carry per-release persistent-data / migration reasoning that doesn't pay off; a full rebuild is **deterministic** and **recovers in < 10 min**. Zero-downtime rolling replacement is a **product-phase direction**, deferred.
+- **Staging hotfixes (deploy-only) do not require teardown/rebuild** unless database schema or state-reset is needed; config-only changes are reconciled in-place by ArgoCD to maintain showcase uptime.
 
 **Prerequisites (runner + tooling access)**
 - Self-hosted GitHub runner reaches the K3s API over the **Tailscale mesh**.
@@ -141,12 +153,17 @@ code_paths:
 **Purpose: provenance, not access control.** The issues make a deploy an evidence-based, traceable act and a poka-yoke against basis-less deploys. They are **not** a tamper-proof gate (labels are human-mutable; no separation of duties) — they guard against the *omission*, not a deliberate bypass (solo, no adversary).
 
 - **`freight: 0.X.Y-<sha>`** (preview queue): opened by `publish-dev` when the merged PR carries the `freight` label (opt-in — most dev merges bundle toward a later validation; images publish regardless); `init-deploy` posts an automated checklist (does **not** stamp `validated`); `/validate-freight` stamps `validated` only on human sign-off (the **evidence comment** is the certification of record, the label is its machine index); `release.yml` requires the `validated` label, then closes it on promote.
-- **`release: v0.X.Y`** (staging/archive queue): machine-opens on promote, human-closes when the archive PR merges. *(Direct commits on `staging` (D2/D3) drop the pre-merge PR review; the gate moves to post-deploy `/validate-release`, the audit trail is this issue + the merge commit.)*
-- **Why issues, not GitHub Environments / Deployments API**: those gate *a workflow that deploys*, but the deploy is ArgoCD reconciling git (no workflow on the critical path) and they're per-repo (this handoff is cross-repo). IssueOps is the fitting pattern (ChatOps / branch-deploy lineage). The heavier primitives are **known-of, not studied** — research directions, not rejected options.
+- **`release: v0.X.Y`** (staging/archive queue): machine-opens on promote, human-closes when the archive PR merges. *(Direct commits on `staging` (D2/D3) drop the pre-merge PR review; the gate moves to post-deploy `/validate-release`, the audit trail is this issue + the merge commit.)* For Deploy-only config hotfixes, the open configuration issue (e.g., `Deploy #12`) serves as the auditing ticket of record instead of creating a new `release: v0.X.Y` issue.
 
-## 7. Versioning — one product version
-- App + Deploy share one version (`appVersion == chart version`) **for now**; lockstep is a symptom of 0.x contract churn. Decouple at the first post-release, app-unchanged config fix (ADR-4).
-- **`VERSION` bump discipline**: bumped **once at cycle open** (A1) on `dev` — it's the dev-image version prefix. The Deploy chart mirrors it. Two existing guards make a slip loud: `release.yml` fails if `VERSION` ≠ the tag; `init-deploy` errors if preview values pin more than one image tag.
+## 7. Versioning — Decoupled Evolution Strategy
+App and Deploy version numbers drift independently to reflect their respective release units:
+*   **App Repo (`SafeZone`)**: VERSION is defined in `/SafeZone/VERSION`. It bumps on code changes. Images are tagged with `appVersion` (e.g., `0.3.6`).
+*   **Deploy Repo (`SafeZone-Deploy`)**: Config version is defined in all sub-charts' `Chart.yaml` `version` fields. It bumps globally across all charts on any config/chart change. `appVersion` in `Chart.yaml` acts as the pointer to the target App image tag.
+*   **Bumping Matrix**:
+    1.  **Co-change (Scenario A)**: App bumps to `0.3.7`. Deploy bumps `version` to `0.3.7` and `appVersion` to `"0.3.7"`.
+    2.  **Deploy-only Fix (Scenario B)**: App stays frozen at `0.3.6` (no new builds/tags). Deploy bumps `version` to `0.3.7`, keeping `appVersion` at `"0.3.6"`.
+    3.  **App-only Fix (Scenario C)**: App bumps to `0.3.7`. Deploy bumps `version` to `0.3.8` (since `0.3.7` was used by the deploy-only patch) and sets `appVersion` to `"0.3.7"`.
+*   **`VERSION` bump discipline**: For App releases, bumped **once at cycle open** (A1) on `dev` — it's the dev-image version prefix. The Deploy chart `appVersion` mirrors it. Two existing guards make a slip loud: `release.yml` fails if `VERSION` ≠ the tag; `init-deploy` errors if preview values pin more than one image tag.
 
 ## 8. Rollback & recovery
 > Light by intent — most of this is **designed, not exercised**; enforcement is deferred.
@@ -163,10 +180,10 @@ code_paths:
 ## 9. Not yet verified / deferred *(delete as items clear)*
 - **A–E restructure not yet exercised**: v0.3.6 ran a 4-phase, in-place staging promotion. The 5-phase / teardown-rebuild staging / frozen-pin release cut / plain-merge (no promote branch) are designed, not yet run.
 - **`/validate-release` + `/validate-soak`**: 🟡 Planned, unbuilt (variants of `/validate-freight` against the staging host; soak adds time-based checks).
-- **Hotfix flow**: TBD (forward-fix only for now).
+- **ADR-4 version decoupling**: No longer deferred; successfully executed during `v0.3.6` timezone hotfix cycle.
 - **Rollback rescue mechanic + floor T1**: designed/declared, never exercised; no NGF-valid rescue point until `v0.3.6-staging` is cut post-soak; T1 enforcement undecided.
 - **ADR-6 dispatch mode**: only one cycle of evidence; consolidate later.
-- **Settler SSOT reconciliation**: peer-reviewed by Gemini; not yet reconciled into `Docs/`.
+- **Settler SSOT reconciliation**: peer-reviewed by Gemini; reconciled into `Docs/`.
 
 ## 10. Next: peer-review → SSOT reconciliation
 Pioneer-owned formal process. Path: Architect + Gemini peer-review (flow done; this assembled doc pending) → swap `delivery-workflow.md` → Settler (Gemini) reconciles into `Docs/` SSOT (folding the per-repo predecessor docs) → prune §9 as items clear.
@@ -182,7 +199,7 @@ Pioneer-owned formal process. Path: Architect + Gemini peer-review (flow done; t
 | 1 | Publish dev images `0.X.Y-<sha>` on `dev` merge (E1-fix) — preview validates a real artifact pre-tag | Accepted |
 | 2 | Release = **promote-by-`crane copy`** (digest-identical), not rebuild | Accepted |
 | 3 | Cut the tag **after preview validation**, not after soak (E2-fix) | Accepted |
-| 4 | One product version; decouple just-in-time | Accepted (trigger pending) |
+| 4 | One product version; decouple just-in-time | Accepted |
 | 5 | Cross-repo validation record = **IssueOps freight issue** (not values-grep / Deployments API) | Accepted |
 | 6 | Decouple version **tag** from the **promotion** (`workflow_dispatch`/`dry_run`) | Accepted, provisional |
 | 7 | Release **opens** the `release: v0.X.Y` staging work-queue issue | Accepted |
@@ -191,6 +208,8 @@ Pioneer-owned formal process. Path: Architect + Gemini peer-review (flow done; t
 | 10 | **Staging release deploy = teardown + rebuild** (not in-place); rolling replacement deferred to product phase | Accepted (unexercised) |
 | 11 | **No `promote/<ver>-staging` branch** — plain-merge `preview`→`staging` + direct staging edits; audit via the `release` issue + merge commit | Accepted |
 | 12 | **Validate skills stay focused** (not one branching skill); `/validate-release`, `/validate-soak` planned | Accepted |
+| 13 | **Objective Environment Routing Checklist** — App code / DB schema / Ingress changes require preview GATE 2; config-only changes can patch staging directly | Accepted |
+| 14 | **Staging Hotfix Scoped Re-soak** — Staging-only/config changes observe only the blast radius (N-cycles) rather than resetting the 3-day soak clock | Accepted |
 
 > **ADR-2 note**: `release.yml` originally rebuilt from source (ephemeral runners held the validated image only in a local cache); ADR-1 dissolved that. `buildx imagetools create` re-wrapped single-arch sources in a new OCI index (different digest) → switched to `crane copy` (digest-preserving). Guarantees "shipped == validated", **not** build reproducibility (floating base tags).
 > **ADR-9 note**: the pure-ArgoCD path (sync-waves + Job hooks) was tried (~2025) and failed — wave progression + hook completion both keyed off ArgoCD's Job-health assessment, which advanced before Jobs actually completed. Durable rationale = the problem-shape split (declarative convergence vs run-to-completion gating). **Revisit on hybrid pain, not on an ArgoCD release.**
