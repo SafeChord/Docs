@@ -1,134 +1,327 @@
-# CLI 指令集 (szcli)
+# CLI 指令集 (szcli) - AI 優化操作手冊
 
-> **角色**：AI 操作手冊
-> 本文件定義了 `szcli` 的標準操作程序。當代理程式被指派執行系統維護、資料模擬或健康檢查時，應優先採用本手冊所定義的指令範式。
-
----
-
-## 1. 環境上下文
-
-在呼叫 `szcli` 之前，請確保執行環境（Shell／Container）已配置以下變數：
-
-| 變數 | 必要 | 說明 |
-| :--- | :--- | :--- |
-| `RELAY_URL` | ✅ | Relay Service 的內部或外部端點（例如 `http://cli-relay:8000`）。 |
-| `REFRESH_TOKEN` | ✅ | 用於無頭驗證的 Google OAuth2 Refresh Token。 |
-| `CLIENT_ID` | ✅ | GCP 專案的 Client ID。 |
-| `CLIENT_SECRET` | ✅ | GCP 專案的 Client Secret。 |
+> **角色**：AI 操作員參考手冊  
+> 本文件定義 `szcli` 的確切指令、驗證規則、輸出結構以及複合操作 runbook。  
+> **AI 操作員必須嚴格遵守此處定義的 schema 與指令組合。**
 
 ---
 
-## 2. 操作意圖（指令集）
+## 1. 環境與全域選項
 
-### 🌊 Dataflow 操作
+在呼叫 `szcli` 之前，請確保以下環境變數已設定：
+- `RELAY_URL`：Relay 服務的內部或外部端點（例如 `http://cli-relay:8000`）。
+- `REFRESH_TOKEN`：用於無頭認證的 Google OAuth2 Refresh Token。
+- `CLIENT_ID` / `CLIENT_SECRET`：GCP OAuth 憑證。
 
-#### 意圖：觸發資料模擬
-*   **使用情境**：產生測試資料、回填歷史記錄或執行壓力測試。
-*   **指令**：
-    ```bash
-    szcli dataflow simulate <START_DATE> [--enddate <END_DATE>] [--dry-run]
-    ```
-*   **參數**：
-    *   `START_DATE`：`YYYY-MM-DD`（必要）。
-    *   `--enddate`：區間模擬的結束日期（選擇性）。
-*   **預期行為**：
-    *   成功：回傳 JSON `{"success": true, ...}`。Relay 會非同步觸發 Simulator Service。
-    *   副作用：重設系統的全域快取版本（Cache Version）。
+### 全域 CLI 旗標
+任何指令都可以加上以下旗標來調整記錄與輸出格式：
+- `-o, --output [rich|json|yaml]`：輸出顯示格式。**AI 代理應始終使用 `-o json` 以確保輸出可供程式化解析。**
+- `-v, --verbose`：顯示通訊協定層級的中繼資料（例如 HTTP 標頭）。
+- `-d, --debug`：啟用用戶端操作的除錯日誌。
 
-#### 意圖：驗證資料完整性
-*   **使用情境**：煙霧測試驗證點、檢查資料持久性或觀察快取命中。
-*   **指令**：
-    ```bash
-    # 標準驗證
-    szcli dataflow verify <DATE> [--city <NAME>] [--interval <DAYS>]
-    
-    # 觀察快取狀態（詳細模式）
-    szcli -o json -v dataflow verify <DATE>
-    ```
-*   **驗證邏輯**：
-    *   解析回傳的 JSON。若 `total_cases > 0` 且 `success` 為 `true`，則視為管線運作正常。
-    *   **快取檢查**：在 `-v` 模式下，檢查 JSON 輸出中的 `.headers.x-cache-status`。`HIT` 表示快取命中；`MISS` 表示穿透資料庫。
-    *   若收到 `404` 或 `count == 0`（非預期），則假設為資料擷取延遲或 Worker 故障。
+### 🔴 重要：輸出 JSON 包裹（Envelope）
+使用 `-o json` 執行指令時，輸出會先被客戶端包裝器包裹在一個標準信封結構中。  
+- **目標資料**：底層的 `APIResponse` 內容永遠巢狀在 **`.response`** 鍵之下。  
+- **標頭**：在 `-v` 模式中，API 的 HTTP 回應標頭會出現在 **`.headers`** 鍵之下（鍵名為小寫）。  
+- **AI 路徑**：一律使用 `.response.<欄位>` 來查詢數值（例如 `.response.success` 或 `.response.data.aggregated_cases`）。直接查詢頂層欄位會得到 `null`。
 
 ---
 
-### ⚙️ 系統控制
+## 2. 指令參考與 API 規格
 
-#### 意圖：檢查系統健康狀態
-*   **使用情境**：部署後自我檢查。
-*   **指令**：
-    ```bash
-    szcli system health [TARGET]
-    ```
-*   **目標**：`all`（預設）、`cli-relay`、`db`、`redis-cache`、`simulator`、`ingestor`、`analytics-api`、`dashboard`。
-*   **預期行為**：
-    *   每個元件回傳 `status: healthy`。若有任何元件回傳 `unhealthy`，代理程式應將該任務標記為失敗。
-
-#### 意圖：管理系統時間
-*   **使用情境**：測試未來時間邏輯或重設回真實時間。
-*   **指令**：
-    ```bash
-    # 設定模擬時間
-    szcli system time set --mockdate <YYYY-MM-DD> --acceleration <INT>
-    
-    # 重設為真實時間
-    szcli system time set --reset
-    
-    # 查看目前狀態
-    szcli system time status
-    
-    # 取得目前系統日期
-    szcli system time now
-    ```
-
----
-
-### 🗄️ 資料庫操作
-
-> ⚠️ **警告**：這些是破壞性操作，僅限 `admin` 層級存取。
+### 🗄️ 資料庫操作（`db` 群組）
+高權限資料庫維護操作。
 
 #### 意圖：初始化 Schema
-*   **使用情境**：全新環境建置（冷啟動）。
-*   **指令**：`szcli db init [--force]`
+- **指令**：`szcli db init [--force]`
+- **限制**：
+  - `--force` 會清除所有資料表並重新植入管理與人口資料。不會刪除資料庫結構。
+- **預期的包裹回應**：
+  ```json
+  {
+    "task": {
+      "name": "db.init",
+      "trace_id": "8f2b3c1a-..."
+    },
+    "response": {
+      "success": true,
+      "message": "Database initialized successfully.",
+      "detail": null,
+      "errors": null,
+      "timestamp": "2026-06-24T01:00:00Z"
+    }
+  }
+  ```
 
-#### 意圖：清除資料
-*   **使用情境**：保留 Schema 但移除所有業務資料（Truncate）。
-*   **指令**：
-    ```bash
-    # 互動式執行
-    szcli db clear
-    
-    # 自動化／非互動式執行
-    szcli db clear --yes
-    ```
+#### 意圖：剪除資料（僅事實資料表）
+- **指令**：`szcli db prune [--year YYYY] [--all] [--yes/-y]`
+- **驗證規則**：
+  - **XOR 要求**：必須且只能指定 `--year YYYY` 或 `--all` 其中之一。同時提供或兩者皆無會導致客戶端中止。
+  - **確認**：若省略 `--yes`（或 `-y`），客戶端會提示確認。對於自動化腳本，務必加上 `--yes`。
+- **副作用**：
+  - 只針對 **`covid_cases` 事實資料表**。維度資料表（`cities`、`regions`、`populations`）不會受影響。
+- **預期的包裹回應**：
+  ```json
+  {
+    "task": {
+      "name": "db.prune",
+      "trace_id": "8f2b3c1a-..."
+    },
+    "response": {
+      "success": true,
+      "message": "Covid cases pruned successfully.",
+      "detail": null,
+      "errors": null,
+      "timestamp": "2026-06-24T01:00:00Z"
+    }
+  }
+  ```
 
-#### 意圖：硬重置
-*   **使用情境**：完整資料庫重置（Drop & Init）。
-*   **指令**：`szcli db reset`
+#### 意圖：資料庫重置（截斷所有資料表）
+- **指令**：`szcli db reset`
+- **確認**：一定會以互動方式要求確認。（基於安全考量，不支援非互動式旗標。）
+- **預期的包裹回應**：
+  ```json
+  {
+    "task": {
+      "name": "db.reset",
+      "trace_id": "8f2b3c1a-..."
+    },
+    "response": {
+      "success": true,
+      "message": "Database reset successfully.",
+      "detail": null,
+      "errors": null,
+      "timestamp": "2026-06-24T01:00:00Z"
+    }
+  }
+  ```
 
 ---
 
-### ℹ️ 通用工具
+### 🌊 Dataflow 操作（`dataflow` 群組）
+控制攝入模擬器並驗證已持久化的資料。
 
-#### 全域選項
-*   `-o, --output [rich|json|yaml]`：設定輸出格式（預設：rich）。
-*   `-v, --verbose`：顯示額外除錯資訊（例如 HTTP 標頭）。
+#### 意圖：觸發模擬
+- **指令**：`szcli dataflow simulate <DATE> [--enddate YYYY-MM-DD] [--dry-run]`
+- **限制**：
+  - `<DATE>`：攝入開始日期（必需參數，格式：`YYYY-MM-DD`）。
+  - `--enddate`：可選的結束日期，用於區間生成。
+- **預期的包裹回應**：
+  ```json
+  {
+    "task": {
+      "name": "dataflow.simulate",
+      "trace_id": "8f2b3c1a-..."
+    },
+    "response": {
+      "success": true,
+      "message": "Simulation triggered successfully.",
+      "detail": "Data ingestion process initiated.",
+      "errors": null,
+      "timestamp": "2026-06-24T01:00:00Z"
+    }
+  }
+  ```
 
-#### 意圖：檢查版本資訊
-*   **指令**：`szcli version`
-
-#### 意圖：檢視設定
-*   **指令**：`szcli config`
+#### 意圖：驗證資料完整性
+- **指令**：`szcli dataflow verify <DATE> [--interval INT] [--city NAME] [--region NAME] [--ratio]`
+- **限制**：
+  - `<DATE>`：目標驗證日期（必需參數，格式：`YYYY-MM-DD`）。
+  - `--interval`：天數區間（預設：`1`）。
+  - `--city` / `--region`：可選的字串篩選條件（後端驗證長度須為 1-50 個字元）。
+  - `--ratio`：若設定，則回傳人口比例而非原始病例數。
+- **預期的包裹回應（啟用 -v verbose）**：
+  ```json
+  {
+    "task": {
+      "name": "dataflow.verify",
+      "trace_id": "8f2b3c1a-..."
+    },
+    "response": {
+      "success": true,
+      "message": "Verification completed.",
+      "detail": null,
+      "errors": null,
+      "timestamp": "2026-06-24T01:00:00Z",
+      "data": {
+        "start_date": "1970-01-01",
+        "end_date": "1970-01-01",
+        "city": "台北市",
+        "region": "信義區",
+        "aggregated_cases": 1500,
+        "cases_population_ratio": 0.015
+      }
+    },
+    "headers": {
+      "content-type": "application/json",
+      "x-cache-status": "HIT"
+    }
+  }
+  ```
+- **快取斷言**：在 `-v` 模式中，檢查包裹 JSON 輸出的 `.headers["x-cache-status"]` 小寫鍵，判斷回應是否來自快取（值為 `HIT` 或 `MISS`）。
 
 ---
 
-## 3. 錯誤處理
+### ⚙️ 時間控制（`system time` 子群組）
+控制虛擬系統時鐘。所有活躍元件都會查詢此時鐘。
 
-代理程式在解析 CLI 輸出時，必須遵循以下規則：
+#### 意圖：取得虛擬日期
+- **指令**：`szcli system time now`
+- **預期的包裹回應**：
+  ```json
+  {
+    "task": {
+      "name": "time.now",
+      "trace_id": "8f2b3c1a-..."
+    },
+    "response": {
+      "success": true,
+      "message": "Current virtual time retrieved.",
+      "detail": null,
+      "errors": null,
+      "timestamp": "2026-06-24T01:00:00Z",
+      "system_date": "2000-01-01"
+    }
+  }
+  ```
 
-| 錯誤模式 | 解釋 | 建議動作 |
-| :--- | :--- | :--- |
-| `Refreshing authentication token...` | 資訊 | 正常驗證流程；忽略。 |
-| `401 Unauthorized` | 驗證失敗 | 檢查 `REFRESH_TOKEN` 是否過期或無效。 |
-| `403 Forbidden` | 權限不足 | 檢查已驗證的 `email` 是否在 Relay 白名單中。 |
-| `Connection refused` | 網路錯誤 | 確認 `RELAY_URL` 是否正確，或檢查 Relay Pod 是否崩潰。 |
+#### 意圖：取得虛擬時間設定
+- **指令**：`szcli system time status`
+- **預期的包裹回應**：
+  ```json
+  {
+    "task": {
+      "name": "time.status",
+      "trace_id": "8f2b3c1a-..."
+    },
+    "response": {
+      "success": true,
+      "message": "Mock time config retrieved.",
+      "detail": null,
+      "errors": null,
+      "timestamp": "2026-06-24T01:00:00Z",
+      "data": {
+        "mock": true,
+        "mock_date": "2000-01-01",
+        "mock_update_time": "2026-06-24T01:00:00Z",
+        "launch_time": "2026-06-24T00:00:00Z",
+        "acceleration": 5,
+        "system_date": "2000-01-01"
+      }
+    }
+  }
+  ```
+
+#### 意圖：設定虛擬時間
+- **指令**：`szcli system time set [--reset] [--mockdate YYYY-MM-DD] [--acceleration INT]`
+- **驗證規則**：
+  - **Mock 限制**：除非指定 `--reset`，否則**必須**至少提供 `--mockdate` 或 `--acceleration` 其中一個。
+  - **加速上下界**：`--acceleration` 必須是介於 **`1` 到 `10`**（含）之間的整數。
+- **預期的包裹回應**：
+  ```json
+  {
+    "task": {
+      "name": "time.set",
+      "trace_id": "8f2b3c1a-..."
+    },
+    "response": {
+      "success": true,
+      "message": "System time configured successfully.",
+      "detail": null,
+      "errors": null,
+      "timestamp": "2026-06-24T01:00:00Z"
+    }
+  }
+  ```
+
+---
+
+### 🩺 健康檢查（`health` 群組）
+檢查叢集中各元件狀態。注意：這是獨立群組（`szcli health`），不屬於 `system` 之下。
+
+#### 意圖：元件診斷
+- **指令**：`szcli health <COMPONENT>`
+- **有效元件**：
+  - `all`, `cli-relay`, `db`, `redis-state`, `redis-cache`, `simulator`, `ingestor`, `analytics-api`, `dashboard`
+- **預期的包裹回應**：
+  ```json
+  {
+    "task": {
+      "name": "health.all",
+      "trace_id": "8f2b3c1a-..."
+    },
+    "response": {
+      "success": true,
+      "message": "Health check completed successfully.",
+      "detail": null,
+      "errors": null,
+      "timestamp": "2026-06-24T01:00:00Z",
+      "status": {
+        "db": "healthy",
+        "redis-state": "healthy",
+        "simulator": "healthy"
+      }
+    }
+  }
+  ```
+
+---
+
+## 3. 標準失敗場景
+
+當指令在客戶端、Relay 或下游層級失敗時，回應會解析 `errors` 結構：
+
+### 常見驗證錯誤（例如無效的日期格式）
+```json
+{
+  "task": {
+    "name": "time.set",
+    "trace_id": "8f2b3c1a-..."
+  },
+  "response": {
+    "success": false,
+    "message": "Validation failed.",
+    "detail": "Invalid input format.",
+    "errors": {
+      "field": "mock_date",
+      "summary": "Invalid value",
+      "detail": "Invalid date format. Expected 'YYYY-MM-DD'."
+    },
+    "timestamp": "2026-06-24T01:00:00Z"
+  }
+}
+```
+
+---
+
+## 4. AI Runbook 食譜（情境模式）
+
+### Recipe A：乾淨冷啟動植入與驗證
+由測試代理使用，從乾淨狀態開始，移動到目標時間，攝入資料，再進行驗證。
+
+1. **執行資料庫重置**：
+   ```bash
+   szcli db reset
+   # （需要互動確認，請手動執行）
+   ```
+2. **設定目標時間線**：
+   ```bash
+   szcli -o json system time set --mockdate 2000-01-01 --acceleration 5
+   # 驗證 .response.success == true
+   ```
+3. **驗證空狀態**：
+   ```bash
+   szcli -o json dataflow verify 2000-01-01
+   # 驗證 .response.success == true 且 .response.data.aggregated_cases == null
+   ```
+4. **觸發生成**：
+   ```bash
+   szcli -o json dataflow simulate 2000-01-01
+   # 驗證 .response.success == true
+   ```
+5. **輪詢並驗證持久化**：
+   ```bash
+   szcli -o json dataflow verify 2000-01-01
+   # 驗證 .response.success == true 且 .response.data.aggregated_cases > 0
+   ```
