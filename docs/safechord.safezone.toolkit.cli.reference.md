@@ -5,14 +5,14 @@ status: active
 authors:
   - bradyhau
   - Gemini CLI
-last_updated: '2026-05-02'
-summary: Comprehensive operation manual for the SafeZone CLI. This document follows an "Intent-Driven" structure, serving as the standard reference for human operators and AI agents when executing system tasks, including environment setup, command paradigms, and expected behaviors.
+last_updated: '2026-06-24'
+summary: Comprehensive operation manual for the SafeZone CLI. Fully expanded with strict parameter limits, expected JSON wrapper structures, and runbooks optimized for AI Operators.
 keywords:
   - szcli
   - Command Reference
   - Instruction Set
-  - Cheat Sheet
-  - AI Prompts
+  - AI Operators
+  - JSON Envelope
 logical_path: SafeChord.SafeZone.Toolkit.CLI.Reference
 related_docs:
   - safechord.safezone.toolkit.cli.md
@@ -20,140 +20,334 @@ parent_doc: safechord.safezone.toolkit.cli
 archetype: script
 code_paths:
   - SafeZone/toolkit/cli/command
-doc_version: 0.3.5
+doc_version: 0.4.0
 app_version: 0.3.2
 ---
 
-# CLI Instruction Set (szcli)
+# CLI Instruction Set (szcli) - AI-Optimized Manual
 
-> **Role**: AI Operator Manual
-> This document defines the standard operating procedures for `szcli`. When an agent is assigned to perform system maintenance, data simulation, or health checks, it should prioritize the command paradigms defined in this manual.
-
----
-
-## 1. Environment Context
-Before invoking `szcli`, ensure the execution environment (Shell/Container) is equipped with the following variables:
-
-| Variable | Required | Description |
-| :--- | :--- | :--- |
-| `RELAY_URL` | ✅ | Internal or external entry point for the Relay Service (e.g., `http://cli-relay:8000`). |
-| `REFRESH_TOKEN` | ✅ | Google OAuth2 Refresh Token used for headless authentication. |
-| `CLIENT_ID` | ✅ | GCP Project Client ID. |
-| `CLIENT_SECRET` | ✅ | GCP Project Client Secret. |
+> **Role**: AI Operator Reference Manual
+> This document defines the exact commands, validation rules, output structures, and composite operation runbooks for `szcli`. 
+> **AI Operators must strictly adhere to the schemas and command combinations defined here.**
 
 ---
 
-## 2. Operational Intents (Instruction Set)
+## 1. Environment & Global Options
 
-### 🌊 Dataflow Operations
+Before invoking `szcli`, ensure the following environment variables are present:
+* `RELAY_URL`: Internal/external endpoint for the Relay Service (e.g., `http://cli-relay:8000`).
+* `REFRESH_TOKEN`: Google OAuth2 Refresh Token for headless auth.
+* `CLIENT_ID` / `CLIENT_SECRET`: GCP OAuth credentials.
 
-#### Intent: Trigger Data Simulation
-*   **Use Case**: Generate test data, backfill historical records, or perform stress tests.
-*   **Command**:
-    ```bash
-    szcli dataflow simulate <START_DATE> [--enddate <END_DATE>] [--dry-run]
-    ```
-*   **Parameters**:
-    *   `START_DATE`: `YYYY-MM-DD` (Required).
-    *   `--enddate`: Optional end date for interval simulation.
-*   **Expected Behavior**:
-    *   Success: Returns JSON `{"success": true, ...}`. The Relay asynchronously triggers the Simulator Service.
-    *   Side Effect: Resets the system's global Cache Version.
+### Global CLI Flags
+Any command can be prefixed with these flags to modify logging and output formats:
+* `-o, --output [rich|json|yaml]`: Output presentation format. **AI agents should always use `-o json` to ensure programmatically parsable outputs.**
+* `-v, --verbose`: Display protocol-level metadata (e.g., HTTP headers).
+* `-d, --debug`: Enable debug logs for client operations.
 
-#### Intent: Verify Data Integrity
-*   **Use Case**: Smoke test verification point, check data persistence, or observe cache hits.
-*   **Command**:
-    ```bash
-    # Standard Verification
-    szcli dataflow verify <DATE> [--city <NAME>] [--interval <DAYS>]
-    
-    # Observe Cache Status (Verbose Mode)
-    szcli -o json -v dataflow verify <DATE>
-    ```
-*   **Verification Logic**:
-    *   Parse the returned JSON. If `total_cases > 0` and `success` is `true`, the pipeline is considered operational.
-    *   **Cache Check**: In `-v` mode, inspect `.headers.x-cache-status` in the JSON output. `HIT` indicates a cache hit; `MISS` indicates database penetration.
-    *   If `404` or `count == 0` (unexpectedly), assume Ingestion Lag or Worker failure.
+### 🔴 CRITICAL: Output JSON Wrapping (Envelope)
+When running commands with `-o json`, the output is **wrapped** in a standard envelope by the client wrapper before rendering. 
+* **Target Data**: The underlying `APIResponse` payload is always nested under the **`.response`** key.
+* **Headers**: In `-v` mode, HTTP response headers from the API are present under the **`.headers`** key (keys are lowercase).
+* **AI Pathing**: Always query values using `.response.<field>` (e.g., `.response.success` or `.response.data.aggregated_cases`). Querying top-level fields directly will yield `null`.
 
 ---
 
-### ⚙️ System Control
+## 2. Command Reference & API Specifications
 
-#### Intent: Check System Health
-*   **Use Case**: Post-deployment self-check.
-*   **Command**:
-    ```bash
-    szcli system health [TARGET]
-    ```
-*   **Targets**: `all` (default), `cli-relay`, `db`, `redis-cache`, `simulator`, `ingestor`, `analytics-api`, `dashboard`.
-*   **Expected Behavior**:
-    *   Returns `status: healthy` for each component. If any component returns `unhealthy`, the agent should flag the task as failed.
-
-#### Intent: Manage System Time
-*   **Use Case**: Test future-time logic or reset back to real-time.
-*   **Command**:
-    ```bash
-    # Set Mock Time
-    szcli system time set --mockdate <YYYY-MM-DD> --acceleration <INT>
-    
-    # Reset to Real Time
-    szcli system time set --reset
-    
-    # Check Current Status
-    szcli system time status
-    
-    # Get Current System Date
-    szcli system time now
-    ```
-
----
-
-### 🗄️ Database Operations
-
-> ⚠️ **Warning**: These are destructive operations restricted to `admin` level access.
+### 🗄️ Database Operations (`db` group)
+High-privilege database maintenance operations.
 
 #### Intent: Initialize Schema
-*   **Use Case**: Fresh environment setup (Cold Start).
-*   **Command**: `szcli db init [--force]`
+* **Command**: `szcli db init [--force]`
+* **Constraints**: 
+  * `--force` clears all tables and re-seeds administrative/population data. It does not drop the database structure.
+* **Expected Wrapped Response**:
+  ```json
+  {
+    "task": {
+      "name": "db.init",
+      "trace_id": "8f2b3c1a-..."
+    },
+    "response": {
+      "success": true,
+      "message": "Database initialized successfully.",
+      "detail": null,
+      "errors": null,
+      "timestamp": "2026-06-24T01:00:00Z"
+    }
+  }
+  ```
 
-#### Intent: Clear Data
-*   **Use Case**: Retain schema but remove all business data (Truncate).
-*   **Command**:
-    ```bash
-    # Interactive execution
-    szcli db clear
-    
-    # Automated / Non-interactive execution
-    szcli db clear --yes
-    ```
+#### Intent: Prune Data (Fact Table Only)
+* **Command**: `szcli db prune [--year YYYY] [--all] [--yes/-y]`
+* **Validation Rules**:
+  * **XOR Requirement**: Exactly one of `--year YYYY` or `--all` **must** be specified. Providing both or neither will result in a client-side abort.
+  * **Confirmation**: If `--yes` (or `-y`) is omitted, the client will prompt for confirmation. For automated scripts, always pass `--yes`.
+* **Side-Effects**:
+  * Targets the **`covid_cases` fact table only**. Dimensions (`cities`, `regions`, `populations`) survive.
+* **Expected Wrapped Response**:
+  ```json
+  {
+    "task": {
+      "name": "db.prune",
+      "trace_id": "8f2b3c1a-..."
+    },
+    "response": {
+      "success": true,
+      "message": "Covid cases pruned successfully.",
+      "detail": null,
+      "errors": null,
+      "timestamp": "2026-06-24T01:00:00Z"
+    }
+  }
+  ```
 
-#### Intent: Hard Reset
-*   **Use Case**: Full database reset (Drop & Init).
-*   **Command**: `szcli db reset`
+#### Intent: Database Reset (Truncate All Tables)
+* **Command**: `szcli db reset`
+* **Confirmation**: Always prompts for confirmation interactively. (Non-interactive flags are not supported for safety).
+* **Expected Wrapped Response**:
+  ```json
+  {
+    "task": {
+      "name": "db.reset",
+      "trace_id": "8f2b3c1a-..."
+    },
+    "response": {
+      "success": true,
+      "message": "Database reset successfully.",
+      "detail": null,
+      "errors": null,
+      "timestamp": "2026-06-24T01:00:00Z"
+    }
+  }
+  ```
 
 ---
 
-### ℹ️ General Utilities
+### 🌊 Dataflow Operations (`dataflow` group)
+Controls the ingestion simulator and verifies persisted data.
 
-#### Global Options
-*   `-o, --output [rich|json|yaml]`: Set output format (Default: rich).
-*   `-v, --verbose`: Display extra debugging info (e.g., HTTP Headers).
+#### Intent: Trigger Simulation
+* **Command**: `szcli dataflow simulate <DATE> [--enddate YYYY-MM-DD] [--dry-run]`
+* **Constraints**:
+  * `<DATE>`: Ingestion start date (Argument, required, format: `YYYY-MM-DD`).
+  * `--enddate`: Optional end date for interval generation.
+* **Expected Wrapped Response**:
+  ```json
+  {
+    "task": {
+      "name": "dataflow.simulate",
+      "trace_id": "8f2b3c1a-..."
+    },
+    "response": {
+      "success": true,
+      "message": "Simulation triggered successfully.",
+      "detail": "Data ingestion process initiated.",
+      "errors": null,
+      "timestamp": "2026-06-24T01:00:00Z"
+    }
+  }
+  ```
 
-#### Intent: Check Version info
-*   **Command**: `szcli version`
-
-#### Intent: View Configuration
-*   **Command**: `szcli config`
+#### Intent: Verify Data Integrity
+* **Command**: `szcli dataflow verify <DATE> [--interval INT] [--city NAME] [--region NAME] [--ratio]`
+* **Constraints**:
+  * `<DATE>`: Target verification date (Argument, required, format: `YYYY-MM-DD`).
+  * `--interval`: Period in days (Default: `1`).
+  * `--city` / `--region`: Optional string filters (validated downstream to be 1–50 characters).
+  * `--ratio`: Returns population ratio instead of raw case counts if set.
+* **Expected Wrapped Response (with -v verbose enabled)**:
+  ```json
+  {
+    "task": {
+      "name": "dataflow.verify",
+      "trace_id": "8f2b3c1a-..."
+    },
+    "response": {
+      "success": true,
+      "message": "Verification completed.",
+      "detail": null,
+      "errors": null,
+      "timestamp": "2026-06-24T01:00:00Z",
+      "data": {
+        "start_date": "1970-01-01",
+        "end_date": "1970-01-01",
+        "city": "台北市",
+        "region": "信義區",
+        "aggregated_cases": 1500,
+        "cases_population_ratio": 0.015
+      }
+    },
+    "headers": {
+      "content-type": "application/json",
+      "x-cache-status": "HIT"
+    }
+  }
+  ```
+* **Cache Assertion**: In `-v` mode, check if the response was cached by inspecting the `.headers["x-cache-status"]` lowercase key in the wrapped JSON output (values: `HIT` or `MISS`).
 
 ---
 
-## 3. Error Handling
+### ⚙️ Time Control (`system time` sub-group)
+Controls the virtual system clock. All active components query this clock.
 
-Agents parsing CLI output must follow these rules:
+#### Intent: Get Virtual Date
+* **Command**: `szcli system time now`
+* **Expected Wrapped Response**:
+  ```json
+  {
+    "task": {
+      "name": "time.now",
+      "trace_id": "8f2b3c1a-..."
+    },
+    "response": {
+      "success": true,
+      "message": "Current virtual time retrieved.",
+      "detail": null,
+      "errors": null,
+      "timestamp": "2026-06-24T01:00:00Z",
+      "system_date": "2000-01-01"
+    }
+  }
+  ```
 
-| Error Pattern | Interpretation | Suggested Action |
-| :--- | :--- | :--- |
-| `Refreshing authentication token...` | Info | Normal Auth flow; ignore. |
-| `401 Unauthorized` | Auth Failure | Check if `REFRESH_TOKEN` is expired or invalid. |
-| `403 Forbidden` | Permission Denied | Check if the authenticated `email` is on the Relay whitelist. |
-| `Connection refused` | Network Error | Verify `RELAY_URL` or check if the Relay Pod has crashed. |
+#### Intent: Get Virtual Time Configuration
+* **Command**: `szcli system time status`
+* **Expected Wrapped Response**:
+  ```json
+  {
+    "task": {
+      "name": "time.status",
+      "trace_id": "8f2b3c1a-..."
+    },
+    "response": {
+      "success": true,
+      "message": "Mock time config retrieved.",
+      "detail": null,
+      "errors": null,
+      "timestamp": "2026-06-24T01:00:00Z",
+      "data": {
+        "mock": true,
+        "mock_date": "2000-01-01",
+        "mock_update_time": "2026-06-24T01:00:00Z",
+        "launch_time": "2026-06-24T00:00:00Z",
+        "acceleration": 5,
+        "system_date": "2000-01-01"
+      }
+    }
+  }
+  ```
+
+#### Intent: Set Virtual Time
+* **Command**: `szcli system time set [--reset] [--mockdate YYYY-MM-DD] [--acceleration INT]`
+* **Validation Rules**:
+  * **Mock Constraint**: Unless `--reset` is specified, you **must** provide at least one of `--mockdate` or `--acceleration`.
+  * **Acceleration Bounds**: `--acceleration` must be an integer between **`1` and `10`** (inclusive).
+* **Expected Wrapped Response**:
+  ```json
+  {
+    "task": {
+      "name": "time.set",
+      "trace_id": "8f2b3c1a-..."
+    },
+    "response": {
+      "success": true,
+      "message": "System time configured successfully.",
+      "detail": null,
+      "errors": null,
+      "timestamp": "2026-06-24T01:00:00Z"
+    }
+  }
+  ```
+
+---
+
+### 🩺 Health Checks (`health` group)
+Checks component status across the cluster. Note: This is an independent group (`szcli health`), not under `system`.
+
+#### Intent: Component Diagnosis
+* **Command**: `szcli health <COMPONENT>`
+* **Valid Components**: 
+  * `all`, `cli-relay`, `db`, `redis-state`, `redis-cache`, `simulator`, `ingestor`, `analytics-api`, `dashboard`.
+* **Expected Wrapped Response**:
+  ```json
+  {
+    "task": {
+      "name": "health.all",
+      "trace_id": "8f2b3c1a-..."
+    },
+    "response": {
+      "success": true,
+      "message": "Health check completed successfully.",
+      "detail": null,
+      "errors": null,
+      "timestamp": "2026-06-24T01:00:00Z",
+      "status": {
+        "db": "healthy",
+        "redis-state": "healthy",
+        "simulator": "healthy"
+      }
+    }
+  }
+  ```
+
+---
+
+## 3. Standard Failure Scopes
+
+When a command fails on the client, relay, or downstream levels, the response parses `errors` structures:
+
+### Common Validation Error (e.g. invalid date format)
+```json
+{
+  "task": {
+    "name": "time.set",
+    "trace_id": "8f2b3c1a-..."
+  },
+  "response": {
+    "success": false,
+    "message": "Validation failed.",
+    "detail": "Invalid input format.",
+    "errors": {
+      "field": "mock_date",
+      "summary": "Invalid value",
+      "detail": "Invalid date format. Expected 'YYYY-MM-DD'."
+    },
+    "timestamp": "2026-06-24T01:00:00Z"
+  }
+}
+```
+
+---
+
+## 4. AI Runbook Recipes (Scenario Patterns)
+
+### Recipe A: Clean Cold-Start Seeding and Verification
+Used by test agents to start from a clean slate, travel to a target time, ingest data, and verify.
+
+1. **Perform Database Reset**:
+   ```bash
+   szcli db reset
+   # (Interactive confirmation required; execute manually)
+   ```
+2. **Configure Target Timeline**:
+   ```bash
+   szcli -o json system time set --mockdate 2000-01-01 --acceleration 5
+   # Assert .response.success == true
+   ```
+3. **Verify Empty State**:
+   ```bash
+   szcli -o json dataflow verify 2000-01-01
+   # Assert .response.success == true AND .response.data.aggregated_cases == null
+   ```
+4. **Trigger Generation**:
+   ```bash
+   szcli -o json dataflow simulate 2000-01-01
+   # Assert .response.success == true
+   ```
+5. **Poll and Assert Persistence**:
+   ```bash
+   szcli -o json dataflow verify 2000-01-01
+   # Assert .response.success == true AND .response.data.aggregated_cases > 0
+   ```

@@ -70,7 +70,7 @@ The service's core intent is to provide a flexible "Time Machine" that allows th
 | Dependency | Type | Description |
 | :--- | :--- | :--- |
 | **Control Plane** (CLI) | Trigger | The primary activator, triggered via the SafeZone CLI. |
-| **Local File System** | Source (Input) | Depends on the mounted `covid_data.csv`. |
+| **Local File System** | Source (Input) | Depends on the environment-specific `covid_data.csv` (mounted based on environment: `smoke-test`, `dev`, or `staging`). |
 | **Data Ingestor** | Downstream (Sink) | The sole receiver for simulated data. |
 
 ## 5. TDD Convergence Boundaries
@@ -100,5 +100,5 @@ Any modifications to this service must satisfy these "Physical Red Walls":
     *   **Why**: Increases controllability and supports manual replay for any time point, centralizing scheduling logic.
 
 ## 7. External Links
-*   **Data Source**: `SafeZone/data/covid_data.csv`
+*   **Data Source**: `SafeZone/data/{smoke-test,dev,staging}/covid_data.csv` (scoped by year bands: 1970/2000/2023~)
 *   **Trigger Tool**: [SafeZone CLI (szcli)](safechord.safezone.toolkit.cli.md)
