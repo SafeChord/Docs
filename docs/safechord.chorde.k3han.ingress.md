@@ -143,5 +143,5 @@ The following matrix documents verified boundaries enforcing the design constrai
 ---
 
 ## 5. Knowledge Map References
-- **Ingress Configuration Manifests**: [Chorde/gitops/k3han/manifests/](file:///home/bradyhau/workspace/SafeChord/Chorde/gitops/k3han/manifests/)
-- **Infrastructure Firewall Specs**: [Chorde/cluster/k3han/ansible/gce_firewall.yaml](file:///home/bradyhau/workspace/SafeChord/Chorde/cluster/k3han/ansible/gce_firewall.yaml)
+- **Ingress Configuration Manifests**: [Chorde/gitops/k3han/manifests/](https://github.com/SafeChord/Chorde/tree/main/gitops/k3han/manifests/)
+- **Infrastructure Firewall Specs**: [Chorde/cluster/k3han/ansible/gce_firewall.yaml](https://github.com/SafeChord/Chorde/blob/main/cluster/k3han/ansible/gce_firewall.yaml)
