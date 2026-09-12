@@ -1,5 +1,5 @@
 ---
-title: 'KDD 2.0: Two-Engine CLI & Headless Collaboration'
+title: 'KDD 2.0: Two-Engine Collaboration'
 doc_id: safechord.kdd.practice
 last_updated: '2026-09-12'
 status: active
@@ -8,12 +8,11 @@ authors:
   - Gemini CLI
   - Claude Opus 5
 context_scope: Methodology
-summary: Defines the Two-Engine collaboration model for SafeChord. Seats are assigned by whether failure announces itself: implementation is fenced by TDD and runs at lower effort, while review and reconciliation have no executable oracle and take the strongest model in an isolated session. Covers the dual-track workflow, ticket lifecycle, and handoff protocols.
+summary: Defines the Two-Engine collaboration model for SafeChord. Specifies the Pioneer and Settler seats and their current carriers, the dual-track workflow and its ticket lifecycle, the Git commit and handoff protocols, and the operational templates for each artifact.
 keywords:
   - Two-Engine
   - Claude Code
   - Git Commit Protocol
-  - Headless Development
   - Legacy Handoff
   - Ticket Lifecycle
 logical_path: SafeChord.KDD.Practice
@@ -25,9 +24,13 @@ archetype: script
 code_paths: []
 ---
 
-# KDD 2.0 Practice: Two-Engine & Headless Development
+# KDD 2.0 Practice: Two-Engine Development
 
-SafeChord development runs on a **"Two-Engine"** model: the human holds the Architect seat, and two AI seats split the work by whether their failures announce themselves.
+SafeChord development runs on a **"Two-Engine"** model: a Pioneer seat for implementation and a Settler seat for review and solidification.
+
+> **⚙️ This document is in an adjustment period.** The two-engine seating, the ticket lifecycle, and the templates in §4 were all introduced in v0.4.0 and have not yet been through a full cycle. Expect rough edges.
+>
+> **If a template or a step does not fit the work in front of you, say so rather than working around it silently.** A mismatch between this document and what actually happens is a defect in the document until it has been argued otherwise — raise it with the human, and it gets fixed here.
 
 ---
 
@@ -37,83 +40,48 @@ SafeChord development runs on a **"Two-Engine"** model: the human holds the Arch
 
 | Role | Capability Required | Current Carrier | Core Responsibility |
 | :--- | :--- | :--- | :--- |
-| **🏛️ Architect** | — | **Human** | **Strategy & Trade-offs**: priorities, tech stack, what gets built and why. |
 | **🛡️ Pioneer** | Implementation throughput; failures are caught by tests | Claude Code · **Opus 5 / medium effort** | **Implementation & Problem Solving**: code, spikes, complex debugging. |
-| **🧠 Settler** | Repo comprehension and long-horizon focus; nothing else catches its mistakes | Claude Code · **Opus 5 / high effort** | **Review & Solidification**: test planning, code review, documentation reconciliation. |
+| **🧠 Settler** | Repo comprehension and long-horizon focus; nothing else catches its mistakes | Claude Code · **Opus 5 / high effort** | **Review & Solidification**: test planning, code review, documentation reconciliation, and driving the [delivery workflow](safechord.safezone.delivery.workflow.md). |
 
-**Capability Required is the contract; Current Carrier is an implementation detail.** A carrier can be swapped without touching the seat. The previous revision bound seats to product names, and when one product was discontinued the role definition had no field that turned red — the outage went unnoticed for three months.
+**Capability Required is the contract; Current Carrier is an implementation detail.** Swap a carrier without touching the seat.
 
-### 1.2 Why the seats split this way
+### 1.2 Review runs in its own session
 
-Review draws the stronger configuration, not implementation. This inverts the intuition that implementation is the hard part.
+**Code review must not share a session with the implementation it reviews** — even when both seats run on the same carrier.
 
-| | Executable oracle | Failure mode | Consequence |
-| :--- | :--- | :--- | :--- |
-| **Implementation** | Yes — tests, the thing runs or does not | Loud, immediate | A weaker configuration is survivable; errors self-report |
-| **Review / reconciliation** | None | Silent, surfaces weeks later | Requires the strongest configuration available |
-
-Implementation errors hit the **Physical Red Walls** that `safechord.kdd.introduction.md` §3 describes. Review has no equivalent wall — the model is the only line of defence.
-
-> **The dichotomy is a simplification.** An oracle catches "does it run"; it does not catch architecture drift, a re-implemented utility, or a cross-repo contract quietly altered. Implementation has silent failures too, and they cluster in repo comprehension — which is why the Pioneer seat lowers effort rather than model tier.
-
-### 1.3 Review runs in its own session
-
-**Code review must not share a session with the implementation it reviews** — even when both seats run on the same product.
-
-The reason has nothing to do with model strength: a review sharing context with the implementation inherits the implementer's blind spots. A session that just finished writing a piece of code is the session least qualified to review it. This makes deliberate session rotation a protocol requirement rather than personal hygiene — see §2's handoff triggers.
-
-**The requirement is scoped to review, and does not extend to the Settler's other duties.** Fresh context cuts in opposite directions depending on the task:
-
-| Task | Fresh context is |
-| :--- | :--- |
-| Reviewing an implementation | An **asset** — the reviewer does not inherit the author's assumptions |
-| Reconciling a settled decision into the SSOT | A **liability** — the work is faithful transcription, and a session that must first re-derive what was meant introduces drift |
-
-Reconciliation is not a check. The judgement already happened, under Architect review, before the decision was settled. What reconciliation owes is fidelity, and fidelity is better served by the context that holds the decision.
+Scoped to review. It does not extend to the Settler's other duties: reconciliation and test planning may run in the session that holds the context.
 
 ---
 
 ## 2. Communication Interface & Protocols
 
-In a headless environment, standardized protocols are essential for information exchange between agents.
+Standardized protocols carry information between agents and across sessions.
+
+### 🎫 The Ticket
+A ticket is the head of any implementation, and the anchor everything else is traced back to.
+*   **Medium**: a GitHub issue in the repository the work lands in.
+*   **Purpose**: the basis for implementation. It is the grain that commits (too fine) and the project docs (end state only) both miss.
+*   **Required Content**: [see template](#-github-issue-template)
 
 ### 🟢 Basic Communication: Git Commit Protocol
-For routine iterations without formal handoffs, the **Git Commit Message** is the bridge between agents and humans.
-*   **Principle**: Messages must include "Intent" and "Architectural Impact."
-*   **Format**: Strict adherence to [Conventional Commits](https://www.conventionalcommits.org/).
-*   **Agent Obligation**: Settler reviews the commits filed under a ticket. Before tickets existed this was an inference from commit history; it is now a query.
+*   **Medium**: git
+*   **Purpose**: the fine-grained carrier during implementation.
+*   **Format**: strict [Conventional Commits](https://www.conventionalcommits.org/).
+*   **Required Content**: [see template](#-git-commit-template)
 
-### 🔴 The Handoff Protocol (Legacy Notes)
+### 🔴 The Handoff Protocol
 *   **Medium**: Markdown files stored in `.ai-session-handoffs/`.
-*   **Counterparty**: The next session, or another agent. **Both are the same act** — work continues in a context that does not contain the current one.
-*   **Trigger Conditions**: two kinds, and both must be honoured.
-
-    **Reactive** — something external forces the transfer:
+*   **Purpose**: the carrier across AI tool sessions. The counterparty may be the next session or another agent.
+*   **Example triggers**:
     - Pioneer completes a spike or phase of development.
     - An agent hits errors outside its operational scope.
-    - Human intervention requires a task handover.
-
-    **Deliberate** — the session is ended on purpose:
-    - Context has grown long enough to degrade, and a fresh session should continue. **This is the most frequent trigger in practice**, and it usually means the same agent in a new session, not a different agent.
-
-*   **Sufficiency test**: the note must carry enough that discarding the current context is safe. Not a complete record — a sufficient one.
-*   **Required Content**:
-    1.  **Status/Summary**: Date, direction (From/To), branch status, and progress.
-    2.  **What Changed**: File paths and core structural changes.
-    3.  **Verified Path**: What has been proven to work? (Crucial for deadlock handoffs).
-    4.  **Unverified / Uncertain**: What was not checked, and what the author is unsure of.
-    5.  **Next Actions**: Clear instructions and verification criteria for the next agent.
-
-> **⚠️ Who writes the note.** A Legacy Note is lossy compression — an entire session squeezed into a few hundred words. When the trigger is context degradation, the note is authored by the session in its worst state, and what it omits is never discovered. That is the textbook shape of a silent failure.
->
-> Three mitigations, cheapest first: (1) the **Unverified / Uncertain** field above, which forces blind spots to be named — it fills the gap between "proven" and "known dead end"; (2) checkpoint on a schedule rather than on hitting a wall; (3) have a clean session reconstruct state from the ticket's commits and diffs instead of trusting the old session's self-report. The third only became practical once tickets bounded *which* commits to read.
-
-> **Quota note**: context growth raises input tokens every turn and is the quietest drain on the weekly allowance. Rotating sessions is a cost control, not only a quality one.
+    - Human intervention calls for a handover (usually once context has grown long enough to degrade).
+*   **Required Content**: [see template](#-handoff-template)
 
 ### ⚪ Design Drafts
-For strategic decisions or complex refactoring, a **Design Draft** serves as the blueprint for the Pioneer.
 *   **Medium**: Markdown files stored in `.ai-session-drafts/`.
-*   **Required Content**: Background, Proposed Solution, Blueprint (mock code/schemas), Trade-offs, and Next Steps.
+*   **Purpose**: continuity for forward-looking discussion that does not touch the codebase directly. Usually precedes opening a ticket.
+*   **Required Content**: [see template](#-draft-template)
 
 ---
 
@@ -121,7 +89,7 @@ For strategic decisions or complex refactoring, a **Design Draft** serves as the
 
 SafeChord employs a label-based **Dual-Track Workflow** to balance "Docs-First" rigor with "Spike-First" agility.
 
-### 3.1 The discriminator sits at the back end
+### 3.1 Choosing the path
 
 The two paths are **not** told apart by how much planning happened up front. They are told apart by one question, answerable when the ticket is opened:
 
@@ -134,55 +102,49 @@ That answer decides what reconciliation *is* — a check, or an act of authorshi
 | `kdd:forward` | Yes | **Verification** — confirm the code matches the spec; amend the spec where it diverged |
 | `kdd:spike` | No | **Authorship** — write the result back as a new SSOT node |
 
-> **A Design Draft does not make a task `kdd:forward`.** Path B step 1 explicitly produces one. A draft holds *a decision not yet made* — a hypothesis, not a contract. "Without documentation constraints" means no `Docs/` blueprint the code must conform to; it has never meant "write nothing down first."
+The label tells the Pioneer where to look: `kdd:forward` → read the blueprint first and implement to it; `kdd:spike` → do not go searching `Docs/`, it comes back empty.
 
-### 3.2 The ticket
-
-**Both paths open a ticket**, before implementation starts. It serves three purposes:
-
-1.  **Provisional identity**: a spike explores a node that does not exist on the knowledge tree yet, so there is no `doc_id` to anchor to. The ticket fills that vacuum until reconciliation settles it into one.
-2.  **Traceability**: `doc_id` records the end state, ADRs record only the path that worked, commits are too granular, and a Legacy Note fires only on exceptions. Nothing else holds *one thing from start to finish*. `safechord.kdd.introduction.md` §4 promises that every adjustment leaves a trace; this is the missing grain.
-3.  **Agent boundary**: a stable container that spans sessions. A ticket may collect many Legacy Notes — the ticket is the container, a handoff is the baton.
-
-**Close condition, uniform across both paths: reconciliation complete.** A ticket's lifetime therefore equals one unit of knowledge travelling from undefined to settled.
-
-Changes with no documentation impact — CI bumps, path fixes, dependency chores — carry no `kdd:` label, skip reconciliation, and close on merge.
-
-> **The label's job is to tell the Pioneer whether a spec exists to conform to**, not to predict difficulty. `kdd:forward` → read the blueprint first and implement to it. `kdd:spike` → do not go looking in `Docs/`; the search would come back empty.
->
-> The label applied at ticket-open is a guess. The Settler learns the truth during reconciliation, and a `kdd:forward` ticket whose blueprint had to be rewritten was really a spike. **The flip rate is itself a measurement** — of how mature the knowledge tree actually is. The label earns its keep by being falsifiable, not by being right.
+The Settler opens and labels the ticket; the human adjusts it where needed.
 
 ### 🟢 Path A: `kdd:forward` (Order Mode)
 Applied to optimizations of existing modules and known architecture extensions.
 **Rule**: "Docs before Code"—no implementation without an updated blueprint.
 
-1.  **Strategic Design**: Architect defines the "Why/What"; Settler updates the Markdown Knowledge Map (Blueprints/ADRs). **Ticket opened and labelled `kdd:forward`.**
+1.  **Strategic Design**: The human defines the "Why/What"; Settler updates the Markdown Knowledge Map (Blueprints/ADRs), then **opens the ticket and labels it `kdd:forward`**.
 2.  **Implementation**: Pioneer reads the blueprint, then implements code and tests strictly within the defined boundaries.
 3.  **Completion**: Pioneer submits PR and generates a Legacy Note.
-4.  **Solidification**: Settler reviews the code against the pre-defined docs, merges, and tags the version. **Reconciliation is a verification pass; amend the blueprint if the code diverged, then close the ticket.**
+4.  **Solidification**: Settler reviews the code against the pre-defined docs and merges. **Reconciliation is a verification pass; amend the blueprint if the code diverged, then close the ticket.**
 
 ### 🔴 Path B: `kdd:spike` (Frontier Mode)
 Applied to new tech integrations, unknown bug fixes, or performance stress tests.
 **Rule**: "Code before Docs"—prototyping is privileged over documentation.
 
-1.  **Strategic Design**: Architect discusses feasibility; Settler creates a Design Draft if codebase state is required. **Ticket opened and labelled `kdd:spike`.**
+1.  **Strategic Design**: The human discusses feasibility; Settler creates a Design Draft if codebase state is required, then **opens the ticket and labels it `kdd:spike`**.
 2.  **Spike**: Pioneer implements a Demo/Spike without a blueprint to conform to.
 3.  **Completion**: Pioneer submits PR and generates a detailed Legacy Note.
-4.  **Solidification**: **Critical Phase.** Settler performs the PR review and executes **Documentation Reconciliation**, reverse-engineering the spike results back into the SSOT in `Docs/`. **Settle the ticket into a `doc_id` and close it.**
-
-> **⚠️ No enforcement point exists yet.** Nothing requires the label to be applied, and nothing requires an agent to read it. Per the KDD layer, a constraint with no trigger does not execute. The labels were created to be exercised first and instrumented second — if a cycle passes with no observable effect, the finding is that this signal needs wiring into `.ai-rules.md`, not that the signal is worthless.
+4.  **Solidification**: **Critical Phase.** Settler performs the PR review and executes **Documentation Reconciliation**, reverse-engineering the spike results back into the SSOT in `Docs/`. **Settle the ticket into a new project document and close it.**
 
 ---
 
-## 4. Headless Collaboration Rules
+## 4. Operational Templates (Appendices)
 
-*   **Terminal as SSOT**: All development and testing are completed in the CLI. IDEs are for visual review only.
-*   **Review is Documentation**: Settler's review approval implicitly signals that documentation reconciliation is synchronized. A ticket that cannot be closed is therefore a visible measure of documentation debt — the drift stops being silent.
-*   **Context Efficiency**: Agents must leverage their massive context windows for cross-service impact analysis to prevent API contract breakage.
+### 🎫 GitHub Issue Template
+```markdown
+## Background
+[Why is this needed? What does the current state look like?]
 
----
+## Scope
+- In: [what this ticket touches]
+- Out: [what is explicitly excluded]
 
-## 5. Operational Templates (Appendices)
+## Done When
+- [ ] [verifiable condition 1]
+- [ ] [verifiable condition 2]
+- [ ] Reconciliation complete
+
+## References
+- Blueprint: [`kdd:forward` only — link to the Docs/ page]
+```
 
 ### 🟢 Git Commit Template
 ```text
@@ -195,13 +157,11 @@ Describe the impact on project architecture or long-term decisions.
 Context: [Ticket ID, or link to the Blueprint]
 Impact: [Specific impact on API contracts or infra]
 Test: [Verification executed] (e.g., make test-data-ingestor)
-Agent: [Pioneer / Settler — name the carrier if it is not the default]
+Agent: [Pioneer / Settler]
 Legacy: [Pending issues for the next agent]
 ```
 
-### 🔴 Handoff Template (Legacy Note)
-
-`From` / `To` carry **both** the seat and the session. The most common handoff is same seat, new session — the template must be able to say so.
+### 🔴 Handoff Template
 ```markdown
 # 📝 Legacy Note: [Task Name]
 
@@ -232,4 +192,38 @@ Legacy: [Pending issues for the next agent]
 ## Next Actions
 1. [Specific Instruction 1]
 2. [Specific Instruction 2]
+```
+
+### ⚪ Draft Template
+```markdown
+---
+title: 'Design Draft: [Topic]'
+doc_id: safechord.draft.[slug]
+last_updated: 'YYYY-MM-DD'
+status: draft
+authors: [bradyhau, <agent>]
+context_scope: [Methodology | Infrastructure | ...]
+summary: [one paragraph on what this draft decides]
+logical_path: SafeChord.Draft.[Name]
+related_docs: []
+archetype: script
+doc_version: 0.1.0
+---
+
+# Design Draft: [Topic]
+
+## 1. Background
+[What is the problem, and what constrains it?]
+
+## 2. Proposed Solution
+[The proposal, with mock code or schemas where they help]
+
+## 3. Alternatives Considered
+[What else was weighed, and why it lost]
+
+## 4. Trade-offs
+[What cost is being accepted]
+
+## 5. Next Steps
+1. [ ] [next action]
 ```
