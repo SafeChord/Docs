@@ -56,13 +56,20 @@ Implementation errors hit the **Physical Red Walls** that `safechord.kdd.introdu
 
 > **The dichotomy is a simplification.** An oracle catches "does it run"; it does not catch architecture drift, a re-implemented utility, or a cross-repo contract quietly altered. Implementation has silent failures too, and they cluster in repo comprehension — which is why the Pioneer seat lowers effort rather than model tier.
 
-### 1.3 The Settler runs in its own session
+### 1.3 Review runs in its own session
 
-Even when both seats run on the same product, **the Settler must be a separate session.**
+**Code review must not share a session with the implementation it reviews** — even when both seats run on the same product.
 
-The reason has nothing to do with model strength: a review sharing context with the implementation inherits the implementer's blind spots. A session that just finished writing a piece of code is the session least qualified to review it.
+The reason has nothing to do with model strength: a review sharing context with the implementation inherits the implementer's blind spots. A session that just finished writing a piece of code is the session least qualified to review it. This makes deliberate session rotation a protocol requirement rather than personal hygiene — see §2's handoff triggers.
 
-This makes deliberate session rotation a protocol requirement rather than personal hygiene — see §2's handoff triggers.
+**The requirement is scoped to review, and does not extend to the Settler's other duties.** Fresh context cuts in opposite directions depending on the task:
+
+| Task | Fresh context is |
+| :--- | :--- |
+| Reviewing an implementation | An **asset** — the reviewer does not inherit the author's assumptions |
+| Reconciling a settled decision into the SSOT | A **liability** — the work is faithful transcription, and a session that must first re-derive what was meant introduces drift |
+
+Reconciliation is not a check. The judgement already happened, under Architect review, before the decision was settled. What reconciliation owes is fidelity, and fidelity is better served by the context that holds the decision.
 
 ---
 
