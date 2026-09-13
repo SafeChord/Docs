@@ -72,6 +72,7 @@ nav:
   - Methodology (KDD):
       - Introduction: safechord.kdd.introduction.md
       - Practice: safechord.kdd.practice.md
+      - ChangeLog: safechord.kdd.changelog.md
 
 markdown_extensions:
   - pymdownx.superfences:

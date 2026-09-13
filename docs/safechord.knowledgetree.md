@@ -1,7 +1,7 @@
 ---
 title: SafeChord Knowledge Tree
 doc_id: safechord.knowledgetree
-last_updated: '2026-05-26'
+last_updated: '2026-09-13'
 status: active
 authors:
   - bradyhau
@@ -56,7 +56,8 @@ SafeChord utilizes a **Decoupled 4-Layer** architecture. Choose your reading pat
     *   ⬜ **Knowledge Layer (Repo: Docs)**
         *   *Focus: KDD Methodology, Standards, SSOT*
         *   [📄 safechord.kdd.introduction.md](safechord.kdd.introduction.md) (Introduction to KDD philosophy)
-        *   [📄 safechord.kdd.practice.md](safechord.kdd.practice.md) ⭐ (Practice: The Three-Engine Model & Headless Protocol)
+        *   [📄 safechord.kdd.practice.md](safechord.kdd.practice.md) ⭐ (Practice: The Two-Engine Model, Seats & Protocols)
+        *   [📄 safechord.kdd.changelog.md](safechord.kdd.changelog.md) (🔄 Collaboration Model History & Superseded Designs)
 
     *   🟦 **Application Layer (Repo: SafeZone)**
         *   *Focus: Source Code, Business Logic, AsyncIO Dataflow*
