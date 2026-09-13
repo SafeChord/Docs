@@ -19,7 +19,7 @@ logical_path: SafeChord.KDD.Practice
 related_docs:
   - safechord.kdd.introduction.md
 parent_doc: safechord.kdd.introduction
-doc_version: 0.4.1
+doc_version: 0.4.0
 archetype: script
 code_paths: []
 ---
@@ -31,12 +31,12 @@ SafeChord development runs on a **"Two-Engine"** model: a Pioneer seat for imple
 > **⚙️ This document is in an adjustment period.** The two-engine seating, the ticket lifecycle, and the templates in §4 were all introduced in v0.4.0 and have not yet been through a full cycle. Expect rough edges.
 >
 > **If a template or a step does not fit the work in front of you, say so rather than working around it silently.** A mismatch between this document and what actually happens is a defect in the document until it has been argued otherwise — raise it with the human, and it gets fixed here.
+>
+> **Do not bump `doc_version` while this notice stands.** The document holds at v0.4.0 until the adjustment period closes. Edits land under `last_updated` alone.
 
 ---
 
 ## 1. The Two-Engine Model
-
-### 1.1 Seats
 
 | Role | Capability Required | Current Carrier | Core Responsibility |
 | :--- | :--- | :--- | :--- |
@@ -47,15 +47,9 @@ SafeChord development runs on a **"Two-Engine"** model: a Pioneer seat for imple
 
 **`Docs/` belongs to the Settler.** Pioneer is read-only there. A deviation found during implementation is finished in code first, then handed off for reconciliation.
 
-**Seats are session-scoped.** One seat per session, held for its lifetime. Changing seat means a new session; carry the context across with a handoff.
+**Seats are session-scoped.** One seat per session, held for its lifetime. Changing seat means a new session; carry the context across with a handoff. Code review therefore never shares a session with the implementation it reviews — the session that wrote the code holds Pioneer, and review is the Settler's.
 
 **The default seat is Settler.** Pioneer is declared by the human at session start. An undeclared session does not write implementation code — ask first.
-
-### 1.2 Review runs in its own session
-
-**Code review must not share a session with the implementation it reviews** — even when both seats run on the same carrier.
-
-Scoped to review. It does not extend to the Settler's other duties: reconciliation and test planning may run in the session that holds the context.
 
 ---
 
