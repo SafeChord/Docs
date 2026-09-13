@@ -1,7 +1,7 @@
 ---
 title: 'KDD 2.0: Two-Engine Collaboration'
 doc_id: safechord.kdd.practice
-last_updated: '2026-09-12'
+last_updated: '2026-09-13'
 status: active
 authors:
   - bradyhau
@@ -19,7 +19,7 @@ logical_path: SafeChord.KDD.Practice
 related_docs:
   - safechord.kdd.introduction.md
 parent_doc: safechord.kdd.introduction
-doc_version: 0.4.0
+doc_version: 0.4.1
 archetype: script
 code_paths: []
 ---
@@ -41,9 +41,15 @@ SafeChord development runs on a **"Two-Engine"** model: a Pioneer seat for imple
 | Role | Capability Required | Current Carrier | Core Responsibility |
 | :--- | :--- | :--- | :--- |
 | **🛡️ Pioneer** | Implementation throughput; failures are caught by tests | Claude Code · **Opus 5 / medium effort** | **Implementation & Problem Solving**: code, spikes, complex debugging. |
-| **🧠 Settler** | Repo comprehension and long-horizon focus; nothing else catches its mistakes | Claude Code · **Opus 5 / high effort** | **Review & Solidification**: test planning, code review, documentation reconciliation, and driving the [delivery workflow](safechord.safezone.delivery.workflow.md). |
+| **🧠 Settler** | Repo comprehension and long-horizon focus; nothing else catches its mistakes | Claude Code · **Opus 5 / high effort** | **Owner of `Docs/`**, in both directions. Before the ticket: author the blueprint or draft, then open and label the ticket. After it: code review, test planning, documentation reconciliation, and driving the [delivery workflow](safechord.safezone.delivery.workflow.md). |
 
 **Capability Required is the contract; Current Carrier is an implementation detail.** Swap a carrier without touching the seat.
+
+**`Docs/` belongs to the Settler.** Pioneer is read-only there. A deviation found during implementation is finished in code first, then handed off for reconciliation.
+
+**Seats are session-scoped.** One seat per session, held for its lifetime. Changing seat means a new session; carry the context across with a handoff.
+
+**The default seat is Settler.** Pioneer is declared by the human at session start. An undeclared session does not write implementation code — ask first.
 
 ### 1.2 Review runs in its own session
 
