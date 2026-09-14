@@ -46,13 +46,19 @@ K3han utilizes a **Hub & Spoke** architecture distributed across three zones, in
 
 | Node Name | Role | Hardware (CPU / RAM) | Platform | Location | Est. Cost | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **`ct-serv-jp`** | **Control Center** | 8 vCPU / 24GB RAM (Contabo VPS) | `vm` | 🇯🇵 Japan | ⚠️ see below | ✅ Active |
+| **`ct-serv-jp`** | **Control Center** | 8 vCPU / 24GB RAM (Contabo Cloud VPS 20 NVMe) | `vm` | 🇯🇵 Japan | USD $9.55/mo ≈ NT$300 | ✅ Active |
 | **`gce-agent-tw`** | **Ingress Gateway** | 2 vCPU / 1GB RAM (GCE e2-micro) | `vm` | 🇹🇼 Taiwan | ~ NT$450/mo | ✅ Active |
 | **`acer-agent`** | **Primary Worker** | i5-8500 / 16GB RAM (N4660G) | `bare-metal` | 🇹🇼 Home Lab | $0 (Sunk Cost) | ✅ Active |
 | **`laptop-agent`** | **Spot Worker** | i7-4720HQ / 16GB RAM (MSI) | `bare-metal` | 🇹🇼 Home Lab | $0 (Sunk Cost) | ⚠️ Standby |
 | **`desktop-agent`** | **Burst Worker** | i5-13600K / 28GB RAM (Custom) | `bare-metal` | 🇹🇼 Home Lab | $0 (Sunk Cost) | ⚠️ Standby |
 
-> 🔴 **The budget red wall is currently unverifiable.** This table recorded `ct-serv-jp` as 6 vCPU / 12GB until 2026-09-14; the cluster reports **8 vCPU / 24GB**. That is a larger Contabo plan than the one the NT$350/mo figure was written against, so the strategic goal at the top of this document — total spend under NT$800/mo, which the old figures met to the exact dollar — **cannot be confirmed until someone reads the invoice.** The hardware is verified; the cost is not, and is deliberately left blank rather than guessed.
+> 💰 **Budget red wall: holds, with more headroom than the old figures showed.** This table recorded `ct-serv-jp` as 6 vCPU / 12GB at ~NT$350/mo until 2026-09-14. Both halves were wrong in the same direction — the node runs **8 vCPU / 24GB** and bills **USD $9.55/mo gross**, ≈NT$300 at NT$31/USD. More hardware for less money than the document assumed, so the NT$800/mo ceiling sits at roughly NT$750 rather than meeting it to the exact dollar.
+>
+> The spec change and the price change are one event. Contabo raised this plan from $7.95 to $9.55 effective 2026-05-07 — a hardware-cost pass-through they attribute to RAM prices under AI demand — and bundled a time-limited upgrade to a higher-spec plan at no charge beyond the new price. The upgrade is why the node outgrew its record.
+>
+> ⚠️ **The ceiling is denominated in NT$ but at least one input is billed in USD, so FX moves it on its own.** The conclusion above is robust across any plausible band (even NT$33/USD keeps this node under the old NT$350 line), but the exposure is structural rather than hypothetical, and GCE is very likely USD-billed too. Worth confirming before the ceiling is ever treated as a tight constraint.
+
+> 📝 Contabo's own hostname for this instance is `vmi2590851`, a third name for the machine alongside `ct-serv-jp` and the retired `hz-serv-sin`. Nothing depends on it — k3s pins the node name via `--node-name` — but it is what appears on invoices and in the provider console.
 
 ### Topology Visualization
 ```mermaid
