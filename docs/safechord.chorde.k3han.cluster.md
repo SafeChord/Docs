@@ -5,14 +5,17 @@ status: active
 authors:
   - bradyhau
   - Gemini CLI
-last_updated: '2026-05-02'
-summary: Defines the strategic physical topology, hardware specifications, and cost-efficiency of the K3han hybrid-cloud cluster.
+  - Claude Opus 5
+last_updated: '2026-09-14'
+summary: Defines the strategic physical topology, hardware specifications, and cost-efficiency of the K3han hybrid-cloud cluster, plus the node classification dimensions and kernel invariants every cluster node must satisfy.
 keywords:
   - K3han
   - Topology
   - Hybrid Cloud
   - Cost Control
   - Tailscale
+  - Kernel Invariants
+  - Node Platform
 logical_path: SafeChord.Chorde.K3han.Cluster
 related_docs:
   - safechord.chorde.k3han.md
@@ -23,7 +26,7 @@ archetype: brain
 code_paths:
   - Chorde/cluster/k3han
   - Chorde/gitops/k3han
-doc_version: 0.3.5
+doc_version: 0.3.7
 app_version: 0.3.0
 ---
 
@@ -39,15 +42,17 @@ K3han utilizes a **Hub & Spoke** architecture distributed across three zones, in
 
 ### 📊 Node Specifications & Cost Strategy
 
-> 💡 **Infrastructure Snapshot**: The following table aggregates the physical node configurations (as of v0.3.0). While GitOps manages the state, this table provides immediate context on the hardware capabilities.
+> 💡 **Infrastructure Snapshot**: Hardware for the three active nodes was read from the cluster API on **2026-09-14**; the two standby nodes are unverified. GitOps manages the state — this table exists so the hardware envelope is visible without querying. Per-node inventory variables live in `Chorde/cluster/k3han/ansible/inventory.ini` and are not duplicated here.
 
-| Node Name | Role | Hardware (CPU / RAM) | Location | Est. Cost | Status |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **`ct-serv-jp`** | **Control Center** | 6 vCPU / 12GB RAM (Contabo VPS) | 🇯🇵 Japan | ~ NT$350/mo | ✅ Active |
-| **`gce-agent-tw`** | **Ingress Gateway** | 2 vCPU / 1GB RAM (GCE e2-micro) | 🇹🇼 Taiwan | ~ NT$450/mo | ✅ Active |
-| **`acer-agent`** | **Primary Worker** | i5-8500 / 16GB RAM (N4660G) | 🇹🇼 Home Lab | $0 (Sunk Cost) | ✅ Active |
-| **`laptop-agent`** | **Spot Worker** | i7-4720HQ / 16GB RAM (MSI) | 🇹🇼 Home Lab | $0 (Sunk Cost) | ⚠️ Standby |
-| **`desktop-agent`** | **Burst Worker** | i5-13600K / 28GB RAM (Custom) | 🇹🇼 Home Lab | $0 (Sunk Cost) | ⚠️ Standby |
+| Node Name | Role | Hardware (CPU / RAM) | Platform | Location | Est. Cost | Status |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **`ct-serv-jp`** | **Control Center** | 8 vCPU / 24GB RAM (Contabo VPS) | `vm` | 🇯🇵 Japan | ⚠️ see below | ✅ Active |
+| **`gce-agent-tw`** | **Ingress Gateway** | 2 vCPU / 1GB RAM (GCE e2-micro) | `vm` | 🇹🇼 Taiwan | ~ NT$450/mo | ✅ Active |
+| **`acer-agent`** | **Primary Worker** | i5-8500 / 16GB RAM (N4660G) | `bare-metal` | 🇹🇼 Home Lab | $0 (Sunk Cost) | ✅ Active |
+| **`laptop-agent`** | **Spot Worker** | i7-4720HQ / 16GB RAM (MSI) | `bare-metal` | 🇹🇼 Home Lab | $0 (Sunk Cost) | ⚠️ Standby |
+| **`desktop-agent`** | **Burst Worker** | i5-13600K / 28GB RAM (Custom) | `bare-metal` | 🇹🇼 Home Lab | $0 (Sunk Cost) | ⚠️ Standby |
+
+> 🔴 **The budget red wall is currently unverifiable.** This table recorded `ct-serv-jp` as 6 vCPU / 12GB until 2026-09-14; the cluster reports **8 vCPU / 24GB**. That is a larger Contabo plan than the one the NT$350/mo figure was written against, so the strategic goal at the top of this document — total spend under NT$800/mo, which the old figures met to the exact dollar — **cannot be confirmed until someone reads the invoice.** The hardware is verified; the cost is not, and is deliberately left blank rather than guessed.
 
 ### Topology Visualization
 ```mermaid
@@ -79,7 +84,58 @@ graph TB
 
 ---
 
-## 2. Network Latency Constraints
+## 2. Node Classification Dimensions
+
+Node-lifecycle rules need a dimension that states the property they actually depend on. Two exist, both consumed by the provisioning playbook.
+
+### 2.1 `node_platform` — hardware class, not hosting location
+
+*   **Values**: `bare-metal` | `vm`
+*   **Red Wall**: **A rule that depends on hardware class must key on `node_platform`, never on `node_provider`.** The two look interchangeable and are not: `node_provider=local` records that the box sits in the operator's house, not that it is bare metal. A VM run at home is also `local`, and would inherit every bare-metal rule by accident.
+
+**First consumer: firmware tooling.** `fwupd` manages firmware a guest does not have — on `ct-serv-jp` it failed on every start — so the playbook removes it where `node_platform == 'vm'`. On bare metal it does a real job and stays.
+
+**Documented exception**: `acer-agent` is bare metal and keeps `fwupd`, but the operator maintains that machine's firmware by hand. The exception is a decision, not a property the dimension can express, which is why it is recorded here rather than inferred from the inventory.
+
+**Trade-off accepted**: a fifth per-host variable to maintain, and it takes no default — a node added without it fails the play rather than silently inheriting a lifecycle rule. Failing loudly is the point.
+
+### 2.2 Node external addressing — a publication policy, not an inventory field
+
+`Chorde` is a **public repository**. That makes recording a node's public address an editorial decision each time, not bookkeeping.
+
+*   **Red Wall**: **A node's public address is recorded only where publication is deliberate. An empty value means "not recorded here" and never "none exists".** Any tooling or reader that treats absence as absence is wrong.
+*   **Single location**: the values live in `inventory.ini` only. They are not restated in this document, so there is one place to keep correct.
+
+| Node | Recorded | Reasoning |
+| :--- | :--- | :--- |
+| `gce-agent-tw` | ✅ Yes | It is the Cloudflare origin. The value is already public in this project's issues, and the perimeter rests on the GCP firewall allowlist rather than on the address being secret — [Ingress §3](safechord.chorde.k3han.ingress.md) exists to prove direct-to-origin is dropped. |
+| `acer-agent` | ❌ Never | A dynamic residential address, which is also the operator's home. Unstable and private on two independent grounds. |
+| `ct-serv-jp` | 🟡 **Open decision** | It **does** hold a static public address. Whether to publish the sole control plane's address on a public repo has not been decided. Recorded as open so the empty value does not quietly harden into "it has none". |
+
+---
+
+## 3. Kernel Invariants (Red Walls)
+
+Two outages this month traced to kernel parameters that existed only on live hosts, set by hand, described in no document. This section is that description.
+
+*   **`fs.inotify.max_user_instances` ≥ 8192.** k3s runs every component as uid 0 and this quota is per-uid, so the stock 128 saturates within minutes on a control plane. Past saturation `inotify_init()` returns `EMFILE` for every uid-0 caller including PID 1, which wedges the node **while it stays up and reachable** — nothing alerts. `ct-serv-jp` sat wedged twice, for 11 and 16 days.
+*   **`net.ipv4.ip_forward = 1`.** Every Service and hostPort is a DNAT; the rewritten packet is no longer addressed to the host and must be forwarded. At `0` the SYN is accepted, rewritten, then dropped with no RST — a timeout, which Cloudflare reports as **522, not 521**. ICMP keeps answering throughout, so `ping` works while TCP times out. That fingerprint is what SafeZone#63 cost a day to read.
+*   **`net.ipv4.conf.{all,default}.rp_filter = 2`** (loose, not strict). The effective value is `max(conf.all, conf.<iface>)`, so `conf.all` decides. Strict mode drops packets whose source would route back out a different interface — ordinary steady state on a node running flannel VXLAN alongside Tailscale policy routing. Per-interface tuning is not an option: `veth*` are created and destroyed continuously.
+
+### The invariant is on the effective value, not on the file
+
+`sysctl --system` re-applies every file in the search path in lexical order, last write wins, and there is no notion of priority beyond the filename. **Writing a drop-in is not evidence that it won.** Assuming otherwise is the entire root cause of SafeZone#63: `gce-agent-tw`'s disk and runtime disagreed about `ip_forward` for 492 days, and the disagreement surfaced only when an unrelated reload re-asserted the image baseline.
+
+Two consequences bind any implementation:
+
+1.  **Order**: drop-ins are written **before** the reload, never after. A play that reloads first takes the public edge down for the duration.
+2.  **Proof**: the values are read back after the reload and compared. `Chorde/cluster/k3han/ansible/privision.yaml` derives its drop-in bodies, its read-back and its expected values from one map, so the three cannot drift apart.
+
+> ⚠️ **Enforcement gap, stated rather than assumed.** That playbook has never been executed — there is no ansible on any machine the project can currently reach, so the assert protecting these invariants does not run anywhere today. The red walls above are written intent with no live enforcement. **Chorde#15** owns closing that, and until it does, treat "the playbook provisions X" as "the playbook records X".
+
+---
+
+## 4. Network Latency Constraints
 
 Geographic dispersion makes **Latency** the primary design constraint for all scheduling and data-flow decisions.
 
@@ -104,7 +160,7 @@ Geographic dispersion makes **Latency** the primary design constraint for all sc
 
 ---
 
-## 3. MVA Design Philosophy
+## 5. MVA Design Philosophy
 
 1.  **Budget Precision**: Prioritize costs on Contabo (JP) for its superior RAM/CPU ratio while using GCE (TW) exclusively for low-latency network peering.
 2.  **Heterogeneity Management**: Acknowledges that the home lab node (`acer-agent`) may go offline. Therefore, critical Control Plane services are pinned to cloud nodes, while the "Compute-Heavy Tier" remains local.
@@ -112,7 +168,7 @@ Geographic dispersion makes **Latency** the primary design constraint for all sc
 
 ---
 
-## 4. References
+## 6. References
 *   **Networking Spec**: [Ingress & Perimeter Policy](safechord.chorde.k3han.ingress.md)
 *   **Orchestration Spec**: [K3han Scheduling Strategy](safechord.chorde.k3han.scheduling.md)
 *   **Source Code**: `Chorde/cluster/k3han/` (Ansible Playbooks)
