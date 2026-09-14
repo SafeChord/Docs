@@ -5,7 +5,8 @@ status: active
 authors:
   - bradyhau
   - Gemini CLI
-last_updated: '2026-06-04'
+  - Claude Opus 5
+last_updated: '2026-09-14'
 summary: Records the architectural evolution of the K3han cluster. Tracks changes in node layout, GitOps orchestration, operator management, and design philosophy shifts since v0.1.0.
 keywords:
   - K3han
@@ -19,13 +20,26 @@ related_docs:
   - safechord.chorde.k3han.md
 parent_doc: safechord.chorde.k3han
 tech_stack: []
-doc_version: 0.3.6
+doc_version: 0.3.7
 app_version: 0.3.0
 ---
 
 # K3han Platform Changelog
 
 This document tracks the significant architectural shifts of the K3han cluster, serving as a historical reference for technical debt analysis and decision tracing.
+
+---
+
+## 🔖 [v0.3.7] - 2026-09-14
+
+### 🧬 Node Dimensions & Kernel Invariants (Chorde #10, #13)
+*   **Kernel Invariants Documented**: Two outages this month (`SafeZone#63`, plus a control-plane wedge that recurred for 11 and 16 days) traced to kernel parameters that lived only on live hosts and appeared in **no document**. `inotify` quota, `ip_forward` and loose `rp_filter` are now red walls in the Cluster Brain, stated on the **effective** value rather than on the drop-in file — `sysctl --system` is last-write-wins, so writing a file was never evidence it won.
+*   **`node_platform` Dimension Added**: New inventory variable (`bare-metal` | `vm`) discriminating hardware class. Introduced because `node_provider` cannot express it — `local` records that a box sits in the operator's house, not that it is bare metal. First consumer is firmware-tooling removal on guests.
+*   **External Addressing Policy**: `node_external_ip` recorded per node, governed by a publication rule rather than treated as bookkeeping — `Chorde` is public, so an empty value means "not recorded here", never "none exists". `ct-serv-jp`'s address remains an **open decision**.
+*   **Control Plane Hardware Corrected**: `ct-serv-jp` had been recorded as 6 vCPU / 12GB since v0.3.0; the cluster reports **8 vCPU / 24GB**. The NT$800/mo budget red wall is consequently **unverified** — the old figures met it to the exact dollar, and the plan behind them is not the plan running.
+*   **Node Rename Reconciled**: `hz-serv-sin` → `ct-serv-jp`, `node_provider` `hetzner` → `contabo`, completing a migration that had lived only in the inventory.
+
+> ⚠️ **Enforcement gap**: the provisioning playbook carrying these invariants has never been executed — no ansible reaches any project machine. `Chorde#15` owns closing that; until then the invariants are written intent with no runtime assert.
 
 ---
 
