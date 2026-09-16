@@ -1,7 +1,7 @@
 ---
 title: 'KDD 2.0: Two-Engine Collaboration'
 doc_id: safechord.kdd.practice
-last_updated: '2026-09-13'
+last_updated: '2026-09-16'
 status: active
 authors:
   - bradyhau
@@ -126,6 +126,71 @@ Applied to new tech integrations, unknown bug fixes, or performance stress tests
 
 ---
 
+### 3.2 Routing a review finding
+
+Step 4 of both paths ends in review and then in merge. What happens in between is decided by one question:
+
+> **Does fixing this require knowing why the code was written that way?**
+
+| Route | Condition | Who acts |
+| :--- | :--- | :--- |
+| **Settler fixes it** | The file is byte-identical outside comment and documentation text | Settler commits on the PR branch |
+| **Back to Pioneer** | Anything that condition excludes | Pioneer — how far back is below |
+| **Deferred** | Not a defect: a decision, or work outside this ticket's scope | Open a ticket, link it, merge proceeds |
+
+The first route's condition is mechanical, not a judgment call. If one byte that ansible, the kernel, or a runtime reads has changed, the finding is not on that route. Checking it takes the shape it took on `Chorde` PR #14: parse both versions and compare structure, then compare the sources with comments stripped.
+
+Three obligations attach to that route, so a misroute is cheap to catch and cheap to undo:
+
+1.  Review fixes are their own commit, never folded into a Pioneer commit.
+2.  The trailer reads `Agent: Settler (review fix)`.
+3.  The commit's `Impact:` and `Test:` fields carry the verification, so the human audits by reading rather than by re-running.
+
+Once a finding is Pioneer's, how far back it goes depends on what the fix touches:
+
+| The fix touches | Route |
+| :--- | :--- |
+| No test | Pioneer fixes it; no report needed |
+| A test no page in `Docs/` points at | Pioneer fixes it; no report needed |
+| A test that enforces a statement in `Docs/` | Scope change — back to the ticket |
+| The blueprint itself | Open a new ticket |
+
+**Delegating a fix to a subagent does not change the seat.** The human declares the seat at session start, so spawning one to write implementation code launders the seat rather than changing it. The same holds in the other direction: a subagent a Pioneer session spawns to read its own diff is a self-check, not review, because it cannot hold merge. Either seat may use subagents to organize its own work; neither can use one to stand in for the other party.
+
+### 3.3 What `Docs/` owns, and what tests follow from it
+
+A test either traces to a statement in `Docs/` or it does not, and that is the only distinction this workflow draws. **Tests are not assigned an owner.**
+
+*   **Traces to `Docs/`** — loosening or deleting it is a change to the specification, and goes back to the ticket.
+*   **Traces to nothing** — engineering's own. Whoever is working the code adds, changes and removes it freely.
+
+What rises to `Docs/` as specification is what a product owner would hand an engineer: what the system must do, in the language of the product. Boundary cases, exception handling, defensive checks and refactor safety nets are engineering's own and are not itemized here.
+
+**The correspondence is declared from the document, not from the test.** The page holding a specification lists the enforcing tests in its `code_paths`. A test no page points at is engineering's own by default, and needs no marker of its own.
+
+This makes the two paths differ in timing without needing a separate rule for each:
+
+*   `kdd:forward` — the specification exists before work starts, so the Settler writes its tests before the code does. It can only write them against the document, and that forced black box is the point.
+*   `kdd:spike` — there is no specification yet, so the Pioneer writes every test. At reconciliation the Settler decides which of them encode a real constraint; those are adopted **as they are** and added to the page's `code_paths`, not rewritten.
+
+A test adopted that way was written by its own author, so it carries none of the black-box property on the round that produced it. It gains it on the next one: from then on, loosening it is a change to the document.
+
+**Deciding that something does _not_ rise to `Docs/` requires a reason. Deciding that it does, does not.** Promotion adds a red wall and costs the Settler the work of maintaining its test, so the standing incentive is to promote too little. The asymmetry is the counterweight, and the accumulated reasons are where the project's actual threshold becomes visible.
+
+For a test that traces to `Docs/`, changing it is likewise not symmetric:
+
+| Action | Stated in the commit |
+| :--- | :--- |
+| Adding a test | No |
+| Tightening a condition | No |
+| Loosening or deleting one | **Yes** |
+
+Moving toward strictness carries no incentive to cheat; moving toward looseness does. The failure mode worth guarding against is not a plainly wrong condition — that exposes itself — but a roughly-right one loosened slightly and repeatedly, with no single step large enough to feel worth recording.
+
+Separately, and for **any** test traced or not: **changing a test so that it passes is the review's first question.** Review reads the test diff apart from the code diff, which is the whole mechanism this needs.
+
+---
+
 ## 4. Operational Templates (Appendices)
 
 ### 🎫 GitHub Issue Template
@@ -157,7 +222,7 @@ Describe the impact on project architecture or long-term decisions.
 Context: [Ticket ID, or link to the Blueprint]
 Impact: [Specific impact on API contracts or infra]
 Test: [Verification executed] (e.g., make test-data-ingestor)
-Agent: [Pioneer / Settler]
+Agent: [Pioneer / Settler / Settler (review fix)]
 Legacy: [Pending issues for the next agent]
 ```
 
