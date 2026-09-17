@@ -52,6 +52,10 @@ SafeChord 的開發跑在 **「雙引擎」** 模型上：開拓者席負責實�
     - 開拓者完成一個 Spike 或開發階段。
     - 代理遇到其操作範圍外的錯誤。
     - 人類介入要求任務移交(通常是 Context 已經長到開始劣化)。
+*   **兩個方向都適用**: GitHub 放摘要，handoff 放詳情。
+    - 開拓者 → 維護者：PR description，每次都另寫 handoff。
+    - 維護者 → 開拓者：PR review comment。只有在開拓者 session 叫不回來、必須開新 session 從頭接手時，才另寫 handoff。
+*   **叫回 session**: 因里程碑、卡關或人類移交而交接的 session，可以用筆記裡的 `Resume:` 指令叫回來，例如修正審查發現的問題。因 Context 劣化而交接的 session 就此退休，不再叫回。
 *   **必要內容**: [參考範本](#-handoff-範本)
 
 ### ⚪ 設計草稿
@@ -104,7 +108,7 @@ SafeChord 採用基於標籤的 **雙軌工作流程**，以平衡「文件優�
 
 審查時，測試的 diff 與程式的 diff 分開讀。為了讓測試通過而修改測試，是第一個要追問的地方。
 
-**發現的問題退回開拓者修。** 開拓者在 PR branch 上修正，修正需要的測試一併處理，維護者再審一次後合併。
+**發現的問題以 PR review comment 退回開拓者修**（見[交接協定](#-交接協定)）。開拓者在 PR branch 上修正，修正需要的測試一併處理，維護者再審一次後合併。
 
 **有些問題在這張票裡改不動。** 開拓者不修改也不開立票：它在目前的票上留 comment，寫明發現了什麼、為什麼，然後繼續做其他部分。票的處理由維護者負責：
 
@@ -162,8 +166,9 @@ Legacy: [留待下一個代理處理的待辦事項]
 # 📝 Legacy Note: [Task Name]
 
 > **Date**: YYYY-MM-DD
-> **From**: [Seat] / [session id or descriptor]
-> **To**: [Seat] / [new session]
+> **From**: [Seat] / [Carrier] / [session id]
+> **Resume**: [command that resumes this session in its tool]
+> **To**: [Seat] / [new session, or blank if not yet known]
 > **Trigger**: [Reactive: milestone | blocked | human handover] or [Deliberate: context degradation]
 > **Ticket**: [Ticket ID]
 > **Branch**: [Branch Name]

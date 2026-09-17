@@ -78,6 +78,10 @@ A ticket is the head of any implementation, and the anchor everything else is tr
     - Pioneer completes a spike or phase of development.
     - An agent hits errors outside its operational scope.
     - Human intervention calls for a handover (usually once context has grown long enough to degrade).
+*   **Both directions**: GitHub carries the summary and the handoff carries the detail.
+    - Pioneer → Settler: the PR description, plus a handoff every time.
+    - Settler → Pioneer: a PR review comment. Add a handoff only when the Pioneer session cannot be resumed and a new session has to start without its context.
+*   **Resuming**: a session handed off on a reactive trigger can be resumed with the note's `Resume:` command, for example to fix review findings. A session handed off for context degradation is retired and not resumed.
 *   **Required Content**: [see template](#-handoff-template)
 
 ### ⚪ Design Drafts
@@ -130,7 +134,7 @@ Applied to new tech integrations, unknown bug fixes, or performance stress tests
 
 Review reads the test diff separately from the code diff. A test changed so that it passes is the first thing to question.
 
-**Findings go back to the Pioneer.** The Pioneer fixes them on the PR branch, including any tests the fix needs, and the Settler reviews again before merging.
+**Findings go back to the Pioneer** as a PR review comment (see the [handoff protocol](#-the-handoff-protocol)). The Pioneer fixes them on the PR branch, including any tests the fix needs, and the Settler reviews again before merging.
 
 **Some findings cannot be fixed within the ticket.** The Pioneer does not edit or open tickets: it comments on the current ticket with what it found and why, and continues with the rest of the work. The Settler handles the ticket side:
 
@@ -188,8 +192,9 @@ Legacy: [Pending issues for the next agent]
 # 📝 Legacy Note: [Task Name]
 
 > **Date**: YYYY-MM-DD
-> **From**: [Seat] / [session id or descriptor]
-> **To**: [Seat] / [new session]
+> **From**: [Seat] / [Carrier] / [session id]
+> **Resume**: [command that resumes this session in its tool]
+> **To**: [Seat] / [new session, or blank if not yet known]
 > **Trigger**: [Reactive: milestone | blocked | human handover] or [Deliberate: context degradation]
 > **Ticket**: [Ticket ID]
 > **Branch**: [Branch Name]
