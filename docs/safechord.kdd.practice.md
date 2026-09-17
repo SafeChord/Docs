@@ -40,8 +40,8 @@ SafeChord development runs on a **"Two-Engine"** model: a Pioneer seat for imple
 
 | Role | Capability Required | Current Carrier | Core Responsibility |
 | :--- | :--- | :--- | :--- |
-| **🛡️ Pioneer** | Implementation throughput; failures are caught by tests | Claude Code · **Opus 5 / medium effort** | **Implementation & Problem Solving**: code, spikes, complex debugging. |
-| **🧠 Settler** | Repo comprehension and long-horizon focus; nothing else catches its mistakes | Claude Code · **Opus 5 / high effort** | **Owner of `Docs/`**, in both directions. Before the ticket: author the blueprint or draft, then open and label the ticket. After it: code review, test planning, documentation reconciliation, and driving the [delivery workflow](safechord.safezone.delivery.workflow.md). |
+| **🛡️ Pioneer** | Implementation throughput; failures are caught by tests | Antigravity CLI · **Gemini Flash / high effort** | **Implementation & Problem Solving**: code, spikes, complex debugging. |
+| **🧠 Settler** | Repo comprehension and long-horizon focus; nothing else catches its mistakes | Claude Code · **Opus / high effort** | **Owner of `Docs/`**, in both directions. Before the ticket: author the blueprint or draft, then open and label the ticket. After it: code review, test planning, documentation reconciliation, and driving the [delivery workflow](safechord.safezone.delivery.workflow.md). |
 
 **Capability Required is the contract; Current Carrier is an implementation detail.** Swap a carrier without touching the seat.
 
@@ -50,8 +50,6 @@ SafeChord development runs on a **"Two-Engine"** model: a Pioneer seat for imple
 **`Docs/` belongs to the Settler.** Pioneer is read-only there. A deviation found during implementation is finished in code first, then handed off for reconciliation.
 
 **Seats are session-scoped.** One seat per session, held for its lifetime. Changing seat means a new session; carry the context across with a handoff. Code review therefore never shares a session with the implementation it reviews — the session that wrote the code holds Pioneer, and review is the Settler's.
-
-**The default seat is Settler.** Pioneer is declared by the human at session start. An undeclared session does not write implementation code — ask first.
 
 ---
 
