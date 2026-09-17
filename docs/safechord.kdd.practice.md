@@ -1,7 +1,7 @@
 ---
 title: 'KDD 2.0: Two-Engine Collaboration'
 doc_id: safechord.kdd.practice
-last_updated: '2026-09-16'
+last_updated: '2026-09-17'
 status: active
 authors:
   - bradyhau
@@ -44,6 +44,8 @@ SafeChord development runs on a **"Two-Engine"** model: a Pioneer seat for imple
 | **🧠 Settler** | Repo comprehension and long-horizon focus; nothing else catches its mistakes | Claude Code · **Opus 5 / high effort** | **Owner of `Docs/`**, in both directions. Before the ticket: author the blueprint or draft, then open and label the ticket. After it: code review, test planning, documentation reconciliation, and driving the [delivery workflow](safechord.safezone.delivery.workflow.md). |
 
 **Capability Required is the contract; Current Carrier is an implementation detail.** Swap a carrier without touching the seat.
+
+**The Pioneer leans toward working on its own; the Settler leans toward working with the human in the loop.** A Pioneer usually carries a ticket through without the human. A Settler brings a decision to the human whenever it is not clearly its own to make.
 
 **`Docs/` belongs to the Settler.** Pioneer is read-only there. A deviation found during implementation is finished in code first, then handed off for reconciliation.
 
@@ -110,8 +112,8 @@ The Settler opens and labels the ticket; the human adjusts it where needed.
 Applied to optimizations of existing modules and known architecture extensions.
 **Rule**: "Docs before Code"—no implementation without an updated blueprint.
 
-1.  **Strategic Design**: The human defines the "Why/What"; Settler updates the Markdown Knowledge Map (Blueprints/ADRs), then **opens the ticket and labels it `kdd:forward`**.
-2.  **Implementation**: Pioneer reads the blueprint, then implements code and tests strictly within the defined boundaries.
+1.  **Strategic Design**: The human defines the "Why/What"; Settler updates the Markdown Knowledge Map (Blueprints/ADRs) and writes the tests that enforce the blueprint's TDD Convergence Boundaries (the section listing the constraints tests must hold), then **opens the ticket and labels it `kdd:forward`**.
+2.  **Implementation**: Pioneer reads the blueprint and implements code that passes those tests, adding its own tests as the work needs, strictly within the defined boundaries.
 3.  **Completion**: Pioneer submits PR and generates a Legacy Note.
 4.  **Solidification**: Settler reviews the code against the pre-defined docs and merges. **Reconciliation is a verification pass; amend the blueprint if the code diverged, then close the ticket.**
 
@@ -120,74 +122,29 @@ Applied to new tech integrations, unknown bug fixes, or performance stress tests
 **Rule**: "Code before Docs"—prototyping is privileged over documentation.
 
 1.  **Strategic Design**: The human discusses feasibility; Settler creates a Design Draft if codebase state is required, then **opens the ticket and labels it `kdd:spike`**.
-2.  **Spike**: Pioneer implements a Demo/Spike without a blueprint to conform to.
+2.  **Spike**: Pioneer implements a Demo/Spike without a blueprint to conform to, and writes all of its tests.
 3.  **Completion**: Pioneer submits PR and generates a detailed Legacy Note.
-4.  **Solidification**: **Critical Phase.** Settler performs the PR review and executes **Documentation Reconciliation**, reverse-engineering the spike results back into the SSOT in `Docs/`. **Settle the ticket into a new project document and close it.**
+4.  **Solidification**: **Critical Phase.** Settler performs the PR review and executes **Documentation Reconciliation**, reverse-engineering the spike results back into the SSOT in `Docs/`. Constraints worth keeping become the new document's TDD Convergence Boundaries; spike tests that already enforce them are kept as written. **Settle the ticket into a new project document and close it.**
 
----
+### 3.2 Handling review findings
 
-### 3.2 Routing a review finding
+Review reads the test diff separately from the code diff. A test changed so that it passes is the first thing to question.
 
-Step 4 of both paths ends in review and then in merge. What happens in between is decided by one question:
+**Findings go back to the Pioneer.** The Pioneer fixes them on the PR branch, including any tests the fix needs, and the Settler reviews again before merging.
 
-> **Does fixing this require knowing why the code was written that way?**
+**Some findings cannot be fixed within the ticket.** The Pioneer does not edit or open tickets: it comments on the current ticket with what it found and why, and continues with the rest of the work. The Settler handles the ticket side:
 
-| Route | Condition | Who acts |
-| :--- | :--- | :--- |
-| **Settler fixes it** | The file is byte-identical outside comment and documentation text | Settler commits on the PR branch |
-| **Back to Pioneer** | Anything that condition excludes | Pioneer — how far back is below |
-| **Deferred** | Not a defect: a decision, or work outside this ticket's scope | Open a ticket, link it, merge proceeds |
-
-The first route's condition is mechanical, not a judgment call. If one byte that ansible, the kernel, or a runtime reads has changed, the finding is not on that route. Checking it takes the shape it took on `Chorde` PR #14: parse both versions and compare structure, then compare the sources with comments stripped.
-
-Three obligations attach to that route, so a misroute is cheap to catch and cheap to undo:
-
-1.  Review fixes are their own commit, never folded into a Pioneer commit.
-2.  The trailer reads `Agent: Settler (review fix)`.
-3.  The commit's `Impact:` and `Test:` fields carry the verification, so the human audits by reading rather than by re-running.
-
-Once a finding is Pioneer's, how far back it goes depends on what the fix touches:
-
-| The fix touches | Route |
+| The finding | Settler |
 | :--- | :--- |
-| No test | Pioneer fixes it; no report needed |
-| A test no page in `Docs/` points at | Pioneer fixes it; no report needed |
-| A test that enforces a statement in `Docs/` | Scope change — back to the ticket |
-| The blueprint itself | Open a new ticket |
+| The fix requires loosening a constraint in the blueprint's TDD Convergence Boundaries, or a test that enforces one | Takes it to the human before any fix |
+| The blueprint itself is wrong | Opens a new ticket for the blueprint |
+| It is a decision still to be made, or work outside this ticket | Opens a new ticket, links it, and merges the PR without it |
 
-**Delegating a fix to a subagent does not change the seat.** The human declares the seat at session start, so spawning one to write implementation code launders the seat rather than changing it. The same holds in the other direction: a subagent a Pioneer session spawns to read its own diff is a self-check, not review, because it cannot hold merge. Either seat may use subagents to organize its own work; neither can use one to stand in for the other party.
+**Exception: fixes that change no behavior.** If a fix touches only comments or documentation and cannot change what the code does, the Settler commits it directly. If the Settler is not sure, it asks the human. The commit:
 
-### 3.3 What `Docs/` owns, and what tests follow from it
-
-A test either traces to a statement in `Docs/` or it does not, and that is the only distinction this workflow draws. **Tests are not assigned an owner.**
-
-*   **Traces to `Docs/`** — loosening or deleting it is a change to the specification, and goes back to the ticket.
-*   **Traces to nothing** — engineering's own. Whoever is working the code adds, changes and removes it freely.
-
-What rises to `Docs/` as specification is what a product owner would hand an engineer: what the system must do, in the language of the product. Boundary cases, exception handling, defensive checks and refactor safety nets are engineering's own and are not itemized here.
-
-**The correspondence is declared from the document, not from the test.** The page holding a specification lists the enforcing tests in its `code_paths`. A test no page points at is engineering's own by default, and needs no marker of its own.
-
-This makes the two paths differ in timing without needing a separate rule for each:
-
-*   `kdd:forward` — the specification exists before work starts, so the Settler writes its tests before the code does. It can only write them against the document, and that forced black box is the point.
-*   `kdd:spike` — there is no specification yet, so the Pioneer writes every test. At reconciliation the Settler decides which of them encode a real constraint; those are adopted **as they are** and added to the page's `code_paths`, not rewritten.
-
-A test adopted that way was written by its own author, so it carries none of the black-box property on the round that produced it. It gains it on the next one: from then on, loosening it is a change to the document.
-
-**Deciding that something does _not_ rise to `Docs/` requires a reason. Deciding that it does, does not.** Promotion adds a red wall and costs the Settler the work of maintaining its test, so the standing incentive is to promote too little. The asymmetry is the counterweight, and the accumulated reasons are where the project's actual threshold becomes visible.
-
-For a test that traces to `Docs/`, changing it is likewise not symmetric:
-
-| Action | Stated in the commit |
-| :--- | :--- |
-| Adding a test | No |
-| Tightening a condition | No |
-| Loosening or deleting one | **Yes** |
-
-Moving toward strictness carries no incentive to cheat; moving toward looseness does. The failure mode worth guarding against is not a plainly wrong condition — that exposes itself — but a roughly-right one loosened slightly and repeatedly, with no single step large enough to feel worth recording.
-
-Separately, and for **any** test traced or not: **changing a test so that it passes is the review's first question.** Review reads the test diff apart from the code diff, which is the whole mechanism this needs.
+1.  stands alone, never folded into a Pioneer commit;
+2.  carries the trailer `Agent: Settler (review fix)`;
+3.  states in `Impact:` why the change affects no behavior, so it can be audited by reading.
 
 ---
 
