@@ -35,6 +35,7 @@ SafeChord 的開發跑在 **「雙引擎」** 模型上：開拓者席負責實�
 票是任何實作的開頭 是後續追蹤時做起點的依據
 *   **媒介**: 工作所在 repository 的 GitHub issue。
 *   **目的**: 作為實作依據, 補的是 commit（太細）與專案文件（只有終態）都漏掉的那層粒度。
+*   **份量**: 票幾乎是永久的，所以只放對日後讀者有追溯價值的內容：問題、決策與理由、範圍、Done When。只為這次任務對齊席位用的 context（推測的機制、調查細節、設計建議、未驗證項目、實作順序）放進 handoff。
 *   **必要內容**: [參考範本](#-github-issue-範本)
 
 ### 🟢 基本溝通：Git Commit 協定
@@ -51,8 +52,11 @@ SafeChord 的開發跑在 **「雙引擎」** 模型上：開拓者席負責實�
     - 代理遇到其操作範圍外的錯誤。
     - 人類介入要求任務移交(通常是 Context 已經長到開始劣化)。
 *   **兩個方向都適用**: GitHub 放摘要，handoff 放詳情。
+    - 維護者 → 開拓者（開工）：票；維護者判斷光靠票 context 不夠時，另寫 handoff。
     - 開拓者 → 維護者：PR description，每次都另寫 handoff。
-    - 維護者 → 開拓者：PR review comment。只有在開拓者 session 叫不回來、必須開新 session 從頭接手時，才另寫 handoff。
+    - 維護者 → 開拓者（審查）：PR review comment。只有在開拓者 session 叫不回來、必須開新 session 從頭接手時，才另寫 handoff。
+*   **生命週期**: handoff 跟著任務走。PR merge、票關閉、reconciliation 落進 `Docs/` 之後就刪除；harness 的 git history 會留著，需要時可以找回。
+*   **連結方向**: handoff 指向票，票不反指。看得到 handoff 的人一定找得到票，看得到票的人卻不一定看得到 handoff；而且 handoff 刪除後，永久的票上會留下一條死連結。有對應的票時，檔名帶上小寫的 `<repo>-<issue_no>`（例如 `2026-09-19-safezone-64-worker-offset-commit.md`），從票這端用 `ls .ai-session-handoffs | grep safezone-64-` 就能找到。
 *   **叫回 session**: 因里程碑、卡關或人類移交而交接的 session，可以用筆記裡的 `Resume:` 指令叫回來，例如修正審查發現的問題。因 Context 劣化而交接的 session 就此退休，不再叫回。
 *   **必要內容**: [參考範本](#-handoff-範本)
 
@@ -168,7 +172,7 @@ Legacy: [留待下一個代理處理的待辦事項]
 > **Resume**: [command that resumes this session in its tool]
 > **To**: [Seat] / [new session, or blank if not yet known]
 > **Trigger**: [Reactive: milestone | blocked | human handover] or [Deliberate: context degradation]
-> **Ticket**: [Ticket ID]
+> **Ticket**: [<repo>-<issue_no>，例如 safezone-64；沒有就留空]
 > **Branch**: [Branch Name]
 > **Action Required**: [Brief summary]
 

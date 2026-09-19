@@ -1,7 +1,7 @@
 ---
 title: 'KDD 2.0: Two-Engine Collaboration'
 doc_id: safechord.kdd.practice
-last_updated: '2026-09-17'
+last_updated: '2026-09-19'
 status: active
 authors:
   - bradyhau
@@ -61,6 +61,7 @@ Standardized protocols carry information between agents and across sessions.
 A ticket is the head of any implementation, and the anchor everything else is traced back to.
 *   **Medium**: a GitHub issue in the repository the work lands in.
 *   **Purpose**: the basis for implementation. It is the grain that commits (too fine) and the project docs (end state only) both miss.
+*   **Weight**: a ticket is near-permanent, so it holds only what has trace value for a later reader: the problem, the decisions and their reasons, the scope, and Done When. Context that only aligns the seats for this task (inferred mechanisms, investigation detail, design suggestions, unverified items, implementation order) goes in the handoff.
 *   **Required Content**: [see template](#-github-issue-template)
 
 ### 🟢 Basic Communication: Git Commit Protocol
@@ -77,8 +78,11 @@ A ticket is the head of any implementation, and the anchor everything else is tr
     - An agent hits errors outside its operational scope.
     - Human intervention calls for a handover (usually once context has grown long enough to degrade).
 *   **Both directions**: GitHub carries the summary and the handoff carries the detail.
+    - Settler → Pioneer, at kickoff: the ticket, plus a handoff when the Settler judges the ticket alone leaves the Pioneer short of context.
     - Pioneer → Settler: the PR description, plus a handoff every time.
-    - Settler → Pioneer: a PR review comment. Add a handoff only when the Pioneer session cannot be resumed and a new session has to start without its context.
+    - Settler → Pioneer, in review: a PR review comment. Add a handoff only when the Pioneer session cannot be resumed and a new session has to start without its context.
+*   **Lifecycle**: a handoff lives with its task. Delete it once the PR is merged, the ticket is closed, and reconciliation has landed in `Docs/`; the harness git history keeps it recoverable.
+*   **Linking**: the handoff points at the ticket, never the reverse. Anyone who can read a handoff can reach the ticket, but a ticket reader may not see the handoff, and a link on a permanent ticket would dangle once the handoff is deleted. When a ticket exists, the filename carries `<repo>-<issue_no>` in lowercase (e.g. `2026-09-19-safezone-64-worker-offset-commit.md`), so `ls .ai-session-handoffs | grep safezone-64-` finds it from the ticket side.
 *   **Resuming**: a session handed off on a reactive trigger can be resumed with the note's `Resume:` command, for example to fix review findings. A session handed off for context degradation is retired and not resumed.
 *   **Required Content**: [see template](#-handoff-template)
 
@@ -194,7 +198,7 @@ Legacy: [Pending issues for the next agent]
 > **Resume**: [command that resumes this session in its tool]
 > **To**: [Seat] / [new session, or blank if not yet known]
 > **Trigger**: [Reactive: milestone | blocked | human handover] or [Deliberate: context degradation]
-> **Ticket**: [Ticket ID]
+> **Ticket**: [<repo>-<issue_no>, e.g. safezone-64; blank if none]
 > **Branch**: [Branch Name]
 > **Action Required**: [Brief summary]
 
