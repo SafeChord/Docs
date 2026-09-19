@@ -5,7 +5,7 @@ status: active
 authors:
   - bradyhau
   - Gemini CLI
-last_updated: '2026-05-06'
+last_updated: '2026-09-19'
 summary: Navigation map and architectural decision records for SafeZone's deployment layer. Covers the tiered Helm chart structure, the DAG-based deployment phase ordering, and how physical cluster constraints (cross-border latency, service dependencies) drive the design of SafeZone-Deploy.
 keywords:
   - Deployment
@@ -125,4 +125,5 @@ The `safezone-worker` service uses KEDA to auto-scale based on Kafka consumer la
 
 *   **Decision**: Worker replicas are driven by Kafka lag metrics, not CPU/memory.
 *   **Rationale**: The Primary DB is on `ct-serv-jp` (Japan), ~80ms from the Taiwan worker nodes. Under burst ingestion, synchronous write throughput is physically bounded by this latency. Kafka absorbs the burst; KEDA scales workers to drain the queue at a rate the cross-border link can sustain. Without this buffer, high-frequency ingest events would saturate DB connections during spikes.
+*   **Replica ownership**: At runtime, KEDA owns the worker Deployment's `/spec/replicas`; the chart's value is only the initial count on first creation. Every environment's core Application therefore declares that field in `ignoreDifferences` and syncs with `RespectIgnoreDifferences=true`. Without both, ArgoCD self-heal treats each scale-up as drift and reverts it, and any sync from an unrelated change resets the count ([SafeZone-Deploy#15](https://github.com/SafeChord/SafeZone-Deploy/issues/15)).
 *   **Reference**: [K3han Cluster Topology](safechord.chorde.k3han.cluster.md) — cross-border latency constraints.
