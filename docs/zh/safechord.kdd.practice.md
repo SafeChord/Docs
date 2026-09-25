@@ -25,6 +25,8 @@ SafeChord 的開發跑在 **「雙引擎」** 模型上：開拓者席負責實�
 
 **席位綁定在 session 上。** 一個 session 持一個席位，持到結束。換席位就是換 session，用交接把 context 帶過去。因此程式碼審查不會跟它所審查的實作共用 session——寫程式碼的那個 session 持開拓者，而審查是維護者的事。
 
+**唯一的例外：只有人類抓得到錯的工作。** 如果沒有任何測試能抓到執行者的錯，開拓者的能力契約就不成立。這時由維護者執行，人類擔任獨立的審查者。見 [§3.3](#33-選擇執行者)。
+
 ---
 
 ## 2. 溝通介面與協定
@@ -54,6 +56,7 @@ SafeChord 的開發跑在 **「雙引擎」** 模型上：開拓者席負責實�
 *   **兩個方向都適用**: GitHub 放摘要，handoff 放詳情。
     - 維護者 → 開拓者（開工）：票；維護者判斷光靠票 context 不夠時，另寫 handoff。
     - 開拓者 → 維護者：PR description，每次都另寫 handoff。
+    - `exec:settler` 的工作：只需要 PR description。人類是唯一的審查者，沒有第二個席位需要交接（§3.3）。
     - 維護者 → 開拓者（審查）：PR review comment。只有在開拓者 session 叫不回來、必須開新 session 從頭接手時，才另寫 handoff。
 *   **生命週期**: handoff 跟著任務走。PR merge、票關閉、reconciliation 落進 `Docs/` 之後就刪除；harness 的 git history 會留著，需要時可以找回。
 *   **連結方向**: handoff 指向票，票不反指。看得到 handoff 的人一定找得到票，看得到票的人卻不一定看得到 handoff；而且 handoff 刪除後，永久的票上會留下一條死連結。有對應的票時，檔名帶上小寫的 `<repo>-<issue_no>`（例如 `2026-09-19-safezone-64-worker-offset-commit.md`），從票這端用 `ls .ai-session-handoffs | grep safezone-64-` 就能找到。
@@ -125,6 +128,39 @@ SafeChord 採用基於標籤的 **雙軌工作流程**，以平衡「文件優�
 1.  自成一個，不併入開拓者的 commit；
 2.  帶 trailer `Agent: Settler (review fix)`；
 3.  在 `Impact:` 寫明為什麼這個修改不影響行為，讓人用讀的就能稽核。
+
+### 3.3 選擇執行者
+
+§3.1 決定 reconciliation **是什麼**。另一個問題決定**誰來執行**，同樣在開票時回答：
+
+> **執行者犯的錯，除了人類以外，還有別的東西抓得到嗎？**
+
+| 答案 | 執行者 | 票的 label |
+| :--- | :--- | :--- |
+| 抓得到：測試、`helm template`、CI、preview deploy | 開拓者（照上面兩條路徑） | 無 |
+| 抓不到：live 系統狀態，或決策和量測交錯進行 | **維護者** | `exec:settler` |
+
+兩個問題彼此獨立，label 可以自由組合，例如 `kdd:spike` + `exec:settler`。
+
+**用什麼取代席位分離。** 分離席位是為了讓做事的 session 不審查自己的成果。在 `exec:settler` 下這個獨立性不存在了，所以由人類明確接手審查。人類一旦簽核，就要為這次變更負責。
+
+1.  **每次變更都要簽核。** 任何會改動 live 狀態的動作，執行前都要人類確認。
+2.  **讀回證據。** 每次變更前後都擷取狀態。reconciliation 引用的是量到的值，不是打算設的值。能先寫測試就先寫：變更前紅，變更後綠。
+3.  **範圍外的工作切出去。** 中途冒出來、能用測試守住的工作（chart、應用程式碼），另開票給開拓者，維護者不順手做掉。
+
+**PR。** 維護者開 PR 時掛上 `review:human` label，並在開頭放這段警語：
+
+```markdown
+> ⚠️ **Executed by the Settler.** No independent agent review took place; the executor and
+> reviewer are the same seat. The human reviewer is the only independent check, and signing
+> off transfers accountability to them.
+```
+
+**簽核。** 人類審查完後加上 `signed-off:human`。GitHub 會記錄是誰、在什麼時候加了 label，所以簽核成為一個獨立、可稽核的動作，跟 merge 分開。之所以用 label，是因為 PR 作者不能 approve 自己的 PR，而這裡的 PR 全都是從人類的帳號開的。
+
+🛑 **維護者絕不加 `signed-off:human`。** agent 的動作都用人類的 GitHub 帳號執行，維護者加的 label 看起來會跟人類的簽名一模一樣。只有人類自己加，這個 label 才有意義。
+
+**Reconciliation 的時機。** 在 `exec:settler` 下，PR 還開著時就可以寫 `Docs/`，因為同一個 session 同時握有證據和撰寫權。但 Docs 的 commit 要等 PR 有了 `signed-off:human` 才能 push。
 
 ---
 

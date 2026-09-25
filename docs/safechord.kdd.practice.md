@@ -1,12 +1,13 @@
 ---
 title: 'KDD 2.0: Two-Engine Collaboration'
 doc_id: safechord.kdd.practice
-last_updated: '2026-09-25'
+last_updated: '2026-09-26'
 status: active
 authors:
   - bradyhau
   - Gemini CLI
   - Claude Opus 5
+  - Claude Opus 5.5
 context_scope: Methodology
 summary: Defines the Two-Engine collaboration model for SafeChord. Specifies the Pioneer and Settler seats and their current carriers, the dual-track workflow and its ticket lifecycle, the Git commit and handoff protocols, and the operational templates for each artifact.
 keywords:
@@ -51,6 +52,8 @@ SafeChord development runs on a **"Two-Engine"** model: a Pioneer seat for imple
 
 **Seats are session-scoped.** One seat per session, held for its lifetime. Changing seat means a new session; carry the context across with a handoff. Code review therefore never shares a session with the implementation it reviews — the session that wrote the code holds Pioneer, and review is the Settler's.
 
+**The one exception: work nothing but the human can check.** When no test catches the executor's mistakes, the Pioneer's capability contract does not hold, so the Settler executes, and the human becomes the independent reviewer. See [§3.3](#33-choosing-the-executor).
+
 ---
 
 ## 2. Communication Interface & Protocols
@@ -80,6 +83,7 @@ A ticket is the head of any implementation, and the anchor everything else is tr
 *   **Both directions**: GitHub carries the summary and the handoff carries the detail.
     - Settler → Pioneer, at kickoff: the ticket, plus a handoff when the Settler judges the ticket alone leaves the Pioneer short of context.
     - Pioneer → Settler: the PR description, plus a handoff every time.
+    - `exec:settler` work: the PR description alone. The human is the only reviewer, and there is no second seat to hand to (§3.3).
     - Settler → Pioneer, in review: a PR review comment. Add a handoff only when the Pioneer session cannot be resumed and a new session has to start without its context.
 *   **Lifecycle**: a handoff lives with its task. Delete it once the PR is merged, the ticket is closed, and reconciliation has landed in `Docs/`; the harness git history keeps it recoverable.
 *   **Linking**: the handoff points at the ticket, never the reverse. Anyone who can read a handoff can reach the ticket, but a ticket reader may not see the handoff, and a link on a permanent ticket would dangle once the handoff is deleted. When a ticket exists, the filename carries `<repo>-<issue_no>` in lowercase (e.g. `2026-09-19-safezone-64-worker-offset-commit.md`), so `ls .ai-session-handoffs | grep safezone-64-` finds it from the ticket side.
@@ -154,6 +158,39 @@ Review reads the test diff separately from the code diff. A test changed so that
 1.  stands alone, never folded into a Pioneer commit;
 2.  carries the trailer `Agent: Settler (review fix)`;
 3.  states in `Impact:` why the change affects no behavior, so it can be audited by reading.
+
+### 3.3 Choosing the executor
+
+§3.1 decides what reconciliation *is*. A separate question, also answered when the ticket is opened, decides **who executes**:
+
+> **Can anything other than the human catch the executor's mistakes?**
+
+| Answer | Executor | Ticket label |
+| :--- | :--- | :--- |
+| Yes: tests, `helm template`, CI, a preview deploy | Pioneer (the paths above) | none |
+| No: live system state, or decisions that interleave with measurement | **Settler** | `exec:settler` |
+
+The two questions are independent, so the labels combine freely: a ticket can be `kdd:spike` + `exec:settler`.
+
+**What replaces seat separation.** Separation exists so the session that did the work never reviews it. Under `exec:settler` that independence is gone, so the human takes it over explicitly, and signing off makes the human accountable for the change.
+
+1.  **Per-mutation sign-off.** Every action that changes live state is confirmed by the human before it runs.
+2.  **Read-back evidence.** State is captured before and after each change. Reconciliation cites measured values, never intended ones. Tests come first where they can: red before the change, green after.
+3.  **Scope ejection.** Anything testable that surfaces mid-task (chart changes, application code) goes to a new ticket for the Pioneer. The Settler does not absorb it.
+
+**The PR.** The Settler opens it with the label `review:human` and this header:
+
+```markdown
+> ⚠️ **Executed by the Settler.** No independent agent review took place; the executor and
+> reviewer are the same seat. The human reviewer is the only independent check, and signing
+> off transfers accountability to them.
+```
+
+**The sign-off.** After review, the human adds `signed-off:human`. GitHub records who added a label and when, which makes the sign-off a separate, auditable act from the merge. A label is used because the PR author cannot approve their own PR, and every PR here is authored from the human's account.
+
+🛑 **The Settler never adds `signed-off:human`.** Agent actions run under the human's GitHub account, so a label the Settler added would look exactly like the human's signature. The label means something only if the human alone applies it.
+
+**Reconciliation timing.** Under `exec:settler`, `Docs/` may be written while the PR is open, because the same session holds both the evidence and the authorship. Docs commits are not pushed until the PR carries `signed-off:human`.
 
 ---
 

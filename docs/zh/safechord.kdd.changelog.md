@@ -22,7 +22,7 @@ diff 摘要不屬於這裡。git 已經按 commit 持有改動與其理由；ent
 
 **雙引擎模型。** 尚未落成 entry。`practice.md` 的調整期告示還掛著，模型還在動；這則 entry 等告示撤掉才寫。
 
-在那之前的來源：`.ai-session-drafts/kdd/2026-09-12-engine-realignment-and-model-routing.md`、`.ai-session-drafts/kdd/2026-09-12-practice-reconciliation-plan.md`，以及 `practice.md` 上從 `14ebec0` 起的那串 commit。
+在那之前的來源：`.ai-session-drafts/kdd/2026-09-12-engine-realignment-and-model-routing.md`、`.ai-session-drafts/kdd/2026-09-12-practice-reconciliation-plan.md`、`.ai-session-drafts/kdd/2026-09-25-settler-execution.md`（執行者維度，§3.3），以及 `practice.md` 上從 `14ebec0` 起的那串 commit。
 
 ---
 
