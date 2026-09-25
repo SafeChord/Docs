@@ -1,7 +1,7 @@
 ---
 title: SafeChord Knowledge Tree
 doc_id: safechord.knowledgetree
-last_updated: '2026-09-13'
+last_updated: '2026-09-26'
 status: active
 authors:
   - bradyhau
@@ -88,6 +88,7 @@ SafeChord utilizes a **Decoupled 4-Layer** architecture. Choose your reading pat
         *   [📄 safechord.chorde.k3han.md](safechord.chorde.k3han.md) ⭐ (K3han: Hybrid-Cloud Cluster Navigation)
             *   [📄 safechord.chorde.k3han.cluster.md](safechord.chorde.k3han.cluster.md) ⭐ (Physical Topology, Latency Matrix, & Tailscale SDN)
             *   [📄 safechord.chorde.k3han.ingress.md](safechord.chorde.k3han.ingress.md) (Ingress Perimeter: Dual-Channel Isolation)
+            *   [📄 safechord.chorde.k3han.network.md](safechord.chorde.k3han.network.md) (Pod Data Path: flannel as CNI, Tailscale as Transport)
             *   [📄 safechord.chorde.k3han.scheduling.md](safechord.chorde.k3han.scheduling.md) ⭐ (Scheduler: Reliability Tiers & Taints Policy)
             *   [📄 safechord.chorde.k3han.monitoring.md](safechord.chorde.k3han.monitoring.md) (Observability: Loki & Prometheus Operator)
             *   [📄 safechord.chorde.k3han.changelog.md](safechord.chorde.k3han.changelog.md) (🔄 Platform Version Evolution)
