@@ -17,6 +17,7 @@
 | :--- | :--- | :--- | :--- |
 | **拓樸** | [**叢集策略**](safechord.chorde.k3han.cluster.md) | **硬體與 Mesh**。定義 Contabo / GCE / 本地端節點規格、地理分佈以及 Tailscale Mesh 架構。 | `Brain` |
 | **網路** | [**流量進入政策**](safechord.chorde.k3han.ingress.md) | **流量進入**。定義公/私雙通道策略、SSL 終止以及防火牆強化。 | `Brain` |
+| **網路** | [**Pod 資料路徑與 CNI**](safechord.chorde.k3han.network.md) | **東西向流量**。pod 流量如何跨節點：flannel 作為 CNI、Tailscale subnet routes 作為傳輸，以及兩者之間的 invariant。 | `Brain` |
 | **編排** | [**排程邏輯**](safechord.chorde.k3han.scheduling.md) | **資源放置**。說明資料本地性決策（資料庫放置）與控制平面隔離（Taints）。 | `Brain` |
 | **可觀測性** | [**監控棧**](safechord.chorde.k3han.monitoring.md) | **遙測**。定義 Prometheus / Loki 棧與多維度日誌收集模式。 | `Brain` |
 | **歷史** | [**變更日誌**](safechord.chorde.k3han.changelog.md) | **演進**。記錄 K3han 從 v0.1.0 到 v0.3.x 的架構變遷。 | `Timeline` |

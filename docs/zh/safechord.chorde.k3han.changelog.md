@@ -4,6 +4,17 @@
 
 ---
 
+## 🔖 [v0.3.8] - 2026-09-25
+
+### 🔀 Pod 資料路徑正式宣告 (Chorde #16)
+*   **不存在的 overlay**：跨節點的 pod 流量從來沒有走過 flannel 的 VXLAN backend。每台節點把自己的 pod CIDR 宣告成 Tailscale subnet route，Tailscale 的 policy rule 搶在 flannel 的路由之前接管這些網段。所有節點的 `flannel.1` 開機至今都收到 0 byte。flannel 仍然是 CNI（IPAM、`cni0`、iptables），閒置的只有它的傳輸層。新增 brain：[Pod 資料路徑與 CNI](safechord.chorde.k3han.network.md)。
+*   **來源 IP 恢復**：在 `acer-agent` 上，Tailscale 的 subnet SNAT 把每一個跨節點 client 都改寫成該節點的 `cni0` 位址。NetworkPolicy 的判決不受影響，應用程式則受到影響。現在所有節點都設了 `--snat-subnet-routes=false`，並以 27 組 policy 探測矩陣確認修正。
+*   **Playbook 能重現網路了**：它原本靠 Traefik 的 svclb pod 推測 pod CIDR（Traefik 已停用，所以永遠拿到空值），再用 `tailscale up` 搭配 `ignore_errors` 宣告。現在改讀 `.spec.podCIDR`、改用 `tailscale set`，並在最後以 gate 驗證 kernel 的路由決定。
+*   **Kernel invariants**：新增 `bridge-nf-call-iptables = 1`，同節點的 NetworkPolicy 靠它才成立。`rp_filter` 的理由已更正：loose 模式是讓跨節點 pod 流量活下來的必要條件，不是為了容忍 overlay 的雜訊。
+*   **重新檢視 PMTUD**：`cni0`→`tailscale0` 的 MTU 落差位於第一跳，ICMP 從不離開節點，黑洞問題不適用。刻意不設 `tcp_mtu_probing`。
+
+---
+
 ## 🔖 [v0.3.6] - 2026-06-04
 
 ### 🌐 NGINX Gateway Fabric & Gateway API 遷移 (Issue #4, #6)
