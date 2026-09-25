@@ -6,7 +6,7 @@ authors:
   - bradyhau
   - Gemini CLI
   - Claude Opus 5
-last_updated: '2026-09-14'
+last_updated: '2026-09-25'
 summary: Records the architectural evolution of the K3han cluster. Tracks changes in node layout, GitOps orchestration, operator management, and design philosophy shifts since v0.1.0.
 keywords:
   - K3han
@@ -20,13 +20,24 @@ related_docs:
   - safechord.chorde.k3han.md
 parent_doc: safechord.chorde.k3han
 tech_stack: []
-doc_version: 0.3.7
+doc_version: 0.3.8
 app_version: 0.3.0
 ---
 
 # K3han Platform Changelog
 
 This document tracks the significant architectural shifts of the K3han cluster, serving as a historical reference for technical debt analysis and decision tracing.
+
+---
+
+## 🔖 [v0.3.8] - 2026-09-25
+
+### 🔀 Pod Data Path Declared (Chorde #16)
+*   **The overlay that wasn't**: cross-node pod traffic has never used flannel's VXLAN backend. Each node advertises its pod CIDR as a Tailscale subnet route, and Tailscale's policy rule claims those prefixes ahead of flannel's routes. `flannel.1` has received 0 bytes since boot on every node. flannel stays the CNI (IPAM, `cni0`, iptables); only its transport is idle. New brain: [Pod Data Path & CNI](safechord.chorde.k3han.network.md).
+*   **Source IPs restored**: on `acer-agent`, Tailscale's subnet SNAT had rewritten every cross-node client to the node's `cni0` address. NetworkPolicy verdicts were unaffected; the applications were not. `--snat-subnet-routes=false` is now set on all nodes, and a 27-probe policy matrix confirmed the fix.
+*   **Playbook made able to reproduce the network**: it had inferred pod CIDRs from Traefik's svclb pods (Traefik is disabled, so it always got nothing) and advertised them with `tailscale up` under `ignore_errors`. It now reads `.spec.podCIDR`, uses `tailscale set`, and ends with a gate asserting the kernel's routing decision.
+*   **Kernel invariants**: `bridge-nf-call-iptables = 1` added, since same-node NetworkPolicy depends on it. `rp_filter`'s rationale was corrected: loose mode is what keeps cross-node pod traffic alive, not a tolerance for overlay noise.
+*   **PMTUD re-examined**: the `cni0`→`tailscale0` MTU step sits on the first hop, so the ICMP never leaves the node and the black-hole failure mode does not apply. `tcp_mtu_probing` was deliberately left out.
 
 ---
 

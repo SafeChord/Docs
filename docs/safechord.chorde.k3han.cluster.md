@@ -6,7 +6,8 @@ authors:
   - bradyhau
   - Gemini CLI
   - Claude Opus 5
-last_updated: '2026-09-14'
+  - Claude Opus 5.5
+last_updated: '2026-09-25'
 summary: Defines the strategic physical topology, hardware specifications, and cost-efficiency of the K3han hybrid-cloud cluster, plus the node classification dimensions and kernel invariants every cluster node must satisfy.
 keywords:
   - K3han
@@ -26,7 +27,7 @@ archetype: brain
 code_paths:
   - Chorde/cluster/k3han
   - Chorde/gitops/k3han
-doc_version: 0.3.7
+doc_version: 0.3.8
 app_version: 0.3.0
 ---
 
@@ -119,7 +120,8 @@ Two outages this month traced to kernel parameters that existed only on live hos
 
 *   **`fs.inotify.max_user_instances` ≥ 8192.** k3s runs every component as uid 0 and this quota is per-uid, so the stock 128 saturates within minutes on a control plane. Past saturation `inotify_init()` returns `EMFILE` for every uid-0 caller including PID 1, which wedges the node **while it stays up and reachable** — nothing alerts. `ct-serv-jp` sat wedged twice, for 11 and 16 days.
 *   **`net.ipv4.ip_forward = 1`.** Every Service and hostPort is a DNAT; the rewritten packet is no longer addressed to the host and must be forwarded. At `0` the SYN is accepted, rewritten, then dropped with no RST — a timeout, which Cloudflare reports as **522, not 521**. ICMP keeps answering throughout, so `ping` works while TCP times out. That fingerprint is what SafeZone#63 cost a day to read.
-*   **`net.ipv4.conf.{all,default}.rp_filter = 2`** (loose, not strict). The effective value is `max(conf.all, conf.<iface>)`, so `conf.all` decides. Strict mode drops packets whose source would route back out a different interface — ordinary steady state on a node running flannel VXLAN alongside Tailscale policy routing. Per-interface tuning is not an option: `veth*` are created and destroyed continuously.
+*   **`net.ipv4.conf.{all,default}.rp_filter = 2`** (loose, not strict). The effective value is `max(conf.all, conf.<iface>)`, so `conf.all` decides. Cross-node pod packets arrive on `tailscale0`, because Tailscale's table 52 carries the pod CIDRs, but the reverse route for their pod source in the main table is flannel's `via flannel.1`. The interface differs, so strict mode drops **every** cross-node pod packet. Loose mode is what keeps pod networking up at all; it is not a tolerance for overlay noise. Per-interface tuning is not an option: `veth*` are created and destroyed continuously. See [Pod Data Path §2.3](safechord.chorde.k3han.network.md).
+*   **`net.bridge.bridge-nf-call-iptables = 1`**. Same-node pod traffic is switched at L2 inside the `cni0` bridge and never reaches IP forwarding. This setting hands it to iptables anyway, and that is the only reason NetworkPolicy sees same-node traffic at all. At `0`, same-node policy stops applying with no error, and `kubectl get netpol` still lists every policy. The key exists only while `br_netfilter` is loaded, so the module is loaded and persisted before the sysctl baseline runs.
 
 ### The invariant is on the effective value, not on the file
 
@@ -169,5 +171,6 @@ Geographic dispersion makes **Latency** the primary design constraint for all sc
 
 ## 6. References
 *   **Networking Spec**: [Ingress & Perimeter Policy](safechord.chorde.k3han.ingress.md)
+*   **Pod Data Path**: [Pod Data Path & CNI](safechord.chorde.k3han.network.md)
 *   **Orchestration Spec**: [K3han Scheduling Strategy](safechord.chorde.k3han.scheduling.md)
 *   **Source Code**: `Chorde/cluster/k3han/` (Ansible Playbooks)
