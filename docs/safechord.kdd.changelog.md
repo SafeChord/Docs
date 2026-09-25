@@ -54,8 +54,8 @@ into a churn log. Until the notice comes down, the reasoning lives in the drafts
 **The two-engine model.** No entry yet. The adjustment notice in `practice.md` is still
 standing and the model is still moving; this entry lands when the notice comes down.
 
-Sources in the meantime: `.ai-session-drafts/2026-09-12-engine-realignment-and-model-routing.md`,
-`.ai-session-drafts/2026-09-12-practice-reconciliation-plan.md`, and the commits from
+Sources in the meantime: `.ai-session-drafts/kdd/2026-09-12-engine-realignment-and-model-routing.md`,
+`.ai-session-drafts/kdd/2026-09-12-practice-reconciliation-plan.md`, and the commits from
 `14ebec0` onward on `practice.md`.
 
 ---

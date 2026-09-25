@@ -1,7 +1,7 @@
 ---
 title: 'KDD 2.0: Two-Engine Collaboration'
 doc_id: safechord.kdd.practice
-last_updated: '2026-09-19'
+last_updated: '2026-09-25'
 status: active
 authors:
   - bradyhau
@@ -87,7 +87,10 @@ A ticket is the head of any implementation, and the anchor everything else is tr
 *   **Required Content**: [see template](#-handoff-template)
 
 ### ⚪ Design Drafts
-*   **Medium**: Markdown files stored in `.ai-session-drafts/`.
+*   **Medium**: Markdown files stored in `.ai-session-drafts/<domain>/`, where the domain is one of
+    `kdd/` (practice, seats, review flow), `delivery/` (release workflow, gates, soak),
+    `platform/` (networking, ingress, security, observability) or `app/` (SafeZone code: debugging and
+    improvement).
 *   **Purpose**: continuity for forward-looking discussion that does not touch the codebase directly. Usually precedes opening a ticket.
 *   **Required Content**: [see template](#-draft-template)
 

@@ -61,7 +61,7 @@ SafeChord 的開發跑在 **「雙引擎」** 模型上：開拓者席負責實�
 *   **必要內容**: [參考範本](#-handoff-範本)
 
 ### ⚪ 設計草稿
-*   **媒介**: 存放在 `.ai-session-drafts/` 的 Markdown 檔案。
+*   **媒介**: 存放在 `.ai-session-drafts/<domain>/` 的 Markdown 檔案。domain 分四類：`kdd/`（practice、seat、審查流程）、`delivery/`（release workflow、gate、soak）、`platform/`（網路、ingress、安全、可觀測性）、`app/`（SafeZone 程式的 debug 與改進）。
 *   **目的**: 在任何不直接影響 codebase 的前瞻討論須要有延續時，通常出現在開票之前。
 *   **必要內容**: [參考範本](#-draft-範本)
 
