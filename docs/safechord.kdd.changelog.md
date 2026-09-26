@@ -56,7 +56,7 @@ standing and the model is still moving; this entry lands when the notice comes d
 
 Sources in the meantime: `.ai-session-drafts/kdd/2026-09-12-engine-realignment-and-model-routing.md`,
 `.ai-session-drafts/kdd/2026-09-12-practice-reconciliation-plan.md`,
-`.ai-session-drafts/kdd/2026-09-25-settler-execution.md` (the executor axis, §3.3), and the commits from
+`.ai-session-drafts/kdd/2026-09-25-settler-execution.md` at harness `05b9251` (the executor axis, §3.3; deleted after adoption, recover from harness history), and the commits from
 `14ebec0` onward on `practice.md`.
 
 ---
