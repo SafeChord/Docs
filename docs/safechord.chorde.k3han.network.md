@@ -224,8 +224,12 @@ and leave via `flannel.1`.
     *   *Replace the CNI* (Cilium, `--flannel-backend=none`): a live CNI swap across
         borders, to remove an overlay that costs nothing.
 *   **Cost.**
-    *   Correct routing rests on Tailscale's rule preference, an upstream constant under
-        open discussion ([tailscale#6231](https://github.com/tailscale/tailscale/issues/6231)).
+    *   Correct routing rests on Tailscale's rule preference, an upstream behaviour.
+        [tailscale#6231](https://github.com/tailscale/tailscale/issues/6231) (open since
+        2022) asks to drop it. Tailscale's stated position is that it is intentional: it
+        stops a local network from taking over an advertised route. flannel's main-table
+        route is exactly that case. The fix Tailscale proposed keeps table 52 and adds
+        same-LAN detection. It has had no maintainer update since 2023 (read 2026-09-26).
     *   Route approval lives in the admin console, outside git.
     *   `flannel.1` and its routes advertise an overlay that carries nothing, which
         misleads anyone reading `ip route`.

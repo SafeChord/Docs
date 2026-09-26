@@ -126,7 +126,7 @@ Policy 之所以還能成立，靠的是兩個結構性的原因：
     *   *flannel `wireguard-native`*：是真正的單層，但家裡那台節點沒有 NAT 穿透。
     *   *換掉 CNI*（Cilium、`--flannel-backend=none`）：在跨國的 live cluster 上換 CNI，只為了移除一個零成本的 overlay。
 *   **代價。**
-    *   路由正確與否取決於 Tailscale 的 rule preference，而這是一個上游常數，目前還有公開討論（[tailscale#6231](https://github.com/tailscale/tailscale/issues/6231)）。
+    *   路由正確與否取決於 Tailscale 的 rule preference，這是上游的行為。[tailscale#6231](https://github.com/tailscale/tailscale/issues/6231)（2022 年開啟至今）要求拿掉它，但 Tailscale 的官方立場是這個設計是刻意的：為了防止本地網路搶走 advertised route。flannel 寫在 main table 的路由正好就是這種情況。Tailscale 提出的修法保留 table 52，另外加上同 LAN 偵測；自 2023 年以來沒有維護者更新（2026-09-26 讀取）。
     *   路由核准放在 admin console，不在 git 裡。
     *   `flannel.1` 和它的路由看起來像是有一層 overlay，實際上什麼都沒在搬，會誤導任何看 `ip route` 的人。
 *   **緩解。**
