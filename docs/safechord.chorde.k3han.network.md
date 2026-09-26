@@ -22,6 +22,7 @@ related_docs:
   - safechord.chorde.k3han.ingress.md
 parent_doc: safechord.chorde.k3han
 archetype: brain
+template_variant: brain.infrastructure.v2-trial
 code_paths:
   - Chorde/cluster/k3han
   - Chorde/scripts/test/pod-path
@@ -35,6 +36,12 @@ app_version: 0.3.0
 ---
 
 # Pod Data Path & CNI (Brain)
+
+> **Template variant: v2 (trial).** This brain uses a trial structure: an optional
+> *Mechanism* section, plus per-decision blocks in place of global Strategy/Trade-offs.
+> It is not the current `archetype.brain.infrastructure.md`, and it is not yet a standard.
+> **Agents: do not copy this structure into other documents without asking the human.**
+> Rationale: harness draft `kdd/2026-09-25-brain-mechanism-decisions.md`.
 
 > **One-line version**: flannel hands out the addresses and wires the bridge, but it does
 > not carry a single cross-node byte. Tailscale does.

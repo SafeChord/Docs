@@ -1,5 +1,7 @@
 # Pod 資料路徑與 CNI（Brain）
 
+> **版型變體：v2（試行）。**這份 brain 用的是試行結構：Mechanism 一節為選填，決策則每個各自成一塊，取代全域的 Strategy／Trade-offs。它不是目前的 `archetype.brain.infrastructure.md`，也還不是標準。**Agent：沒有先問過人類，不要把這個結構套用到其他文件。**理由見 harness draft `kdd/2026-09-25-brain-mechanism-decisions.md`。
+
 > **一句話版本**：flannel 負責發位址、接好 bridge，但跨節點的流量它一個 byte 都沒搬過，全是 Tailscale 在搬。
 >
 > **這種分工不是臨時湊出來的。** 它就是 [Kilo](https://kilo.squat.ai/) 以 flannel add-on 模式提供的架構：*「Kilo will take care of the network between locations, while Flannel will take care of the network within locations.」* 我們只是把「跨地點」這個角色換成 Tailscale（D1）。Kilo 在一個元件內完成的事，我們是用兩個原本就沒打算共處一台節點的專案拼出來的。所以這份文件大半篇幅都在講：兩者在哪裡交會、誰說了算。
