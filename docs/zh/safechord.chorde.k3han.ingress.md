@@ -108,8 +108,8 @@ graph LR
 ---
 
 ## 5. 知識地圖參考資料
-- **Ingress 配置清單**：[Chorde/gitops/k3han/manifests/](file:///home/bradyhau/workspace/SafeChord/Chorde/gitops/k3han/manifests/)
-- **基礎設施防火牆規格**：[Chorde/cluster/k3han/ansible/gce_firewall.yaml](file:///home/bradyhau/workspace/SafeChord/Chorde/cluster/k3han/ansible/gce_firewall.yaml)00 OK |
+- **Ingress 配置清單**：[Chorde/gitops/k3han/manifests/](https://github.com/SafeChord/Chorde/tree/main/gitops/k3han/manifests/)
+- **基礎設施防火牆規格**：[Chorde/cluster/k3han/ansible/gce_firewall.yaml](https://github.com/SafeChord/Chorde/blob/main/cluster/k3han/ansible/gce_firewall.yaml)
 | **私有管理介面** | `/argocd` 與 `/grafana` | CF 隧道網域 (`k3han.omh.idv.tw`) | ✅ CF Access 挑戰 $\rightarrow$ OK | 200 OK |
 | **Pod 直連** | Pod 直連 IP | Tailscale VPN | ✅ 緊急繞過備用 | 200 OK |
 
@@ -125,9 +125,9 @@ graph LR
 
 ## 5. 參考資料
 
-*   **NGF 核心配置**：[Chorde/gitops/k3han/manifests/nginx-gateway-fabric/](file:///home/bradyhau/workspace/SafeChord/Chorde/gitops/k3han/manifests/nginx-gateway-fabric/)
-*   **私有閘道配置**：[Chorde/gitops/k3han/manifests/private-gateway/](file:///home/bradyhau/workspace/SafeChord/Chorde/gitops/k3han/manifests/private-gateway/)
-*   **公開閘道配置**：[Chorde/gitops/k3han/manifests/public-gateway/](file:///home/bradyhau/workspace/SafeChord/Chorde/gitops/k3han/manifests/public-gateway/)
-*   **叢集內隧道**：[Chorde/gitops/k3han/manifests/cloudflared/](file:///home/bradyhau/workspace/SafeChord/Chorde/gitops/k3han/manifests/cloudflared/)
-*   **GCP 配置**：[Chorde/cluster/k3han/ansible/gce_firewall.yaml](file:///home/bradyhau/workspace/SafeChord/Chorde/cluster/k3han/ansible/gce_firewall.yaml)
-*   **驗證腳本**：[Chorde/scripts/test/ngf/](file:///home/bradyhau/workspace/SafeChord/Chorde/scripts/test/ngf/)
+*   **NGF 核心配置**：[Chorde/gitops/k3han/manifests/nginx-gateway-fabric/](https://github.com/SafeChord/Chorde/tree/main/gitops/k3han/manifests/nginx-gateway-fabric/)
+*   **私有閘道配置**：[Chorde/gitops/k3han/manifests/private-gateway/](https://github.com/SafeChord/Chorde/tree/main/gitops/k3han/manifests/private-gateway/)
+*   **公開閘道配置**：[Chorde/gitops/k3han/manifests/public-gateway/](https://github.com/SafeChord/Chorde/tree/main/gitops/k3han/manifests/public-gateway/)
+*   **叢集內隧道**：[Chorde/gitops/k3han/manifests/cloudflared/](https://github.com/SafeChord/Chorde/tree/main/gitops/k3han/manifests/cloudflared/)
+*   **GCP 配置**：[Chorde/cluster/k3han/ansible/gce_firewall.yaml](https://github.com/SafeChord/Chorde/blob/main/cluster/k3han/ansible/gce_firewall.yaml)
+*   **驗證腳本**：[Chorde/scripts/test/ngf/](https://github.com/SafeChord/Chorde/tree/main/scripts/test/ngf/)
