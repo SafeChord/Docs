@@ -22,6 +22,7 @@ parent_doc: safechord.chorde.k3han
 archetype: brain
 code_paths:
   - Chorde/gitops/k3han/manifests
+  - SafeZone-Deploy/deploy
 tech_stack:
   - Kubernetes local volumes
   - CloudNativePG
@@ -115,7 +116,7 @@ recreated by hand:
 
 ## 3. Reference Snapshots
 
-> Verified 2026-10-05, during the cutover recorded in Chorde #27 / #28.
+> Verified 2026-10-05, during the cutovers recorded in Chorde #27 / #28 and SafeZone-Deploy #18.
 
 | Observation | Value | Constraint Validated |
 | :--- | :--- | :--- |
@@ -124,7 +125,8 @@ recreated by hand:
 | Replica rebuild by `pg_basebackup` | Healthy 26 s after recreation, streaming at the primary's LSN | Replica is rebuildable |
 | Kafka after moving its log directory | Same cluster ID, end offsets and committed group offsets; lag 0 | Volume preserves cluster identity |
 | Valkey after moving its data directory | Same keyspace, AOF loaded | Volume survives pod recreation |
-| NFS mounts left on `acer-agent` | Simulator input only | No network filesystem in front of a local disk (one exception open) |
+| Simulator input after copying it to its new path | Same size and sha256 on the host and in the pod; mounted read-only from the local disk | Volume is rebuildable from a copy |
+| NFS mounts left on `acer-agent` | 0 | No network filesystem in front of a local disk |
 
 > *Current values live in manifests under `code_paths`.*
 
@@ -134,17 +136,22 @@ recreated by hand:
 | :--- | :--- | :--- |
 | Local fsync latency; no dependency on Tailscale for disk I/O | A volume cannot follow its pod to another node | The workloads were already pinned; moving one means rebuilding its data on the target |
 | The PV states which node holds the data | Losing `acer-agent` loses the replica, in-flight Kafka messages and Valkey state together | The replica and Kafka are rebuildable and the primary is on a cloud node; Valkey's recovery is unverified (§2) |
-| No NFS server to operate for these workloads | Host directories are created and removed by hand | Paths follow one convention, `/mnt/k3han-pv/<workload>` |
+| No NFS server to operate for these workloads | Host directories are created and removed by hand | Paths follow one convention, `/mnt/k3han-pv/<workload>`. The simulator input exists once per environment, so it sits at `/mnt/k3han-pv/safezone/simulator/<env>/covid-data` |
 
-**Open exception.** The simulator's input PV is still an NFS export on `acer-agent`, because
-its chart fixes the claim's storage class. The NFS server and the `local-nfs` class stay
-until SafeZone-Deploy #18 lands.
+**Left behind.** No PV or claim uses NFS any more. The NFS server, its exports and the
+`local-nfs` class are still present on `acer-agent` until Chorde #29 removes them.
 
 **Not established.** Why the `acer-agent` disk intermittently goes undetected at boot. SMART
 reported no reallocated, pending or uncorrectable sectors on 2026-10-05.
 
+**Not tested.** Whether replacing the simulator's CSV on the host reaches a running pod.
+The file is mounted alone through a `subPath`, which is expected to keep serving the old
+file when the new one is swapped in by rename rather than overwritten in place. Until it
+is tested, restart the simulator pod after a swap.
+
 ## 5. References
 
-*   **Manifests**: the `PersistentVolume` beside each workload under `code_paths`
+*   **Manifests**: the `PersistentVolume` beside each workload under `code_paths`; the
+    simulator's are per environment, under `SafeZone-Deploy/deploy/<env>/infra/foundation`
 *   **Related Policies**: [Scheduling Logic](safechord.chorde.k3han.scheduling.md), [Cluster Strategy](safechord.chorde.k3han.cluster.md)
-*   **Tickets**: Chorde #27, Chorde #28, SafeZone-Deploy #18
+*   **Tickets**: Chorde #27, Chorde #28, Chorde #29, SafeZone-Deploy #18

@@ -10,7 +10,7 @@
 *   **哪裡都沒去的 NFS**：PostgreSQL replica、Kafka broker 和 Valkey 的資料原本放在 NFS export 上，由 `acer-agent` 自己掛自己。所有使用者都被釘在那台節點，網路檔案系統沒有換到任何可搬移性。這三個 volume 現在是同一台節點上的靜態 `local` PV，各自預留給自己的 claim。新增 brain：[持久化儲存](safechord.chorde.k3han.storage.md)。
 *   **被放棄的方案**：起因是 `acer-agent` 的磁碟有疑慮，第一個想法是把 NFS server 搬到 `ct-serv-jp`。這會讓每一次 fsync 都走 35 ms 的 WAN 連線、Tailscale 一斷 pod 就卡死、replica 還會落在 primary 的磁碟上，而保護到的卻是本來就能重建的資料。現在「撐過節點消失」被明確定義成資料的性質，不是 volume 的性質。
 *   **切換**：三種 operator 都不會就地套用 storage class 變更，所以合併之後逐一手動重建工作負載。Kafka 與 Valkey 保住了資料（cluster ID、offset、keyspace 都相同）；replica 以 `pg_basebackup` 重建。
-*   **仍在 NFS 上**：simulator 的輸入 PV，要等它的 chart 允許各環境自選 storage class（SafeZone-Deploy #18）。
+*   **最後一個**：simulator 的輸入 PV 在 chart 允許各環境自選 storage class 之後也跟著搬了（SafeZone-Deploy #18）。`acer-agent` 上已經沒有任何 NFS mount；移除 server 本身是 Chorde #29。
 
 ---
 

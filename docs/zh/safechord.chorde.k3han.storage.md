@@ -53,7 +53,7 @@ Kafka 是單一 broker、replication factor 為 1，所以這個 volume 是唯�
 
 ## 3. 參考快照
 
-> 驗證於 2026-10-05，Chorde #27 / #28 記錄的切換過程中。
+> 驗證於 2026-10-05，Chorde #27 / #28 與 SafeZone-Deploy #18 記錄的切換過程中。
 
 | 觀察項目 | 數值 | 驗證的限制 |
 | :--- | :--- | :--- |
@@ -62,7 +62,8 @@ Kafka 是單一 broker、replication factor 為 1，所以這個 volume 是唯�
 | replica 以 `pg_basebackup` 重建 | 重建後 26 秒 healthy，streaming 追上 primary 的 LSN | replica 可重建 |
 | Kafka 搬移 log 目錄之後 | cluster ID、end offset、consumer group 的 committed offset 都相同；lag 0 | volume 保住叢集身分 |
 | Valkey 搬移資料目錄之後 | keyspace 相同，AOF 載入成功 | volume 撐過 pod 重建 |
-| `acer-agent` 上剩下的 NFS mount | 只有 simulator 輸入 | 本機磁碟前面不擋網路檔案系統（仍有一個例外） |
+| simulator 輸入複製到新路徑之後 | 主機與 pod 內的大小、sha256 都相同；從本機磁碟以唯讀掛載 | volume 可以從副本重建 |
+| `acer-agent` 上剩下的 NFS mount | 0 | 本機磁碟前面不擋網路檔案系統 |
 
 > *目前的值以 `code_paths` 底下的 manifest 為準。*
 
@@ -72,14 +73,16 @@ Kafka 是單一 broker、replication factor 為 1，所以這個 volume 是唯�
 | :--- | :--- | :--- |
 | fsync 走本機延遲；磁碟 I/O 不再依賴 Tailscale | volume 沒辦法跟著 pod 換節點 | 這些工作負載本來就被釘住；要搬就是在目標節點上重建資料 |
 | PV 直接寫明資料在哪一台節點 | `acer-agent` 消失時，replica、Kafka 的在途訊息和 Valkey 的狀態會一起消失 | replica 與 Kafka 可重建，primary 在雲端節點；Valkey 的復原尚未驗證（§2） |
-| 這些工作負載不再需要維運 NFS server | 主機目錄要手動建立與移除 | 路徑統一為 `/mnt/k3han-pv/<workload>` |
+| 這些工作負載不再需要維運 NFS server | 主機目錄要手動建立與移除 | 路徑統一為 `/mnt/k3han-pv/<workload>`。simulator 輸入每個環境各一份，所以放在 `/mnt/k3han-pv/safezone/simulator/<env>/covid-data` |
 
-**仍開著的例外。** simulator 的輸入 PV 還是 `acer-agent` 上的 NFS export，因為它的 chart 把 claim 的 storage class 寫死了。NFS server 與 `local-nfs` class 會留到 SafeZone-Deploy #18 完成為止。
+**還沒清掉的。** 已經沒有任何 PV 或 claim 使用 NFS。NFS server、它的 export 和 `local-nfs` class 還留在 `acer-agent` 上，等 Chorde #29 移除。
 
 **尚未查明。** `acer-agent` 的磁碟為什麼開機時偶爾偵測不到。2026-10-05 的 SMART 沒有回報任何 reallocated、pending 或 uncorrectable sector。
 
+**尚未測試。** 在主機上替換 simulator 的 CSV，執行中的 pod 讀不讀得到。這個檔案是透過 `subPath` 單獨掛進去的，新檔若以 rename 換入而不是原地覆寫，預期 pod 會繼續讀到舊檔。測過之前，換檔後請重啟 simulator pod。
+
 ## 5. 參考資料
 
-*   **Manifests**：`code_paths` 底下，每個工作負載旁邊的 `PersistentVolume`
+*   **Manifests**：`code_paths` 底下，每個工作負載旁邊的 `PersistentVolume`；simulator 的 PV 每個環境各一份，在 `SafeZone-Deploy/deploy/<env>/infra/foundation`
 *   **相關策略**：[排程邏輯](safechord.chorde.k3han.scheduling.md)、[叢集策略](safechord.chorde.k3han.cluster.md)
-*   **票**：Chorde #27、Chorde #28、SafeZone-Deploy #18
+*   **票**：Chorde #27、Chorde #28、Chorde #29、SafeZone-Deploy #18
