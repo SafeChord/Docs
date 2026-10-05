@@ -64,5 +64,6 @@ SafeChord 採用**解耦四層**架構。請根據您的角色與目標選擇閱
             *   [📄 safechord.chorde.k3han.cluster.md](safechord.chorde.k3han.cluster.md) ⭐（實體拓撲、延遲矩陣與 Tailscale SDN）
             *   [📄 safechord.chorde.k3han.ingress.md](safechord.chorde.k3han.ingress.md)（Ingress 邊界：雙通道隔離）
             *   [📄 safechord.chorde.k3han.scheduling.md](safechord.chorde.k3han.scheduling.md) ⭐（排程器：可靠度階層與 Taints 策略）
+            *   [📄 safechord.chorde.k3han.storage.md](safechord.chorde.k3han.storage.md)（持久化儲存：節點本機 Volume 與耐久性）
             *   [📄 safechord.chorde.k3han.monitoring.md](safechord.chorde.k3han.monitoring.md)（可觀測性：Loki 與 Prometheus Operator）
             *   [📄 safechord.chorde.k3han.changelog.md](safechord.chorde.k3han.changelog.md)（🔄 平台版本演進）
