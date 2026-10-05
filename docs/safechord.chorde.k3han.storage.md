@@ -138,8 +138,28 @@ recreated by hand:
 | The PV states which node holds the data | Losing `acer-agent` loses the replica, in-flight Kafka messages and Valkey state together | The replica and Kafka are rebuildable and the primary is on a cloud node; Valkey's recovery is unverified (§2) |
 | No NFS server to operate for these workloads | Host directories are created and removed by hand | Paths follow one convention, `/mnt/k3han-pv/<workload>`. The simulator input exists once per environment, so it sits at `/mnt/k3han-pv/safezone/simulator/<env>/covid-data` |
 
-**Not established.** Why the `acer-agent` disk intermittently goes undetected at boot. SMART
-reported no reallocated, pending or uncorrectable sectors on 2026-10-05.
+**The disk was not the fault.** The suspicion that started this work came from `acer-agent`
+not coming back after a reboot. On 2026-10-05 the disk was detected on every boot observed,
+its filesystems mounted without recovery, and SMART reported no reallocated, pending or
+uncorrectable sectors and no interface CRC errors. Two unrelated causes account for the
+symptom:
+
+*   **Shutdown.** The loopback NFS mounts were `hard`, and the pods holding them outlive
+    `k3s-agent` at shutdown, so the unmount waited on a server that had already stopped.
+    This is the operator's account of the earlier hangs; NFS was removed before it could be
+    reproduced. With NFS gone, shutdown was observed to run to completion.
+*   **Boot.** The firmware halted at POST on a chassis-intrusion warning, waiting for a
+    key. Headless, that looks like a node that never returns. The warning had been disabled
+    once and was found enabled again.
+
+Each forced power-off that followed is an unclean power loss for the SSD, which is where
+most of its recorded unexpected power losses are assumed to come from.
+
+**Not established.** Why the firmware setting reverted. The node's clock was about 20 days
+behind at its 2026-06-26 boot, which points at the board's backup battery; the battery has
+not been tested or replaced. Until it is, a long power outage is expected to bring the
+warning back. Also not yet observed: the node returning from a reboot with nobody at the
+console.
 
 **Not tested.** Whether replacing the simulator's CSV on the host reaches a running pod.
 The file is mounted alone through a `subPath`, which is expected to keep serving the old

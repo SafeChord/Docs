@@ -75,7 +75,14 @@ Kafka 是單一 broker、replication factor 為 1，所以這個 volume 是唯�
 | PV 直接寫明資料在哪一台節點 | `acer-agent` 消失時，replica、Kafka 的在途訊息和 Valkey 的狀態會一起消失 | replica 與 Kafka 可重建，primary 在雲端節點；Valkey 的復原尚未驗證（§2） |
 | 這些工作負載不再需要維運 NFS server | 主機目錄要手動建立與移除 | 路徑統一為 `/mnt/k3han-pv/<workload>`。simulator 輸入每個環境各一份，所以放在 `/mnt/k3han-pv/safezone/simulator/<env>/covid-data` |
 
-**尚未查明。** `acer-agent` 的磁碟為什麼開機時偶爾偵測不到。2026-10-05 的 SMART 沒有回報任何 reallocated、pending 或 uncorrectable sector。
+**問題不在磁碟。** 這次搬遷的起因，是 `acer-agent` 重開之後回不來，因而懷疑磁碟。2026-10-05 觀察到的每一次開機，磁碟都有被偵測到，檔案系統不需要 recovery 就掛上，SMART 沒有回報任何 reallocated、pending 或 uncorrectable sector，介面 CRC error 也是 0。這個症狀其實來自兩個互不相干的原因：
+
+*   **關機。** Loopback NFS 是 `hard` mount，而掛著它的 pod 在關機時活得比 `k3s-agent` 久，所以 unmount 等的是一個已經停掉的 server。這是 operator 對過去卡住情形的描述；NFS 在能重現之前就移除了。NFS 拿掉之後，觀察到關機能完整走完。
+*   **開機。** 韌體在 POST 階段停在機殼開啟警告，等人按鍵。沒接螢幕時，看起來就是節點一去不回。這個警告以前關掉過，這次發現又被打開了。
+
+每一次因此而來的強制斷電，對 SSD 都是一次非正常斷電；它記錄到的非正常斷電次數，推測大多來自這裡。
+
+**尚未查明。** 韌體設定為什麼會被還原。這台在 2026-06-26 那次開機時，時鐘落後了大約 20 天，矛頭指向主機板的備援電池；電池還沒測過，也還沒換。換掉之前，長時間停電預期會讓這個警告再出現。另外還沒觀察到的是：節點在沒有人守在螢幕前的情況下，自己從重開回來。
 
 **尚未測試。** 在主機上替換 simulator 的 CSV，執行中的 pod 讀不讀得到。這個檔案是透過 `subPath` 單獨掛進去的，新檔若以 rename 換入而不是原地覆寫，預期 pod 會繼續讀到舊檔。測過之前，換檔後請重啟 simulator pod。
 
