@@ -5,7 +5,7 @@ status: active
 authors:
   - bradyhau
   - Gemini CLI
-last_updated: '2026-05-02'
+last_updated: '2026-10-05'
 summary: Navigational map for the K3han subsystem. Indexes specification documents regarding hybrid-cloud topology, network perimeters (Ingress), and resource scheduling policies.
 keywords:
   - K3han
@@ -19,6 +19,7 @@ related_docs:
   - safechord.chorde.k3han.cluster.md
   - safechord.chorde.k3han.ingress.md
   - safechord.chorde.k3han.scheduling.md
+  - safechord.chorde.k3han.storage.md
 parent_doc: safechord.chorde
 archetype: map
 code_paths:
@@ -49,6 +50,7 @@ Select a specialized node for deep-dive specifications:
 | **Networking** | [**Ingress Policy**](safechord.chorde.k3han.ingress.md) | **Traffic Ingress**. Defines the Public/Private dual-channel strategy, SSL termination, and firewall hardening. | `Brain` |
 | **Networking** | [**Pod Data Path & CNI**](safechord.chorde.k3han.network.md) | **East-West Traffic**. How pod traffic crosses nodes: flannel as CNI, Tailscale subnet routes as transport, the invariants between them. | `Brain` |
 | **Orchestration** | [**Scheduling Logic**](safechord.chorde.k3han.scheduling.md) | **Resource Placement**. Explains data locality decisions (DB placement) and control-plane isolation (Taints). | `Brain` |
+| **Storage** | [**Persistent Storage**](safechord.chorde.k3han.storage.md) | **Volumes & Durability**. Where stateful workloads keep their data, what each volume must survive, and why volumes are node-local. | `Brain` |
 | **Observability** | [**Monitoring Stack**](safechord.chorde.k3han.monitoring.md) | **Telemetry**. Defines the Prometheus/Loki stack and multi-dimensional log collection patterns. | `Brain` |
 | **History** | [**Changelog**](safechord.chorde.k3han.changelog.md) | **Evolution**. Records the architectural shifts of K3han from v0.1.0 to v0.3.x. | `Timeline` |
 

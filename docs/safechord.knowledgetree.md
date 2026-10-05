@@ -90,5 +90,6 @@ SafeChord utilizes a **Decoupled 4-Layer** architecture. Choose your reading pat
             *   [📄 safechord.chorde.k3han.ingress.md](safechord.chorde.k3han.ingress.md) (Ingress Perimeter: Dual-Channel Isolation)
             *   [📄 safechord.chorde.k3han.network.md](safechord.chorde.k3han.network.md) (Pod Data Path: flannel as CNI, Tailscale as Transport)
             *   [📄 safechord.chorde.k3han.scheduling.md](safechord.chorde.k3han.scheduling.md) ⭐ (Scheduler: Reliability Tiers & Taints Policy)
+            *   [📄 safechord.chorde.k3han.storage.md](safechord.chorde.k3han.storage.md) (Persistent Storage: Node-Local Volumes & Durability)
             *   [📄 safechord.chorde.k3han.monitoring.md](safechord.chorde.k3han.monitoring.md) (Observability: Loki & Prometheus Operator)
             *   [📄 safechord.chorde.k3han.changelog.md](safechord.chorde.k3han.changelog.md) (🔄 Platform Version Evolution)

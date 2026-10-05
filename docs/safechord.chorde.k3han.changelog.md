@@ -6,7 +6,8 @@ authors:
   - bradyhau
   - Gemini CLI
   - Claude Opus 5
-last_updated: '2026-09-25'
+  - Claude Opus 5.5
+last_updated: '2026-10-05'
 summary: Records the architectural evolution of the K3han cluster. Tracks changes in node layout, GitOps orchestration, operator management, and design philosophy shifts since v0.1.0.
 keywords:
   - K3han
@@ -20,13 +21,23 @@ related_docs:
   - safechord.chorde.k3han.md
 parent_doc: safechord.chorde.k3han
 tech_stack: []
-doc_version: 0.3.8
+doc_version: 0.3.9
 app_version: 0.3.0
 ---
 
 # K3han Platform Changelog
 
 This document tracks the significant architectural shifts of the K3han cluster, serving as a historical reference for technical debt analysis and decision tracing.
+
+---
+
+## 🔖 [v0.3.9] - 2026-10-05
+
+### 💾 Loopback NFS Replaced by Node-Local Volumes (Chorde #27)
+*   **NFS that went nowhere**: the PostgreSQL replica, the Kafka broker and Valkey kept their data on NFS exports that `acer-agent` mounted from itself. Every consumer was pinned to that node, so the network filesystem bought no mobility. The three volumes are now static `local` PVs on the same node, each reserved for its claim. New brain: [Persistent Storage](safechord.chorde.k3han.storage.md).
+*   **The plan that was dropped**: the trigger was a suspect disk on `acer-agent`, and the first idea was to move the NFS server to `ct-serv-jp`. That would have put every fsync on a 35 ms WAN link, hung the pods on a Tailscale outage, and placed the replica on its primary's disk, all to protect data that can be rebuilt. Durability against node loss is now stated as a property of the data, not of the volume.
+*   **Cutover**: none of the three operators applies a storage class change in place, so each workload was recreated by hand after the merge. Kafka and Valkey kept their data (same cluster ID, offsets and keyspace); the replica was rebuilt by `pg_basebackup`.
+*   **Still on NFS**: the simulator's input PV, until its chart lets the environment choose the storage class (SafeZone-Deploy #18).
 
 ---
 

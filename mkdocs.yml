@@ -66,6 +66,7 @@ nav:
           - Ingress: safechord.chorde.k3han.ingress.md
           - Pod Data Path: safechord.chorde.k3han.network.md
           - Scheduling: safechord.chorde.k3han.scheduling.md
+          - Storage: safechord.chorde.k3han.storage.md
           - Monitoring: safechord.chorde.k3han.monitoring.md
           - ChangeLog: safechord.chorde.k3han.changelog.md
   - Environment: safechord.environment.md
