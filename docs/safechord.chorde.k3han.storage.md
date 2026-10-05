@@ -116,7 +116,7 @@ recreated by hand:
 
 ## 3. Reference Snapshots
 
-> Verified 2026-10-05, during the cutovers recorded in Chorde #27 / #28 and SafeZone-Deploy #18.
+> Verified 2026-10-05, during the cutovers recorded in Chorde #27 / #28 / #29 and SafeZone-Deploy #18.
 
 | Observation | Value | Constraint Validated |
 | :--- | :--- | :--- |
@@ -126,7 +126,7 @@ recreated by hand:
 | Kafka after moving its log directory | Same cluster ID, end offsets and committed group offsets; lag 0 | Volume preserves cluster identity |
 | Valkey after moving its data directory | Same keyspace, AOF loaded | Volume survives pod recreation |
 | Simulator input after copying it to its new path | Same size and sha256 on the host and in the pod; mounted read-only from the local disk | Volume is rebuildable from a copy |
-| NFS mounts left on `acer-agent` | 0 | No network filesystem in front of a local disk |
+| NFS left on `acer-agent` | No mounts, no server, no client packages; the `local-nfs` class is deleted | No network filesystem in front of a local disk |
 
 > *Current values live in manifests under `code_paths`.*
 
@@ -137,9 +137,6 @@ recreated by hand:
 | Local fsync latency; no dependency on Tailscale for disk I/O | A volume cannot follow its pod to another node | The workloads were already pinned; moving one means rebuilding its data on the target |
 | The PV states which node holds the data | Losing `acer-agent` loses the replica, in-flight Kafka messages and Valkey state together | The replica and Kafka are rebuildable and the primary is on a cloud node; Valkey's recovery is unverified (§2) |
 | No NFS server to operate for these workloads | Host directories are created and removed by hand | Paths follow one convention, `/mnt/k3han-pv/<workload>`. The simulator input exists once per environment, so it sits at `/mnt/k3han-pv/safezone/simulator/<env>/covid-data` |
-
-**Left behind.** No PV or claim uses NFS any more. The NFS server, its exports and the
-`local-nfs` class are still present on `acer-agent` until Chorde #29 removes them.
 
 **Not established.** Why the `acer-agent` disk intermittently goes undetected at boot. SMART
 reported no reallocated, pending or uncorrectable sectors on 2026-10-05.
