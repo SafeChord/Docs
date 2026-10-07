@@ -5,106 +5,127 @@ status: active
 authors:
   - bradyhau
   - Gemini CLI
-last_updated: '2026-05-02'
-summary: The Analytics API is the high-performance query engine of SafeZone. It provides a RESTful interface for aggregating raw pandemic events into multi-tier geographic views, utilizing multi-layer caching (Redis & In-memory) to achieve sub-millisecond latency under high concurrency.
+  - Claude Opus 5.5
+last_updated: '2026-10-07'
+summary: The Analytics API answers how many cases occurred in a time window for the nation, a city, or a region, as a count or as a rate per 10,000 residents. It serves repeated queries from a cache that is invalidated when the data set changes.
 keywords:
   - Analytics API
   - FastAPI
   - Redis Cache
   - Global Invalidation
   - Cache Versioning
-  - Scaffold Blueprint
 logical_path: SafeChord.SafeZone.Service.AnalyticsAPI
 related_docs:
+  - safechord.safezone.service.standards.md
+  - safechord.safezone.decisions.md
   - safechord.safezone.changelog.md
-  - safechord.safezone.service.dashboard.md
-  - safechord.safezone.service.worker.md
-  - safechord.safezone.service.python_scaffold.md
-parent_doc: safechord.safezone.service
+parent_doc: safechord.safezone
 archetype: blueprint
 code_paths:
   - SafeZone/services/analytics-api
-tech_stack:
-  - Python 3.13
-  - FastAPI 0.115
-  - Redis (redis-py async)
-  - SQLAlchemy 2.0 (Sync)
-  - psycopg2-binary
-doc_version: 0.3.1
-app_version: 0.3.1
+doc_version: 0.4.0
+app_version: 0.3.7
 ---
 
 # Analytics API (Service Blueprint)
 
-## 1. Responsibility & Positioning
-*   **Role**: Reader / Aggregator / Gateway
-*   **Characteristics**: Stateless, High-Concurrency, Read-Heavy, Read-Only
-*   **Core Objective**: Acts as the primary data egress for the system. It aggregates raw pandemic events from PostgreSQL based on user-requested geographic tiers (National/City/Region). By implementing a sophisticated multi-layer caching strategy, it ensures millisecond-level response times even during peak traffic loads.
-*   **Architecture Reference**: [Python Microservice Scaffold](safechord.safezone.service.python_scaffold.md)
+> **Type**: Blueprint (Service)
+> **Focus**: What this service promises to the rest of the system, and what it relies on.
+> **Constraint**: Current state only. No file structure, libraries, or implementation
+> (codebase). No field-level shape (contract files). No reasons
+> ([decision log](safechord.safezone.decisions.md)). No history
+> ([changelog](safechord.safezone.changelog.md)).
 
-## 2. Structural Design
-*   **Directory Layout**: Adheres to the standardized structure defined in the [Python Microservice Scaffold](safechord.safezone.service.python_scaffold.md).
-*   **Tech Stack**: Python 3.13, FastAPI 0.115, Redis, SQLAlchemy 2.0.
+## 1. Responsibility
 
-## 3. Business Requirements
+*   **Role**: Reader / Aggregator
+*   **Core Objective**: Acts as the read side of the system. It aggregates stored case counts over a time window at national, city or region level, and shields the database from repeated identical queries.
 
-The service's core intent is to transform complex relational data into intuitive aggregate views while maintaining high availability under peak load.
+## 2. Requirements
 
-### 3.1 Core Query Capabilities (Functional)
-Provides an HTTP interface for querying pandemic data across three geographic dimensions:
-*   **National**: Total trends across the entire country for a specified interval.
-*   **City**: Epidemic metrics for a specific city.
-*   **Region**: Fine-grained data for specific administrative regions.
+Each requirement is a promise other parts of the system rely on. A test that enforces
+one carries its ID. Requirements shared by every service live in the
+[service standards](safechord.safezone.service.standards.md) and are not repeated here.
 
-### 3.2 Performance & Cache Protection
-*   **Database Shielding**: All identical read requests must be intercepted by Redis; direct penetration to the relational database is strictly prohibited during cache validity.
+### API-R1: A query returns the cases in a window
+For a requested date and window length, the API SHALL return the sum of stored case
+counts over the days ending on that date, both ends included, for the whole nation, for
+one city, or for one region of a city.
 
-### 3.3 Consistency & Invalidation
-*   **Global Cache Invalidation**: The service must invalidate stale data when the Write Pipeline publishes a new "Cache Version."
+#### Scenario: seven-day city query
+- GIVEN stored case counts for a city across ten days
+- WHEN the seven days ending on the last of them are queried for that city
+- THEN the result is the sum of that city's counts over those seven days
 
-### 3.4 Observability & Ops
-*   **Technical Standards**: Adheres to the Universal Service Standards (Traceability & Health Checks) defined in the [Python Microservice Scaffold](safechord.safezone.service.python_scaffold.md).
-*   **Cache Status Tracking**: Every API request must explicitly indicate its cache state (e.g., `X-Cache-Status: Hit/Miss`) in the HTTP headers for monitoring and analysis.
+### API-R2: A ratio query returns cases per 10,000 residents
+When a ratio is requested for a city or a region, the API SHALL return the window's
+cases per 10,000 residents of that city or region in place of the count.
 
-## 4. Dependencies & Control
+#### Scenario: ratio for a region
+- GIVEN a region with a known population and cases in the window
+- WHEN a ratio is requested for it
+- THEN the result is the cases divided by the population, times 10,000
 
-| Dependency | Type | Description |
-| :--- | :--- | :--- |
-| **PostgreSQL** | Primary Source (Read-Only) | Source of raw pandemic events. |
-| **Redis (Cache)** | Storage | Store high-frequency aggregation results. |
-| **Redis (State)** | Controller | Monitors global `current_cache_version` to trigger invalidation. |
-| **Dashboard** | Client | The primary consumer of this service. |
+### API-R3: A window without cases is zero
+The API SHALL return zero, not an error, when no cases are stored for the requested
+window and place.
 
-## 5. TDD Convergence Boundaries
+#### Scenario: no data in the window
+- GIVEN a valid city with no stored cases in the window
+- WHEN it is queried
+- THEN the result is zero
 
-Per KDD philosophy, service correctness is enforced by automated tests in the codebase. Any implementation or modification must satisfy these "Physical Red Walls":
+### API-R4: An unknown place is rejected
+The API SHALL reject a query naming a city that does not exist, or a region that does
+not belong to the named city.
 
-| Dimension | Constraint Intent | Test Scope |
-| :--- | :--- | :--- |
-| **Aggregation Logic** | Ensure results across intervals and tiers perfectly match the DB truth. | `test/unit/` |
-| **Domain Exceptions** | Ensure business failures throw specific Exception instances from `exceptions/` rather than raw system errors. | `test/unit/` |
-| **Stampede Protection** | Implement Double-Check Locking during cache misses to prevent overwhelming the DB with concurrent identical requests. | `test/unit/` (Cache Service) |
-| **Global Invalidation** | API must correctly identify stale cache and force recalculation upon `current_cache_version` changes. | `test/integration/` |
-| **Contract Stability** | Ensure HTTP response schemas and `X-Cache-Status` headers remain stable. | `test/integration/` |
-| **Error Translation** | Verify that global handlers correctly map Domain Exception instances to standard HTTP status codes and JSON messages. | `test/integration/` |
+#### Scenario: region of another city
+- GIVEN a region that exists under a different city
+- WHEN it is queried under the wrong city
+- THEN the query is rejected as invalid
 
-## 6. Architecture Decision Records (ADR)
+### API-R5: A repeated query is served from the cache
+While the cache version is unchanged, the API SHALL answer a query it has already
+answered without querying the database.
 
-*   **[v0.3.1] Layered Dependency Injection**
-    *   **Decision**: Replaced `request.app.state` access with explicit DI in `api/dependencies.py`.
-    *   **Why**: Sacrificed slight development speed for significant testability, allowing business logic in `services/` to remain framework-agnostic.
-*   **[v0.3.1] Pure ASGI Middleware**
-    *   **Decision**: Switched from `BaseHTTPMiddleware` to a pure ASGI interface for `TraceAndCacheMiddleware`.
-    *   **Why**: Resolved isolation issues where `ContextVar` (e.g., for `X-Cache-Status`) failed to propagate across task groups, ensuring consistent observability.
-*   **[v0.2.0] Cache Versioning & Stampede Protection**
-    *   **Decision**: Implemented `asyncio.Lock` for Double-Check Locking within the `@redis_cache` decorator.
-    *   **Why**: Prevents "Cache Stampede" where concurrent requests hit the DB simultaneously during a cache miss.
-*   **[v0.2.0] Response Caching**
-    *   **Decision**: Implemented Redis-based response caching for all aggregation endpoints.
-    *   **Why**: Minimizes API latency and provides a defensive layer for the PostgreSQL backend in a read-heavy environment.
-*   **[v0.1.0] In-Memory Static Data Preloading**
-    *   **Decision**: Preload low-frequency data (City/Region mappings, population benchmarks) into memory during startup.
-    *   **Why**: Reduced complex SQL JOINs to simple fact-table aggregations, significantly improving query performance.
+#### Scenario: same query twice
+- GIVEN a query that has been answered once
+- WHEN the same query arrives again under the same cache version
+- THEN the answer is returned without a database query
 
-## 7. External Links
-*   **GitHub Issues**: [Relevant Issue Tracker Link]
+### API-R6: A new cache version retires old answers
+After the cache version changes, the API SHALL stop serving answers cached under the
+previous version within one polling interval.
+
+#### Scenario: data set replaced
+- GIVEN an answer cached under one cache version
+- WHEN the cache version changes and one polling interval passes
+- THEN the same query is answered from the database again
+
+### API-R7: Every answer says whether it came from the cache
+Every aggregation response SHALL state, in a response header, whether it was served
+from the cache or computed.
+
+#### Scenario: first and second request
+- GIVEN a query not yet cached
+- WHEN it is sent twice
+- THEN the first response is marked as computed and the second as served from the cache
+
+### API-R8: Concurrent identical misses cost one query
+Within one instance, identical queries that arrive together and miss the cache SHALL
+result in a single database query.
+
+#### Scenario: burst on a cold key
+- GIVEN a query not yet cached
+- WHEN many identical requests arrive at one instance at the same moment
+- THEN the database is queried once
+
+## 3. Dependencies
+
+| Channel | Direction | Contract | Also assumed |
+| :--- | :--- | :--- | :--- |
+| Query API | Serves | No language-neutral contract yet. `SafeZone/utils/pydantic_model/` is authoritative and the dashboard mirrors it by hand; no ticket yet. | None. |
+| Case table | Reads | No language-neutral contract yet. `SafeZone/utils/db/schema.py` is authoritative; a SQL export is tracked in SafeZone#70. | One row per date, city and region. |
+| Administrative-area and population tables | Reads | Same as the case table. | Complete when the API starts. Rows added later are not seen until restart. |
+| Cache version key | Reads | No contract file. The key name is duplicated between the relay CLI and this service; no ticket yet. | Its value changes after every simulation trigger that adds data. |
+| Response cache | Reads / Writes | Private to this service. | None. |

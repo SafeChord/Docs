@@ -63,13 +63,14 @@ SafeChord utilizes a **Decoupled 4-Layer** architecture. Choose your reading pat
         *   *Focus: Source Code, Business Logic, AsyncIO Dataflow*
         *   **Core Architecture**
             *   [📄 safechord.safezone.md](safechord.safezone.md) ⭐ (App Map: Async Dataflow & Event-Driven Design)
-            *   [📄 safechord.safezone.service.python_scaffold.md](safechord.safezone.service.python_scaffold.md) ⭐ (Blueprint: Standard Python Scaffold & Layering)
-            *   [📄 safechord.safezone.changelog.md](safechord.safezone.changelog.md) (🔄 Application Version History & Tech Migrations)
+            *   [📄 safechord.safezone.service.standards.md](safechord.safezone.service.standards.md) ⭐ (Blueprint: Cross-Service Standards & Contracts)
+            *   [📄 safechord.safezone.decisions.md](safechord.safezone.decisions.md) ⭐ (Brain: Decision Log, Append-Only)
+            *   [📄 safechord.safezone.changelog.md](safechord.safezone.changelog.md) (🔄 Application Version History)
         *   **Microservices**
             *   [📄 safechord.safezone.service.pandemicsimulator.md](safechord.safezone.service.pandemicsimulator.md) (Simulator: AsyncIO Data Source)
             *   [📄 safechord.safezone.service.dataingestor.md](safechord.safezone.service.dataingestor.md) (Ingestor: Kafka Producer Gateway)
             *   [📄 safechord.safezone.service.worker.md](safechord.safezone.service.worker.md) (Worker: Golang / Franz-Go Consumer)
-            *   [📄 safechord.safezone.service.analyticsapi.md](safechord.safezone.service.analyticsapi.md) (API: Aggregator & Scaffold Blueprint)
+            *   [📄 safechord.safezone.service.analyticsapi.md](safechord.safezone.service.analyticsapi.md) (API: Aggregator & Response Cache)
             *   [📄 safechord.safezone.service.dashboard.md](safechord.safezone.service.dashboard.md) (UI: Time-Aware Visualization - Legacy)
             *   [📄 safechord.safezone.service.dashboard-v2.md](safechord.safezone.service.dashboard-v2.md) (UI: React SPA & Time Travel)
         *   **Toolkit & Workflow**

@@ -1,8 +1,8 @@
 ---
 title: "Service: [Service Name]"
 doc_id: safechord.safezone.service.[name]
-doc_version: [Document Version]
-app_version: [Target Application Version]
+doc_version: [Document Version — bump on every edit]
+app_version: [First application version this revision of the spec applies to]
 status: draft
 authors:
   - [Author Name]
@@ -13,94 +13,69 @@ keywords:
   - [keyword2]
 logical_path: "SafeChord.SafeZone.Service.[Name]"
 related_docs:
-  - "safechord.safezone.md"
-parent_doc: "safechord.safezone.service"
+  - "safechord.safezone.service.standards.md"
+  - "safechord.safezone.decisions.md"
+parent_doc: "safechord.safezone"
 archetype: blueprint
 code_paths:
   - "SafeZone/services/[service-name]"
-tech_stack:
-  - [Language/Framework]
-  - [Key Library]
 ---
 
 # [Service Name] (Service Blueprint)
 
-> Inherits from `archetype.blueprint.md`. Specialized for containerized
-> microservices within `safechord.safezone.service.*`.
-> 
+> **Type**: Blueprint (Service)
+> **Focus**: What this service promises to the rest of the system, and what it relies on.
+> **Constraint**: Current state only. No file structure, libraries, or implementation
+> (codebase). No field-level shape (contract files). No reasons
+> ([decision log](../safechord.safezone.decisions.md)). No history
+> ([changelog](../safechord.safezone.changelog.md)).
+
 > [!IMPORTANT]
-> **Template Cleanup**: Delete all helper instructions, status placeholders (e.g., `*(Required)*`, `*(Recommended)*`), and structural tips once this blueprint is populated.
+> **Template Cleanup**: Delete every helper instruction and `*(Required)*` marker once
+> this blueprint is populated. Fix the two relative links above to sibling links.
 
 ## 1. Responsibility
 *(Required)*
 *   **Role**: [Producer / Consumer / Aggregator / Gateway]
-*   **Characteristics**: [Stateless / Stateful / Event-Driven / Read-Heavy]
-*   **Core objective**: [What business problem does this service solve?]
-*   **Architecture reference**: [Link to scaffold or pattern doc, if applicable]
+*   **Core Objective**: [What problem does this service solve, in one or two sentences?]
 
-## 2. File Structure
-*(Required — directory-level with layer roles)*
-```text
-SafeZone/services/[service-name]/
-├── app/
-│   ├── main.py                   # App factory & lifespan
-│   ├── api/                      # Routing layer: HTTP handling & dependency injection
-│   ├── services/                 # Business logic (zero framework imports)
-│   ├── core/                     # Settings, lifecycle, shared state
-│   └── exceptions/               # Domain exceptions & global handlers
-├── test/                         # TDD convergence boundary (unit, integration)
-├── Dockerfile
-└── requirements.txt
-```
-*(Pydantic models, test cases, and configuration details live in the codebase.)*
-
-## 3. Business Requirements
-*(Required)*
-Describe **what** the service must do and **why**. Do NOT specify endpoint
-paths, request/response schemas, or Kafka topic names — those are implementation
-details owned by the codebase.
-
-### Functional
-*   [Core capability 1]
-*   [Core capability 2]
-
-### Performance
-*   [Throughput, latency, or caching requirements]
-
-### Consistency
-*   [Data integrity or invalidation requirements]
-
-### Observability
-*   [Monitoring, tracing, or health check requirements]
-
-> *Implementation reference: `app/api/endpoints.py`, `app/services/` in codebase.*
-
-## 4. Dependencies & Control
+## 2. Requirements
 *(Required)*
 
-| Dependency | Type | Description |
-| :--- | :--- | :--- |
-| **Upstream** | Source | [Where data comes from] |
-| **Downstream** | Sink | [Where data goes] |
-| **Control Plane** | Trigger | [What initiates this service's work] |
+Each requirement is a promise other parts of the system rely on. A test that enforces
+one carries its ID. Requirements shared by every service live in the
+[service standards](../safechord.safezone.service.standards.md) and are not repeated here.
 
-## 5. TDD Convergence Boundaries
+Write one requirement per promise:
+
+*   **ID**: `[PREFIX]-R[n]`. IDs are stable: never renumber, never reuse a retired ID.
+*   **Sentence**: one normative sentence with `SHALL`, stating a result someone outside
+    the service can observe.
+*   **Scenarios**: one or more Given/When/Then cases. Each is the seed of a test.
+
+Check the grain in both directions. Too coarse: a test cannot be written from it without
+asking the author. Too fine: of two reasonable implementations, only one would pass.
+
+### [PREFIX]-R1: [Short name]
+The [service] SHALL [observable result].
+
+#### Scenario: [case]
+- GIVEN [state]
+- WHEN [trigger]
+- THEN [observable outcome]
+
+## 3. Dependencies
 *(Required)*
-Define the **constraint intents** that automated tests must enforce as
-"physical red walls". Do NOT enumerate specific test cases or file paths.
 
-| Verification Dimension | Constraint Intent | Test Scope |
-| :--- | :--- | :--- |
-| **[Dimension]** | [What invariant must hold?] | `test/unit/` or `test/integration/` |
+List only what this service actually connects to: a topic, a table, an API it serves or
+calls. Do not name the service at the other end of a topic or a table.
 
-> *Test cases and fixtures live exclusively in the codebase.*
+| Channel | Direction | Contract | Also assumed |
+| :--- | :--- | :--- | :--- |
+| [Topic / table / API] | [Serves / Calls / Consumes / Produces / Reads / Writes] | [Path to the contract file] | [What the contract file cannot express, or "None."] |
 
-## 6. Architecture Decision Records (ADR)
-*(Optional — append as the service evolves)*
-*   **[vX.Y] [Decision Name]**:
-    *   **Decision**: [What was decided]
-    *   **Why**: [Motivation and trade-offs]
-
-## 7. External Links
-*(Optional)*
-*   **GitHub Issues**: [Links to relevant issues or discussions]
+*   **Contract** points at a file, never restates it. A contract used from more than one
+    language must be a language-neutral file (see the service standards). Where none
+    exists yet, say so and name the ticket that tracks it.
+*   **Also assumed** carries only semantics the contract file cannot express, such as
+    ordering or partitioning.

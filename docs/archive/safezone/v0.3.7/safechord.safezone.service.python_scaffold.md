@@ -2,7 +2,7 @@
 title: 'Python Microservice Scaffold'
 doc_id: safechord.safezone.service.python_scaffold
 last_updated: '2026-05-02'
-status: active
+status: archived
 authors:
   - bradyhau
   - Gemini CLI
@@ -23,6 +23,8 @@ doc_version: 0.3.1
 ---
 
 # Python Microservice Scaffold
+
+> **Archived 2026-10-07.** No longer a standard. Its trace and health rules moved to the [service standards](../../../safechord.safezone.service.standards.md); the reasons are in ADR-027 of the [decision log](../../../safechord.safezone.decisions.md).
 
 This document defines the **standardized internal directory structure and layering conventions** for all Python microservices within SafeZone. It is a "Convention over Framework" standard designed to eliminate architectural entropy across microservices, ensuring consistent context for both AI agents and human engineers.
 

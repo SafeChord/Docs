@@ -1,81 +1,94 @@
-# Worker - Golang（服務藍圖）
+# Worker（服務藍圖）
 
-> ⚠️ **範圍警告**：此藍圖定義的是 `worker-golang` 微服務。
-> *繼承自 `archetype.blueprint.microservice.md`*
+> **類型**：藍圖（服務）
+> **焦點**：這個服務對系統其他部分的承諾，以及它依賴什麼。
+> **限制**：只寫現況。不寫檔案結構、函式庫或實作（看程式碼庫）。不寫欄位層級的形狀（看合約檔）。不寫理由（看[決策日誌](safechord.safezone.decisions.md)）。不寫沿革（看 [changelog](safechord.safezone.changelog.md)）。
 
-## 1. 職責與定位
-*   **角色**：消費者 (Kafka) / 持久化者 (Persister)
-*   **特性**：高吞吐量、冪等性、批次導向、具狀態 (Connection-wise)
-*   **核心目標**：作為高吞吐量資料消費引擎，運用 Golang 的並發模型處理尖峰 Kafka 流量，並將非結構化事件持久化為 PostgreSQL 中的結構化關聯資料。
+## 1. 職責
 
-## 2. 檔案結構
-```text
-SafeZone/services/worker-golang/
-├── app/
-│   ├── main.go                     # 進入點 (訊號處理與生命週期)
-│   ├── service/                    # 核心業務邏輯：工作者池與批次策略
-│   ├── adapter/                    # 輸入適配器：Kafka 消費者 (Franz-Go)
-│   ├── strategy/                   # 輸出埠：PostgreSQL 批次 Upsert
-│   ├── schema/                     # 資料模型與業務驗證邏輯
-│   ├── config/                     # 設定載入器
-│   └── pkg/                        # 內部共用套件：Logger、Redis Cache
-├── go.mod                          # 相依性定義
-└── Dockerfile                      # 多階段映像建構工具
-```
-*(注意：Go 服務遵循六邊形架構原則；實作細節位於程式碼庫中。)*
+*   **角色**：消費者 / 持久化者
+*   **核心目標**：把 Kafka 上的病例事件串流，轉成 PostgreSQL 裡每個日期、城市、區域一筆的病例數。過程中不遺失事件，也不讓 consumer group 回報的進度偏離實際已儲存的內容。
 
-## 3. 業務需求
+## 2. 需求
 
-服務的核心意圖是在從非同步訊息佇列轉換到持久儲存的過程中，確保資料完整性與高吞吐量。
+每條需求都是系統其他部分會依賴的承諾。守住某條需求的測試會帶上它的 ID。所有服務共用的需求放在[服務標準](safechord.safezone.service.standards.md)，這裡不重複。
 
-### 3.1 高效處理 (功能性)
-*   **批次持久化**：不得針對每條訊息單獨呼叫資料庫。實作基於大小或時間的緩衝機制，將訊息分組為批次，以執行 SQL Upsert 操作。
-*   **並行消費**：支援多個消費者 goroutine 平行處理 Kafka 分割區，利用工作者池來達成運算與 I/O 的平行化。
+### WK-R1：有效事件會被儲存
+Worker 必須把讀到的每一筆有效事件，儲存為該事件的日期、城市、區域的病例數。事件符合事件合約，且城市與區域存在於行政區資料表時，才算有效。
 
-### 3.2 完整性與冪等性 (一致性)
-*   **冪等 Upsert**：必須處理「至少一次」消費情境。使用 `(Date, City, Region)` 作為唯一鍵，執行 `ON CONFLICT DO UPDATE` 以維持最終一致性。
-*   **酬載驗證**：在資料庫插入前驗證訊息內容（例如地理 ID、非負值）。無效訊息會被記錄並捨棄，不影響批次中其餘資料。
+#### 情境：有效事件
+- GIVEN topic 上有一筆有效事件
+- WHEN worker 消費它
+- THEN 病例表存有該日期、城市、區域的這個數字
 
-### 3.3 資源治理 (效率)
-*   **優雅關機**：收到 SIGTERM 後，服務必須停止消費，並在結束前將剩餘緩衝資料沖刷至資料庫。
+### WK-R2：同一個鍵以最新事件為準
+日期、城市、區域相同的事件，儲存的病例數必須是 topic 順序中最新那筆的值，不論事件如何分批或重送。
 
-### 3.4 可觀測性
-*   **消費者延遲監控**：提供反映當前消費進度與 Kafka 高水位間 offset 差距的指標。
+#### 情境：同一個鍵的兩筆事件一起到達
+- GIVEN 兩筆鍵相同、病例數不同的事件
+- WHEN worker 在同一次寫入中儲存它們
+- THEN 病例表存的是後面那筆的數字
 
-## 4. 相依性與控制
+#### 情境：重送
+- GIVEN 已經儲存過的事件
+- WHEN 它們再次被送達
+- THEN 儲存的數字不變
 
-| 相依元件 | 類型 | 說明 |
-| :--- | :--- | :--- |
-| **Kafka 叢集** | 上游 (來源) | 原始疫情事件的來源。 |
-| **PostgreSQL** | 下游 (匯入端) | 結構化事實的最終目的地。 |
-| **控制平面** | 不適用 | 由 Kubernetes 管理的 Daemon 服務。 |
+### WK-R3：儲存之後才記錄進度
+Worker 必須在事件已被儲存或被刻意跳過（WK-R5）之後，才提交該事件的 offset。
 
-## 5. TDD 收斂邊界
+#### 情境：儲存前就停止
+- GIVEN 已讀取但尚未儲存的事件
+- WHEN worker 在儲存前停止
+- THEN 重啟後這些事件會再次被送達
 
-作為使用 Ports & Adapters 的 Go 服務，其正確性透過隔離的邏輯測試來驗證：
+### WK-R4：已提交的進度不會倒退
+Consumer group 對任一 partition 已提交的 offset 必須永不減少，並在所有事件處理完後到達 log 末端。
 
-| 維度 | 約束意圖 | 測試範圍 |
-| :--- | :--- | :--- |
-| **批次邏輯** | 驗證緩衝區僅在大小或時間閾值達到時才沖刷，且沖刷後保持為空。 | `app/service/` (單元) |
-| **冪等 Upsert** | 模擬重複主鍵寫入，並驗證資料庫狀態反映最終輸入。 | `app/strategy/` (整合) |
-| **驗證韌性** | 確保單一訊息驗證失敗不會導致 worker 崩潰或阻塞後續消費。 | `app/schema/` (單元) |
-| **資源洩漏** | 確保 goroutine 迴圈中的 Context 被正確取消，且連線池被妥善管理。 | `app/pkg/` (單元) |
+#### 情境：消費途中成員變動
+- GIVEN 數個 worker 在負載下消費
+- WHEN 有 worker 加入或離開 group
+- THEN 沒有任何 partition 的已提交 offset 減少
+- AND 最後一筆事件處理完後 group lag 歸零
 
-## 6. 架構決策記錄 (ADR)
+### WK-R5：無效事件不會卡住串流
+Worker 必須記錄並跳過不有效的事件（WK-R1），包含無法解析的事件，並繼續消費之後的事件。
 
-*   **[v0.3.0] 慣用 Go 重構**
-    *   **決策**：以套件層級建構子與介面注入取代 Java 風格的工廠模式。
-    *   **理由**：簡化程式碼層次，符合 Go 慣例，大幅簡化單元測試中適配器的 mock。
-*   **[v0.3.0] Franz-Go 用戶端遷移**
-    *   **決策**：從 `segmentio/kafka-go` 切換至 `twmb/franz-go`。
-    *   **理由**：更優越的效能與完整的 KRaft 協定支援，降低尖峰消費期間的 CPU 開銷。
-*   **[v0.2.5] 批次優先持久化**
-    *   **決策**：設定預設批次大小為 1000 筆記錄。
-    *   **理由**：單筆 SQL 插入是資料庫效能的主要瓶頸。將壓力從資料庫 IOPS 轉移至記憶體，使系統能有效處理模擬器爆發流量。
-*   **[v0.2.0] 至多一次精簡策略**
-    *   **決策**：實作激進的 offset 提交策略，並搭配資料庫 Upsert。
-    *   **理由 (取捨)**：優先考慮吞吐量而非嚴格的恰好一次語意。在 SafeZone 等非金融場景中，此取捨簡化了狀態管理，同時仍可透過上游重新播放來復原。
+#### 情境：無效事件夾在有效事件之間
+- GIVEN 一筆無效事件夾在兩筆有效事件之間
+- WHEN worker 消費這三筆
+- THEN 兩筆有效事件都被儲存
+- AND 無效事件不會再次被送達
 
-## 7. 外部連結
-*   **資料庫結構**：`SafeChord-Deploy/helm-charts/safezone-foundation/templates/db/init.sql` (參考)
-*   **上游合約**：[Data Ingestor 藍圖](safechord.safezone.service.dataingestor.md)
+### WK-R6：關閉時不遺失資料
+收到 SIGTERM 時，worker 必須先儲存手上的事件並離開 consumer group，然後才結束。
+
+#### 情境：手上還有事件時被終止
+- GIVEN 已讀取但尚未儲存的事件
+- WHEN worker 收到 SIGTERM
+- THEN process 結束時這些事件已在病例表中
+- AND group 不必等 session timeout 就重新分配它的 partition
+
+### WK-R7：閒置時事件不會被扣住
+即使沒有後續事件到達，worker 也必須在設定的 flush 間隔內儲存事件。
+
+#### 情境：流量在批次中途停止
+- GIVEN 少於一個完整批次的事件
+- WHEN 一個 flush 間隔內沒有新事件到達
+- THEN 這些事件已在病例表中
+
+### WK-R8：每筆處理過的事件都可追蹤
+Worker 處理一筆事件時寫出的每一行 log，都必須帶有該事件的 trace ID，不論事件被儲存或被跳過。這是 STD-R1 在消費者上的應用。
+
+#### 情境：事件被跳過
+- GIVEN 一筆帶有 trace ID 的無效事件
+- WHEN worker 跳過它
+- THEN 記錄這次跳過的 log 帶有該 trace ID
+
+## 3. 依賴
+
+| Channel | 方向 | 合約 | 另外假設 |
+| :--- | :--- | :--- | :--- |
+| 病例事件 topic | 消費 | `SafeZone/utils/contract/covid_event.json` | 同一城市與區域的事件落在同一個 partition，順序即生產順序。WK-R2 依賴這點。 |
+| 病例表 | 寫入 | 尚無語言中立的合約。以 `SafeZone/utils/db/schema.py` 為準；SQL 匯出追蹤於 SafeZone#70。 | 無。 |
+| 行政區資料表（cities、regions） | 讀取 | 同病例表。 | Worker 啟動時資料已齊。之後新增的資料要重啟才看得到。 |

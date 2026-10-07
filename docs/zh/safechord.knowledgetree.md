@@ -39,13 +39,14 @@ SafeChord 採用**解耦四層**架構。請根據您的角色與目標選擇閱
         *   *焦點：原始碼、業務邏輯、AsyncIO 資料流*
         *   **核心架構**
             *   [📄 safechord.safezone.md](safechord.safezone.md) ⭐（應用地圖：非同步資料流與事件驅動設計）
-            *   [📄 safechord.safezone.service.python_scaffold.md](safechord.safezone.service.python_scaffold.md) ⭐（藍圖：標準 Python 架構與分層）
-            *   [📄 safechord.safezone.changelog.md](safechord.safezone.changelog.md)（🔄 應用版本歷史與技術遷移）
+            *   [📄 safechord.safezone.service.standards.md](safechord.safezone.service.standards.md) ⭐（藍圖：跨服務標準與合約）
+            *   [📄 safechord.safezone.decisions.md](safechord.safezone.decisions.md) ⭐（大腦：決策日誌，只增不改）
+            *   [📄 safechord.safezone.changelog.md](safechord.safezone.changelog.md)（🔄 應用版本歷史）
         *   **微服務**
             *   [📄 safechord.safezone.service.pandemicsimulator.md](safechord.safezone.service.pandemicsimulator.md)（模擬器：AsyncIO 資料來源）
             *   [📄 safechord.safezone.service.dataingestor.md](safechord.safezone.service.dataingestor.md)（資料攝取器：Kafka Producer 閘道器）
             *   [📄 safechord.safezone.service.worker.md](safechord.safezone.service.worker.md)（工作者：Golang / Franz-Go 消費者）
-            *   [📄 safechord.safezone.service.analyticsapi.md](safechord.safezone.service.analyticsapi.md)（API：聚合器與 Scaffold 藍圖）
+            *   [📄 safechord.safezone.service.analyticsapi.md](safechord.safezone.service.analyticsapi.md)（API：聚合器與回應快取）
             *   [📄 safechord.safezone.service.dashboard.md](safechord.safezone.service.dashboard.md)（UI：時間感知視覺化）
         *   **工具包與工作流程**
             *   [📄 safechord.safezone.toolkit.timeserver.md](safechord.safezone.toolkit.timeserver.md)（時間伺服器：虛擬時鐘控制器）

@@ -1,7 +1,7 @@
 # Dashboard（服務藍圖）
 
 > ⚠️ **範圍警告**：此藍圖定義了 `dashboard` 微服務。
-> *繼承自 `archetype.blueprint.microservice.md`*
+> **格式**：本藍圖維持 v0.3.8 之前的版面。這個服務已停止開發，因此沒有遷移到需求格式。
 
 ## 1. 職責與定位
 *   **角色**：客戶端／視覺化工具
@@ -60,17 +60,9 @@ Dashboard 的核心目標是提供使用者友善的疫情趨勢檢視，同時�
 | **元件穩健性** | 確保關鍵元件（如 Map）在接收到空值或格式錯誤資料時不會拋出 JS 例外 | `test/unit/` |
 | **API 整合** | 驗證與 Analytics API 的端到端連線及資料解析 | `test/integration/` |
 
-## 6. 架構決策記錄（ADR）
+## 6. 架構決策記錄 (ADR)
 
-*   **[v0.2.1] Plotly Dash 框架**
-    *   **決策**：選擇 Dash 而非 React/Vue。
-    *   **原因（取捨）**：讓後端為主的工程師能夠在 Python 中維護完整的 UI/邏輯堆疊，最大化此管理與視覺化工具的開發效率。
-*   **[v0.2.1] 時間感知輪詢架構**
-    *   **決策**：實作客戶端輪詢，透過 `dcc.Interval` 搭配後端 `TimeManager`。
-    *   **原因**：透過將 UI 與物理時間解耦，解決分散式模擬環境中的視覺化漂移問題。
-*   **[v0.2.0] 基於元件的 UI 管理**
-    *   **決策**：將佈局解耦為 `app/components/` 中的可重用元件。
-    *   **原因**：降低 `main.py` 的複雜度，並允許對特定小工具進行隔離的 UI 測試。
+已移至 [SafeZone 決策日誌](safechord.safezone.decisions.md)（ADR-008、ADR-011、ADR-012）。
 
 ## 7. 外部連結
 *   **時間來源**：[Time Server 工具組](safechord.safezone.toolkit.timeserver.md)

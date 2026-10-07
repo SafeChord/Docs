@@ -1,7 +1,7 @@
 ---
 title: 'KDD 2.0: Two-Engine Collaboration'
 doc_id: safechord.kdd.practice
-last_updated: '2026-09-26'
+last_updated: '2026-10-07'
 status: active
 authors:
   - bradyhau
@@ -125,7 +125,7 @@ The Settler opens and labels the ticket; the human adjusts it where needed.
 Applied to optimizations of existing modules and known architecture extensions.
 **Rule**: "Docs before Code"—no implementation without an updated blueprint.
 
-1.  **Strategic Design**: The human defines the "Why/What"; Settler updates the Markdown Knowledge Map (Blueprints/ADRs) and writes the tests that enforce the blueprint's TDD Convergence Boundaries (the section listing the constraints tests must hold), then **opens the ticket and labels it `kdd:forward`**.
+1.  **Strategic Design**: The human defines the "Why/What"; Settler updates the blueprint's Requirements (the section listing the promises tests must hold), sets its `app_version` to the ticket's milestone, appends the decision and its reasons to the decision log, and writes the tests that enforce the changed requirements, each carrying its requirement ID. Then the Settler **opens the ticket and labels it `kdd:forward`**.
 2.  **Implementation**: Pioneer reads the blueprint and implements code that passes those tests, adding its own tests as the work needs, strictly within the defined boundaries.
 3.  **Completion**: Pioneer submits PR and generates a Legacy Note.
 4.  **Solidification**: Settler reviews the code against the pre-defined docs and merges. **Reconciliation is a verification pass; amend the blueprint if the code diverged, then close the ticket.**
@@ -137,7 +137,7 @@ Applied to new tech integrations, unknown bug fixes, or performance stress tests
 1.  **Strategic Design**: The human discusses feasibility; Settler creates a Design Draft if codebase state is required, then **opens the ticket and labels it `kdd:spike`**.
 2.  **Spike**: Pioneer implements a Demo/Spike without a blueprint to conform to, and writes all of its tests.
 3.  **Completion**: Pioneer submits PR and generates a detailed Legacy Note.
-4.  **Solidification**: **Critical Phase.** Settler performs the PR review and executes **Documentation Reconciliation**, reverse-engineering the spike results back into the SSOT in `Docs/`. Constraints worth keeping become the new document's TDD Convergence Boundaries; spike tests that already enforce them are kept as written. **Settle the ticket into a new project document and close it.**
+4.  **Solidification**: **Critical Phase.** Settler performs the PR review and executes **Documentation Reconciliation**, reverse-engineering the spike results back into the SSOT in `Docs/`. Constraints worth keeping become the new document's Requirements; spike tests that already enforce them are kept as written. **Settle the ticket into a new project document and close it.**
 
 ### 3.2 Handling review findings
 
@@ -149,7 +149,7 @@ Review reads the test diff separately from the code diff. A test changed so that
 
 | The finding | Settler |
 | :--- | :--- |
-| The fix requires loosening a constraint in the blueprint's TDD Convergence Boundaries, or a test that enforces one | Takes it to the human before any fix |
+| The fix requires loosening a requirement in the blueprint, or a test that enforces one | Takes it to the human before any fix |
 | The blueprint itself is wrong | Opens a new ticket for the blueprint |
 | It is a decision still to be made, or work outside this ticket | Opens a new ticket, links it, and merges the PR without it |
 

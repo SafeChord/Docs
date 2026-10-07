@@ -5,8 +5,9 @@ status: active
 authors:
   - bradyhau
   - Gemini CLI
-last_updated: '2026-05-02'
-summary: The Data Ingestor serves as the primary ingress gateway for the SafeZone system. It provides a RESTful API to receive raw pandemic events, validating and wrapping them into standardized Kafka messages (CovidContract) to achieve asynchronous decoupling and load leveling.
+  - Claude Opus 5.5
+last_updated: '2026-10-07'
+summary: The Data Ingestor is the single entry point for case data. It validates each incoming record and publishes it to Kafka as a case event, keyed so that events for one city and region stay in order.
 keywords:
   - Data Ingestor
   - Kafka Producer
@@ -16,91 +17,87 @@ keywords:
   - Load Leveling
 logical_path: SafeChord.SafeZone.Service.DataIngestor
 related_docs:
+  - safechord.safezone.service.standards.md
+  - safechord.safezone.decisions.md
   - safechord.safezone.changelog.md
-  - safechord.safezone.service.pandemicsimulator.md
-  - safechord.safezone.service.worker.md
-  - safechord.safezone.service.python_scaffold.md
-parent_doc: safechord.safezone.service
+parent_doc: safechord.safezone
 archetype: blueprint
 code_paths:
   - SafeZone/services/data-ingestor
-tech_stack:
-  - Python 3.13
-  - FastAPI 0.115
-  - Kafka (aiokafka 0.12)
-  - Pydantic v2
-doc_version: 0.3.0
-app_version: 0.3.1
+doc_version: 0.4.0
+app_version: 0.3.8
 ---
 
 # Data Ingestor (Service Blueprint)
 
-## 1. Responsibility & Positioning
-*   **Role**: Gateway / Producer (Kafka)
-*   **Characteristics**: Stateless, High-Throughput, Event-Driven, Write-Only
-*   **Core Objective**: Acts as the single entry point for all pandemic data ingestion. It validates raw events and offloads them to Kafka buffers for downstream consumption.
-*   **Architecture Reference**: [Python Microservice Scaffold](safechord.safezone.service.python_scaffold.md)
+> **Type**: Blueprint (Service)
+> **Focus**: What this service promises to the rest of the system, and what it relies on.
+> **Constraint**: Current state only. No file structure, libraries, or implementation
+> (codebase). No field-level shape (contract files). No reasons
+> ([decision log](safechord.safezone.decisions.md)). No history
+> ([changelog](safechord.safezone.changelog.md)).
 
-## 2. Structural Design
-*   **Directory Layout**: Adheres to the standardized structure defined in the [Python Microservice Scaffold](safechord.safezone.service.python_scaffold.md).
-*   **Tech Stack**: Python 3.13, FastAPI 0.115, Kafka (aiokafka 0.12).
+## 1. Responsibility
 
-## 3. Business Requirements
+*   **Role**: Gateway / Producer
+*   **Core Objective**: Acts as the single entry point for case data. It turns each accepted HTTP request into one case event on Kafka, so that bursts of incoming traffic are absorbed by the topic and never reach the database directly.
 
-The service's core intent is to provide a highly available, low-latency window for data ingestion, transforming uncontrolled external traffic into a manageable internal stream.
+## 2. Requirements
 
-### 3.1 Data Reception & Validation (Functional)
-*   **Single Point of Entry**: Provides a standard HTTP interface to receive pandemic events matching the `CovidDataModel`.
-*   **Structural Validation**: Uses Pydantic for strict type checking.
-*   **Contract Wrapping**: Wraps raw payloads into a `CovidContract` containing metadata like `trace_id`, `event_time`, and `version`.
+Each requirement is a promise other parts of the system rely on. A test that enforces
+one carries its ID. Requirements shared by every service live in the
+[service standards](safechord.safezone.service.standards.md) and are not repeated here.
 
-### 3.2 Performance & Reliability
-*   **Asynchronous Decoupling**: Implements an asynchronous producer to ensure HTTP requests return immediately.
-*   **Load Leveling**: Uses Kafka as an intermediary to shield the database and compute clusters from sudden traffic bursts.
+### ING-R1: An accepted record becomes one event
+For every request it accepts, the ingestor SHALL publish exactly one event to the case
+event topic, carrying the request's date, city, region and case count unchanged.
 
-### 3.3 Consistency & Ordering
-*   **Regional Ordering Guarantee**: Ensures events from the same "City-Region" maintain strict chronological order via partitioning keys.
+#### Scenario: valid record
+- GIVEN a request with a valid record
+- WHEN the ingestor accepts it
+- THEN one event with the same date, city, region and case count is on the topic
 
-### 3.4 Observability
-*   **Technical Standards**: Adheres to the Universal Service Standards (Traceability & Health Checks) defined in the [Python Microservice Scaffold](safechord.safezone.service.python_scaffold.md).
+### ING-R2: Published events satisfy the event contract
+Every event the ingestor publishes SHALL satisfy the event contract. This applies STD-R4
+to the case event.
 
-## 4. Dependencies & Control
+#### Scenario: event checked against the contract
+- GIVEN any record the ingestor accepts
+- WHEN the event built from it is validated against the contract file
+- THEN validation passes
 
-| Dependency | Type | Description |
-| :--- | :--- | :--- |
-| **Upstream** | Source | Pandemic Simulator or CLI tools producing raw data. |
-| **Kafka Cluster** | Downstream (Sink) | Message broker for event buffering (topic name defined in codebase). |
-| **Control Plane** | N/A | Passive gateway triggered by external requests. |
+### ING-R3: Events for one city and region share a key
+Events for the same city and region SHALL carry the same message key, and events for
+different cities or regions SHALL carry different keys.
 
-## 5. TDD Convergence Boundaries
+#### Scenario: same city and region
+- GIVEN two records for the same city and region on different dates
+- WHEN both are published
+- THEN both events carry the same message key
 
-Any modifications to this service must satisfy these "Physical Red Walls" enforced via automated tests:
+### ING-R4: Success means the topic has the event
+The ingestor SHALL report success for a request only after the topic has acknowledged
+the event, and SHALL report failure when it cannot publish.
 
-| Dimension | Constraint Intent | Test Scope |
-| :--- | :--- | :--- |
-| **Contract Wrapping** | Ensure `CovidContract` contains all required metadata and the payload remains unmodified. | `test/unit/` |
-| **Partitioning Strategy** | Verify that data from the same `city-region` always maps to the same partition key. | `test/unit/` |
-| **Ingress Strictness** | Validate that well-formed data passes while malformed requests (422) are blocked with standard error messages. | `test/integration/` |
-| **Circuit Breaking (Kafka)** | Throw specific Domain Exceptions when the Kafka cluster is unavailable, rather than crashing the process. | `test/integration/` |
-| **Lifespan Integrity** | Ensure the Kafka Producer is initialized correctly at startup and gracefully shut down to prevent message loss. | `test/integration/` |
+#### Scenario: topic unavailable
+- GIVEN the ingestor cannot reach the topic
+- WHEN a valid record arrives
+- THEN the request fails
+- AND the caller is not told the data was published
 
-## 6. Architecture Decision Records (ADR)
+### ING-R5: An invalid record is rejected and nothing is published
+The ingestor SHALL reject a request that breaks the ingest request rules, and SHALL
+publish nothing for it.
 
-*   **[v0.3.1] Python Microservice Scaffold Integration**
-    *   **Decision**: Refactored the flat directory structure into the `api/core/services/exceptions` layered pattern.
-    *   **Why**: Standardizes development across all SafeZone services to reduce cognitive load for both AI and human engineers.
+#### Scenario: record with an invalid date
+- GIVEN a request whose date is not a calendar date string
+- WHEN it arrives
+- THEN the request is rejected as invalid
+- AND no event is published
 
-*   **[v0.2.1] Asynchronous Production (aiokafka)**
-    *   **Decision**: Integrated `aiokafka` into the FastAPI event loop.
-    *   **Why**: Resolved HTTP thread blocking issues caused by synchronous Kafka writes, significantly increasing gateway throughput.
+## 3. Dependencies
 
-*   **[v0.2.0] Natural Key Partitioning**
-    *   **Decision**: Switched to using `city-region` as the Kafka Partition Key.
-    *   **Why (Trade-off)**: While it might lead to partition skew, it guarantees strict chronological order for regional data, which is a prerequisite for accurate backend statistics.
-
-*   **[v0.2.0] Evolution: From Sync DB to Event-Driven Ingestion**
-    *   **Decision**: Removed direct PostgreSQL write logic in favor of a Kafka Producer.
-    *   **Why (Load Leveling)**: The previous synchronous model coupled Ingestor throughput to DB IOPS. Decoupling via Kafka provides a buffer for traffic bursts and allows the database to be taken offline for maintenance without stopping data ingestion.
-
-## 7. External Links
-*   **Refactor Tracker**: [Issue #22: Refactor Data Ingestor to Golang](https://github.com/SafeChord/SafeZone/issues/22) (Planned)
+| Channel | Direction | Contract | Also assumed |
+| :--- | :--- | :--- | :--- |
+| Ingest API | Serves | `SafeZone/utils/pydantic_model/request.py`, shared by its Python callers. | None. |
+| Case event topic | Produces | `SafeZone/utils/contract/covid_event.json` | None. The key rule in ING-R3 is what the contract file cannot express. |

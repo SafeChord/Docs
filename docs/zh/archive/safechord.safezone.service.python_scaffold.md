@@ -1,5 +1,7 @@
 # 藍圖：Python 微服務 Scaffold
 
+> **已於 2026-10-07 封存。** 本文件不再是標準。其中的 trace 與 health 規則已移至[服務標準](../safechord.safezone.service.standards.md)；理由見[決策日誌](../safechord.safezone.decisions.md)的 ADR-027。
+
 本文件定義了 SafeZone 中所有 Python 微服務的**標準化內部目錄結構與分層慣例**。這是一套「慣例勝於框架」的標準，旨在消除微服務之間架構上的混亂，確保 AI 代理人與人類工程師都能擁有一致的上下文。
 
 ## 1. 範圍與邊界

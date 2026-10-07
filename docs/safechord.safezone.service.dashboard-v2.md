@@ -1,116 +1,120 @@
 ---
 title: "Service: Dashboard v2"
 doc_id: safechord.safezone.service.dashboard-v2
-doc_version: 0.1.0
-app_version: 0.3.5
+doc_version: 0.2.0
+app_version: 0.3.7
 status: active
 authors:
   - bradyhau
   - Gemini CLI
-last_updated: "2026-05-26"
-summary: "High-performance React SPA for pandemic simulation visualization, interactive risk mapping, and real-time state synchronization."
+  - Claude Opus 5.5
+last_updated: '2026-10-07'
+summary: Dashboard v2 is the browser interface of SafeZone. It shows case figures on a map and in charts for the simulation's current date, and follows that date as it advances.
 keywords:
   - Dashboard v2
   - React
   - SPA
   - MapLibre
-  - Nginx Decoupling
 logical_path: "SafeChord.SafeZone.Service.DashboardV2"
 related_docs:
-  - "safechord.safezone.md"
-  - "safechord.safezone.service.analyticsapi.md"
-  - "safechord.safezone.toolkit.timeserver.md"
-parent_doc: "safechord.safezone.service"
+  - safechord.safezone.service.standards.md
+  - safechord.safezone.decisions.md
+  - safechord.safezone.changelog.md
+  - safechord.safezone.toolkit.timeserver.md
+parent_doc: safechord.safezone
 archetype: blueprint
 code_paths:
   - "SafeZone/services/dashboard-v2"
-tech_stack:
-  - React 19
-  - TypeScript
-  - MapLibre GL
-  - Recharts
-  - Nginx (Alpine)
 ---
 
 # Dashboard v2 (Service Blueprint)
 
+> **Type**: Blueprint (Service)
+> **Focus**: What this service promises to the rest of the system, and what it relies on.
+> **Constraint**: Current state only. No file structure, libraries, or implementation
+> (codebase). No field-level shape (contract files). No reasons
+> ([decision log](safechord.safezone.decisions.md)). No history
+> ([changelog](safechord.safezone.changelog.md)).
+
 ## 1. Responsibility
 
-*   **Role**: Aggregator / Visualizer (SPA Client)
-*   **Characteristics**: Stateless, Read-Heavy, Time-Aware
-*   **Core objective**: We designed the dashboard to provide an interactive geospatial user interface for visualizing active pandemic simulation runs. It enables users to drill down into city-level and region-level metrics in real time.
-*   **Architecture reference**: [Dashboard v1 Blueprint](safechord.safezone.service.dashboard.md) (Legacy Successor)
+*   **Role**: Visualizer (browser client)
+*   **Core Objective**: Shows a viewer where cases are and how they compare across cities and regions, for the date the simulation is currently at rather than the viewer's own clock.
 
----
+## 2. Requirements
 
-## 2. File Structure
+Each requirement is a promise other parts of the system rely on. A test that enforces
+one carries its ID. Requirements shared by every service live in the
+[service standards](safechord.safezone.service.standards.md) and are not repeated here.
 
-```text
-SafeZone/services/dashboard-v2/
-├── src/
-│   ├── components/               # UI presentation layer (Layout, Map, Scoreboard, Charts)
-│   ├── services/                 # Infrastructure layer: External API clients (fetch logic)
-│   ├── hooks/                    # Domain logic & state management (Time sync, case queries)
-│   ├── config/                   # Dynamic parameters (base URLs, poll intervals)
-│   └── types/                    # Domain data contracts and TS types
-├── test/                         # TDD verification boundary (unit tests)
-├── Dockerfile                    # Multi-stage image build settings (no runtime server)
-└── package.json                  # Dependencies & execution scripts
-```
+### DSH-R1: The page follows the system date
+The dashboard SHALL show the system date supplied by the time server, and SHALL reload
+every figure for the new date within one polling interval of that date changing.
 
----
+#### Scenario: simulation advances
+- GIVEN the dashboard showing figures for one system date
+- WHEN the time server's system date advances
+- THEN within one polling interval the dashboard shows the new date and its figures
 
-## 3. Business Requirements
+### DSH-R2: A viewer can drill down from city to region
+Selecting a city on the map SHALL show that city's regions, each with its own figure for
+the selected window.
 
-### Functional
-*   **Multi-Tier Drill-down**: The interface must support seamless geographic drill-down states (National -> Selected City -> Selected Region/District) with hover highlights and interactive legends.
-*   **Metric Representation**: The map and charts must support toggling between raw active cases and population-normalized ratios (e.g., active cases per 10,000 residents) to avoid geographic density bias.
-*   **7-Day Scoreboard Lock**: The scoreboard displaying the Top 10 cities must be locked to a 7-day rolling aggregate window. This metric behaves independently, remaining unaffected by the global dashboard date interval filter.
-*   **Centralized Time Tracking**: The UI must display the current system date and update all data components when the central virtual clock advances.
+#### Scenario: select a city
+- GIVEN the national map
+- WHEN the viewer selects a city
+- THEN the map shows that city's regions with a figure for each
 
-### Performance
-*   **Zero Node.js Runtime**: Production containers must serve the pre-compiled static assets using Nginx, eliminating server-side rendering overhead.
-*   **Hardware-Accelerated Rendering**: We leverage MapLibre GL to render vector maps on the client GPU, guaranteeing fluid interactions even with complex geospatial boundaries.
+### DSH-R3: A viewer chooses the window and the measure
+The dashboard SHALL let the viewer choose the length of the window, and switch every map
+and chart figure between case counts and cases per 10,000 residents.
 
-### Consistency
-*   **Environment-Agnostic Artifacts**: We decouple the Nginx server configuration from the container image. The image remains stateless, allowing configuration injection (via volumes or Kubernetes ConfigMaps) at runtime.
-*   **Cache Stale Fallback**: When external services suffer from latency, the UI must gracefully fallback to loading placeholders without blocking user input or throwing JS exceptions.
+#### Scenario: switch to ratio
+- GIVEN figures shown as case counts
+- WHEN the viewer switches to ratio
+- THEN every map and chart figure shows cases per 10,000 residents
 
-### Observability
-*   **End-to-End Traceability**: Every outbound API request must inject a unique, client-generated Trace ID into the headers. This trace ID acts as the root origin for tracking frontend-driven data requests through the logs.
-*   **Standard Health Probes**: The server must expose a static health probe endpoint returning HTTP 200.
+### DSH-R4: The city ranking always covers seven days
+The city ranking SHALL cover the seven days ending on the system date, whatever window
+the viewer has selected.
 
----
+#### Scenario: viewer selects a 30-day window
+- GIVEN the viewer selects a 30-day window
+- WHEN the ranking is shown
+- THEN it still ranks cities by the seven days ending on the system date
 
-## 4. Dependencies & Control
+### DSH-R5: A failing dependency does not break the page
+When the analytics API or the time server fails, the dashboard SHALL stay usable and
+tell the viewer that data is unavailable.
 
-| Dependency | Type | Description |
-| :--- | :--- | :--- |
-| **Analytics API** | Upstream (Source) | Provides aggregated pandemic cases, regional ratios, and trend series. |
-| **Time Server** | Upstream (Source) | Supplies the central virtual clock date to synchronize the UI timeline. |
-| **User Browser** | Downstream (Sink) | Renders vector maps, SVG analytical charts, and manages polling states. |
-| **Global Date Poller** | Control Plane (Trigger) | Periodically queries the Time Server to drive dashboard state updates. |
+#### Scenario: analytics API returns an error
+- GIVEN the analytics API answers with an error
+- WHEN the dashboard loads figures
+- THEN the page still responds to the viewer
+- AND it shows that data could not be loaded
 
----
+### DSH-R6: Every request starts a trace
+Each request the dashboard sends SHALL carry a newly created trace ID. This applies
+STD-R1 to the point where a trace begins.
 
-## 5. TDD Convergence Boundaries
+#### Scenario: two requests
+- GIVEN two requests sent by the dashboard
+- WHEN their trace IDs are compared
+- THEN each carries a trace ID and the two differ
 
-We define the following verification boundaries to guarantee correctness at the client's integration interfaces. These constraints act as "red walls" enforced by the Vitest suite:
+### DSH-R7: One image runs in every environment
+The dashboard image SHALL contain no environment-specific routing. The same image SHALL
+run unchanged in every environment, with routing supplied at deploy time.
 
-| Verification Dimension | Constraint Intent | Test Scope |
-| :--- | :--- | :--- |
-| **Request Traceability** | Outbound requests must inject a correctly formatted trace ID (matching `/^dash-\d+-[a-z0-9]+$/`) in the custom header. | `test/unit/apiClient` |
-| **Query Parameter Assembly** | The case client must strip empty values and construct valid query strings containing correct intervals, cities, regions, and ratios. | `test/unit/caseService` |
-| **Virtual Clock Parsing** | The clock service must validate the Time Server JSON response format, throwing explicit errors on missing date values. | `test/unit/timeService` |
+#### Scenario: same image, two environments
+- GIVEN one built image
+- WHEN it is deployed locally and to the cluster with different routing supplied
+- THEN it serves the dashboard in both without being rebuilt
 
----
+## 3. Dependencies
 
-## 6. Architecture Decision Records (ADR)
-
-### [v0.1.0] [Nginx Decoupling]
-*   **Decision**: We removed the `COPY nginx.conf` directive from the `Dockerfile`. The production container image compiles the TypeScript files and outputs static files to the public root. The configuration file `nginx.conf` must be injected externally.
-*   **Why**: We adopted this approach to support both local development (using Docker Compose read-only volume mounts) and Kubernetes production (using K8s ConfigMap mounts) without rebuilding or maintaining separate Docker images for different environments.
-
-### [v0.1.0] [TopCities 7-Day Window Isolation]
-*   **Decision**: We extracted a dedicated React hook `useTopCities` that hardcodes the query parameter `interval="7"` for all city aggregation calls, completely bypassing the global interval state.
-*   **Why**: This enforces the system requirement that the Top 10 scoreboard always represents the 7-day rolling aggregates, preventing confusion when users dynamically switch the main trend charts to other aggregates.
+| Channel | Direction | Contract | Also assumed |
+| :--- | :--- | :--- | :--- |
+| Analytics query API | Calls | No language-neutral contract yet. `SafeZone/utils/pydantic_model/` is authoritative and this service mirrors it by hand; no ticket yet. | None. |
+| Time server API | Calls | Same as the analytics query API. | None. |
+| Administrative boundaries | Reads | `SafeZone/utils/geo_data/boundaries/` | City and region names in the boundary files equal those the analytics API accepts. A check is tracked in SafeZone#55. |

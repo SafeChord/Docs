@@ -5,7 +5,8 @@ status: legacy
 authors:
   - bradyhau
   - Gemini CLI
-last_updated: '2026-05-02'
+  - Claude Opus 5.5
+last_updated: '2026-10-07'
 summary: The Legacy Dashboard (v1) is the original interactive user interface of SafeZone, built with Plotly Dash. Succeeded by Dashboard v2.
 keywords:
   - Dashboard
@@ -16,17 +17,12 @@ related_docs:
   - safechord.safezone.service.dashboard-v2.md
   - safechord.safezone.service.analyticsapi.md
   - safechord.safezone.toolkit.timeserver.md
-parent_doc: safechord.safezone.service
+  - safechord.safezone.decisions.md
+parent_doc: safechord.safezone
 archetype: blueprint
 code_paths:
   - SafeZone/services/dashboard
-tech_stack:
-  - Python 3.13
-  - Plotly Dash 2.18
-  - Dash Bootstrap Components
-  - Pandas
-  - httpx
-doc_version: 0.3.0
+doc_version: 0.3.1
 app_version: 0.3.1
 ---
 
@@ -35,6 +31,7 @@ app_version: 0.3.1
 > [!WARNING]
 > **LEGACY SERVICE**: This document outlines the original Python Plotly Dash implementation (v1). It has been succeeded by the new React SPA implementation (v2) for improved performance and modular design.
 > - **New Service Blueprint**: [Dashboard v2](safechord.safezone.service.dashboard-v2.md)
+> - **Format**: This blueprint keeps the pre-v0.3.8 layout. It was not migrated to the requirement format because the service is no longer developed.
 
 ## 1. Responsibility & Positioning
 *   **Role**: Client / Visualizer
@@ -101,15 +98,7 @@ The following constraints must be satisfied through automated testing:
 
 ## 6. Architecture Decision Records (ADR)
 
-*   **[v0.2.1] Plotly Dash Framework**
-    *   **Decision**: Chose Dash over React/Vue.
-    *   **Why (Trade-off)**: Empowers backend-centric engineers to maintain the full UI/Logic stack within Python, maximizing development efficiency for this administrative and visualization tool.
-*   **[v0.2.1] Time-Aware Polling Architecture**
-    *   **Decision**: Implemented client-side polling via `dcc.Interval` coupled with a backend `TimeManager`.
-    *   **Why**: Solves the visualization drift problem in distributed simulation environments by decoupling the UI from physical time.
-*   **[v0.2.0] Component-Based UI Management**
-    *   **Decision**: Decoupled the layout into reusable components in `app/components/`.
-    *   **Why**: Reduces the complexity of `main.py` and allows for isolated UI testing of specific widgets.
+Moved to the [SafeZone Decision Log](safechord.safezone.decisions.md#dashboard-v1-legacy) (ADR-008, ADR-011, ADR-012).
 
 ## 7. External Links
 *   **Time Source**: [Time Server Toolkit](safechord.safezone.toolkit.timeserver.md)

@@ -5,7 +5,7 @@ status: active
 authors:
   - bradyhau
   - Gemini CLI
-last_updated: '2026-05-02'
+last_updated: '2026-10-07'
 summary: The navigational map for the SafeZone application layer. Defines the microservice architecture, asynchronous data flow, and the responsibility boundaries of each component.
 keywords:
   - SafeZone
@@ -23,7 +23,7 @@ parent_doc: safechord
 archetype: map
 code_paths:
   - SafeZone/services
-doc_version: 0.3.5
+doc_version: 0.3.6
 app_version: 0.3.2
 ---
 
@@ -143,4 +143,5 @@ Supporting components that maintain the simulation's state and operation.
 
 *   **Deployment Architecture**: [Deployment & Operations](safechord.safezone.deployment.md)
 *   **CI/CD Pipeline**: [Unified Delivery Workflow](safechord.safezone.delivery.workflow.md)
-*   **API Specifications**: Refer to the **Interface** section within each individual Service Blueprint.
+*   **Service Standards & Contracts**: [What every service promises, and where each shared contract is defined](safechord.safezone.service.standards.md)
+*   **Decision Log**: [Why SafeZone is built the way it is](safechord.safezone.decisions.md)

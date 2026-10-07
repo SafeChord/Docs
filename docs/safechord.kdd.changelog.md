@@ -6,7 +6,7 @@ authors:
   - bradyhau
   - Gemini CLI
   - Claude Opus 5
-last_updated: '2026-09-13'
+last_updated: '2026-10-07'
 summary: Records how the SafeChord collaboration model itself changed — the seating, the workflow, and the protocols. Each entry states the decision, what it replaced, and what was rejected, so that a spec no longer in force is still recoverable.
 keywords:
   - KDD
@@ -56,6 +56,7 @@ standing and the model is still moving; this entry lands when the notice comes d
 
 Sources in the meantime: `.ai-session-drafts/kdd/2026-09-12-engine-realignment-and-model-routing.md`,
 `.ai-session-drafts/kdd/2026-09-12-practice-reconciliation-plan.md`,
+`.ai-session-drafts/kdd/2026-10-06-service-blueprint-requirement-format.md` (the service blueprint's requirement format, the decision log, and the service standards),
 `.ai-session-drafts/kdd/2026-09-25-settler-execution.md` at harness `05b9251` (the executor axis, §3.3; deleted after adoption, recover from harness history), and the commits from
 `14ebec0` onward on `practice.md`.
 
