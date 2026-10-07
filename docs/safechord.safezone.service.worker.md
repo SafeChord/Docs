@@ -23,7 +23,7 @@ parent_doc: safechord.safezone
 archetype: blueprint
 code_paths:
   - SafeZone/services/worker-golang
-doc_version: 0.4.0
+doc_version: 0.5.0
 app_version: 0.3.8
 ---
 
@@ -127,6 +127,26 @@ ID, whether the event is persisted or skipped. This applies STD-R1 to a consumer
 - GIVEN an invalid event carrying a trace ID
 - WHEN the worker skips it
 - THEN the log line recording the skip carries the trace ID
+
+### WK-R9: Health reflects the consume loop
+The worker SHALL report healthy (STD-R2) only while its consume loop has turned within
+the configured liveness window. It SHALL stay healthy while the topic is idle, and while
+Kafka or the database is unreachable.
+
+#### Scenario: idle topic
+- GIVEN a worker with no events to consume
+- WHEN `/health` is requested
+- THEN the response status is 200
+
+#### Scenario: loop stalled
+- GIVEN a worker whose consume loop has not turned for longer than the liveness window
+- WHEN `/health` is requested
+- THEN the response is not a success status
+
+#### Scenario: database unreachable
+- GIVEN a worker that cannot reach the database but whose loop is still turning
+- WHEN `/health` is requested
+- THEN the response status is 200
 
 ## 3. Dependencies
 

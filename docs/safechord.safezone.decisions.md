@@ -164,6 +164,12 @@ code_paths: []
 *   **Decision**: When one write holds several events for the same date, city and region, the latest one is kept.
 *   **Why**: Across writes the upsert already keeps the latest event, but within a write the first was kept, so the stored result depended on where batch boundaries fell. At-least-once consumption (ADR-022) regroups batches on redelivery and must not change the result. Upstream is not expected to send differing values for one key; this is a defensive guard, not a response to observed data. Decided in SafeZone#64.
 
+### ADR-028: The worker reports health over HTTP, as the turning of its loop
+*   **Version**: v0.3.8 · **Status**: Accepted
+*   **Affects**: WK-R9, STD-R2
+*   **Decision**: The worker serves `GET /health` like every other service. It is healthy while its consume loop keeps turning, whatever the lag and whether or not Kafka and the database are reachable.
+*   **Why (Trade-off)**: The worker was designed as an event-driven consumer, not an API, so it had no health signal and Kubernetes could not tell a stuck worker from a working one. An HTTP endpoint was chosen over a heartbeat file checked by an exec probe so that all services are checked the same way, and so that metrics can later share the port. Health deliberately ignores lag, which is the autoscaler's concern, and ignores dependencies: if an unreachable broker or database failed the check, every worker would be restarted at once and come back to the same outage. The cost is that a worker cut off from its dependencies still reports healthy; that condition shows up as lag instead. Decided in SafeZone#71.
+
 ---
 
 ## Analytics API

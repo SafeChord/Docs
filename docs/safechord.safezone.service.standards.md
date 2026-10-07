@@ -1,7 +1,7 @@
 ---
 title: 'SafeZone Service Standards'
 doc_id: safechord.safezone.service.standards
-doc_version: 0.1.0
+doc_version: 0.2.0
 app_version: 0.3.8
 status: active
 authors:
@@ -59,14 +59,19 @@ request or event it sends on. A service that receives no trace ID SHALL create o
 - WHEN a consumer handles it
 - THEN each log line the consumer writes for that event carries the trace ID
 
-### STD-R2: An HTTP service reports its health
-Every HTTP service SHALL answer `GET /health` with a success status while it is able to
-serve requests.
+### STD-R2: A service reports its health
+Every service SHALL answer `GET /health` with a success status while it is able to do
+its work. A service that serves no other HTTP traffic still serves this endpoint.
 
 #### Scenario: service is up
-- GIVEN a running HTTP service
+- GIVEN a running service
 - WHEN `/health` is requested
 - THEN the response status is 200
+
+#### Scenario: service has stopped working
+- GIVEN a service whose process is running but no longer doing its work
+- WHEN `/health` is requested
+- THEN the response is not a success status
 
 ### STD-R3: A shared contract has one definition
 A contract that more than one service depends on SHALL have exactly one definition.
