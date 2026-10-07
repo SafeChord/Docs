@@ -52,6 +52,8 @@ SafeChord development runs on a **"Two-Engine"** model: a Pioneer seat for imple
 
 **Seats are session-scoped.** One seat per session, held for its lifetime. Changing seat means a new session; carry the context across with a handoff. Code review therefore never shares a session with the implementation it reviews — the session that wrote the code holds Pioneer, and review is the Settler's.
 
+**A session may start the other seat's session.** What passes between the two is still only what the [handoff protocol](#-the-handoff-protocol) lists for each direction. Anything that reports back to the session that started it by another route, such as a subagent, works under that session's seat and holds none of its own.
+
 **The one exception: work nothing but the human can check.** When no test catches the executor's mistakes, the Pioneer's capability contract does not hold, so the Settler executes, and the human becomes the independent reviewer. See [§3.3](#33-choosing-the-executor).
 
 ---
@@ -128,7 +130,7 @@ Applied to optimizations of existing modules and known architecture extensions.
 1.  **Strategic Design**: The human defines the "Why/What"; Settler updates the blueprint's Requirements (the section listing the promises tests must hold), sets its `app_version` to the ticket's milestone, appends the decision and its reasons to the decision log, and writes the tests that enforce the changed requirements, each carrying its requirement ID. Then the Settler **opens the ticket and labels it `kdd:forward`**.
 2.  **Implementation**: Pioneer reads the blueprint and implements code that passes those tests, adding its own tests as the work needs, strictly within the defined boundaries.
 3.  **Completion**: Pioneer submits PR and generates a Legacy Note.
-4.  **Solidification**: Settler reviews the code against the pre-defined docs and merges. **Reconciliation is a verification pass; amend the blueprint if the code diverged, then close the ticket.**
+4.  **Solidification**: Settler reviews the code against the pre-defined docs, and the human merges. **Reconciliation is a verification pass; amend the blueprint if the code diverged, then close the ticket.**
 
 ### 🔴 Path B: `kdd:spike` (Frontier Mode)
 Applied to new tech integrations, unknown bug fixes, or performance stress tests.
@@ -137,13 +139,13 @@ Applied to new tech integrations, unknown bug fixes, or performance stress tests
 1.  **Strategic Design**: The human discusses feasibility; Settler creates a Design Draft if codebase state is required, then **opens the ticket and labels it `kdd:spike`**.
 2.  **Spike**: Pioneer implements a Demo/Spike without a blueprint to conform to, and writes all of its tests.
 3.  **Completion**: Pioneer submits PR and generates a detailed Legacy Note.
-4.  **Solidification**: **Critical Phase.** Settler performs the PR review and executes **Documentation Reconciliation**, reverse-engineering the spike results back into the SSOT in `Docs/`. Constraints worth keeping become the new document's Requirements; spike tests that already enforce them are kept as written. **Settle the ticket into a new project document and close it.**
+4.  **Solidification**: **Critical Phase.** Settler performs the PR review, the human merges, and the Settler executes **Documentation Reconciliation**, reverse-engineering the spike results back into the SSOT in `Docs/`. Constraints worth keeping become the new document's Requirements; spike tests that already enforce them are kept as written. **Settle the ticket into a new project document and close it.**
 
 ### 3.2 Handling review findings
 
 Review reads the test diff separately from the code diff. A test changed so that it passes is the first thing to question.
 
-**Findings go back to the Pioneer** as a PR review comment (see the [handoff protocol](#-the-handoff-protocol)). The Pioneer fixes them on the PR branch, including any tests the fix needs, and the Settler reviews again before merging.
+**Findings go back to the Pioneer** as a PR review comment (see the [handoff protocol](#-the-handoff-protocol)). The Pioneer fixes them on the PR branch, including any tests the fix needs, and the Settler reviews again before the human merges.
 
 **Some findings cannot be fixed within the ticket.** The Pioneer does not edit or open tickets: it comments on the current ticket with what it found and why, and continues with the rest of the work. The Settler handles the ticket side:
 
@@ -151,7 +153,7 @@ Review reads the test diff separately from the code diff. A test changed so that
 | :--- | :--- |
 | The fix requires loosening a requirement in the blueprint, or a test that enforces one | Takes it to the human before any fix |
 | The blueprint itself is wrong | Opens a new ticket for the blueprint |
-| It is a decision still to be made, or work outside this ticket | Opens a new ticket, links it, and merges the PR without it |
+| It is a decision still to be made, or work outside this ticket | Opens a new ticket, links it, and passes the PR to the human to merge without it |
 
 **Exception: fixes that change no behavior.** If a fix touches only comments or documentation and cannot change what the code does, the Settler commits it directly. If the Settler is not sure, it asks the human. The commit:
 
