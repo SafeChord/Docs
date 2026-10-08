@@ -1,7 +1,7 @@
 ---
 title: 'KDD 2.0: Two-Engine Collaboration'
 doc_id: safechord.kdd.practice
-last_updated: '2026-10-07'
+last_updated: '2026-10-08'
 status: active
 authors:
   - bradyhau
@@ -127,8 +127,8 @@ The Settler opens and labels the ticket; the human adjusts it where needed.
 Applied to optimizations of existing modules and known architecture extensions.
 **Rule**: "Docs before Code"—no implementation without an updated blueprint.
 
-1.  **Strategic Design**: The human defines the "Why/What"; Settler updates the blueprint's Requirements (the section listing the promises tests must hold), sets its `app_version` to the ticket's milestone, appends the decision and its reasons to the decision log, and writes the tests that enforce the changed requirements, each carrying its requirement ID. Then the Settler **opens the ticket and labels it `kdd:forward`**.
-2.  **Implementation**: Pioneer reads the blueprint and implements code that passes those tests, adding its own tests as the work needs, strictly within the defined boundaries.
+1.  **Strategic Design**: The human defines the "Why/What"; Settler updates the blueprint's Requirements (the section listing the promises tests must hold), sets its `app_version` to the ticket's milestone, appends the decision and its reasons to the decision log, and **opens the ticket and labels it `kdd:forward`**. The Settler then cuts the ticket's branch from `dev` and commits on it the tests that enforce the changed requirements, each carrying its requirement ID.
+2.  **Implementation**: Pioneer reads the blueprint and, on that branch, implements code that passes those tests, adding its own tests as the work needs, strictly within the defined boundaries.
 3.  **Completion**: Pioneer submits PR and generates a Legacy Note.
 4.  **Solidification**: Settler reviews the code against the pre-defined docs, and the human merges. **Reconciliation is a verification pass; amend the blueprint if the code diverged, then close the ticket.**
 
