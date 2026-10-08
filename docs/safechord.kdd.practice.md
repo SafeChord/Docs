@@ -147,6 +147,12 @@ Review reads the test diff separately from the code diff. A test changed so that
 
 **Findings go back to the Pioneer** as a PR review comment (see the [handoff protocol](#-the-handoff-protocol)). The Pioneer fixes them on the PR branch, including any tests the fix needs, and the Settler reviews again before the human merges.
 
+**A finding that the requirement tests missed.** When a defect breaks a blueprint requirement and no requirement test caught it, the gap is in the Settler's tests, so the Settler closes it: it adds the missing test to the PR branch, then sends the finding back. Left to the Pioneer, the seat under review would define what passing means. The commit:
+
+1.  stands alone and touches only tests;
+2.  carries the trailer `Agent: Settler (requirement test)`;
+3.  states in `Test:` that the test fails on the Pioneer's current commit.
+
 **Some findings cannot be fixed within the ticket.** The Pioneer does not edit or open tickets: it comments on the current ticket with what it found and why, and continues with the rest of the work. The Settler handles the ticket side:
 
 | The finding | Settler |
@@ -227,7 +233,7 @@ Describe the impact on project architecture or long-term decisions.
 Context: [Ticket ID, or link to the Blueprint]
 Impact: [Specific impact on API contracts or infra]
 Test: [Verification executed] (e.g., make test-data-ingestor)
-Agent: [Pioneer / Settler / Settler (review fix)]
+Agent: [Pioneer / Settler / Settler (review fix) / Settler (requirement test)]
 Legacy: [Pending issues for the next agent]
 ```
 
