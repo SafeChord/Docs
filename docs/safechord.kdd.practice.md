@@ -132,6 +132,8 @@ Applied to optimizations of existing modules and known architecture extensions.
 3.  **Completion**: Pioneer submits PR and generates a Legacy Note.
 4.  **Solidification**: Settler reviews the code against the pre-defined docs, and the human merges. **Reconciliation is a verification pass; amend the blueprint if the code diverged, then close the ticket.**
 
+**The two kinds of test have different owners.** A requirement test states a promise the rest of the system relies on, and belongs to the Settler: the Pioneer does not edit, loosen or delete it. Every other test is engineering, and belongs to the Pioneer: it adds, changes and replaces those as the implementation needs, and lists in the handoff any existing test it changed and why.
+
 ### 🔴 Path B: `kdd:spike` (Frontier Mode)
 Applied to new tech integrations, unknown bug fixes, or performance stress tests.
 **Rule**: "Code before Docs"—prototyping is privileged over documentation.
