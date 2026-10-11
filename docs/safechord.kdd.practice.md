@@ -41,6 +41,7 @@ SafeChord uses agents in several modes, told apart by where the human stands. Th
 
 | Mode | Where the human stands | How the agents work | Defined in |
 | :--- | :--- | :--- | :--- |
+| Discussion | Present throughout, deciding together | One agent in conversation with the human; the outcome is a ticket, a design draft, or a change to `Docs/` | This document, §2 |
 | Development | The last gatekeeper, looking once before merge | Two seats that check each other | This document, §1 and §3 |
 | Release | Present throughout, signing off every gate | One agent working with the human | [Delivery workflow](safechord.safezone.delivery.workflow.md) |
 | Live operations | Not yet defined | Not yet defined | — |
