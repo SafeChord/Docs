@@ -1,7 +1,7 @@
 ---
 title: 'KDD 2.0: Two-Engine Collaboration'
 doc_id: safechord.kdd.practice
-last_updated: '2026-10-08'
+last_updated: '2026-10-11'
 status: active
 authors:
   - bradyhau
@@ -9,16 +9,18 @@ authors:
   - Claude Opus 5
   - Claude Opus 5.5
 context_scope: Methodology
-summary: Defines the Two-Engine collaboration model for SafeChord. Specifies the Pioneer and Settler seats and their current carriers, the dual-track workflow and its ticket lifecycle, the Git commit and handoff protocols, and the operational templates for each artifact.
+summary: Defines the Two-Engine collaboration model for SafeChord development, from discussion through merge and ticket close. Specifies the Pioneer and Settler seats and their current carriers, the dual-track workflow and its ticket lifecycle, the Git commit, handoff and pull request protocols, and the operational templates for each artifact.
 keywords:
   - Two-Engine
   - Claude Code
   - Git Commit Protocol
   - Legacy Handoff
   - Ticket Lifecycle
+  - Pull Request
 logical_path: SafeChord.KDD.Practice
 related_docs:
   - safechord.kdd.introduction.md
+  - safechord.safezone.delivery.workflow.md
 parent_doc: safechord.kdd.introduction
 doc_version: 0.4.0
 archetype: script
@@ -35,26 +37,32 @@ SafeChord development runs on a **"Two-Engine"** model: a Pioneer seat for imple
 >
 > **Do not bump `doc_version` while this notice stands.** The document holds at v0.4.0 until the adjustment period closes. Edits land under `last_updated` alone.
 
+SafeChord uses agents in several modes, told apart by where the human stands. The protocols in §2 and the templates in §4 are shared by every mode; the seats in §1 and the flow in §3 belong to development alone, and end at merge and ticket close.
+
+| Mode | Where the human stands | How the agents work | Defined in |
+| :--- | :--- | :--- | :--- |
+| Development | The last gatekeeper, looking once before merge | Two seats that check each other | This document, §1 and §3 |
+| Release | Present throughout, signing off every gate | One agent working with the human | [Delivery workflow](safechord.safezone.delivery.workflow.md) |
+| Live operations | Not yet defined | Not yet defined | — |
+
 ---
 
 ## 1. The Two-Engine Model
 
 | Role | Capability Required | Current Carrier | Core Responsibility |
 | :--- | :--- | :--- | :--- |
-| **🛡️ Pioneer** | Implementation throughput; failures are caught by tests | Antigravity CLI · **Gemini Flash / high effort** | **Implementation & Problem Solving**: code, spikes, complex debugging. |
-| **🧠 Settler** | Repo comprehension and long-horizon focus; nothing else catches its mistakes | Claude Code · **Opus / high effort** | **Owner of `Docs/`**, in both directions. Before the ticket: author the blueprint or draft, then open and label the ticket. After it: code review, test planning, documentation reconciliation, and driving the [delivery workflow](safechord.safezone.delivery.workflow.md). |
+| **🛡️ Pioneer** | Adequate implementation ability, good value for its cost, fast turnaround; failures are caught by tests | Antigravity CLI (boost mode) · **Gemini Flash 3.8 / high effort** | **Implementation & Problem Solving**: code, first-pass debugging. |
+| **🧠 Settler** | Full comprehension, long-horizon work, strong review; the human answers for its mistakes | Claude Code · **Opus 5.5 / medium (or high) effort** | **Document stewardship & task review**. Before the ticket: discuss the design with the human, amend the blueprint, open the ticket. After it: code review, test planning, documentation reconciliation. |
 
 **Capability Required is the contract; Current Carrier is an implementation detail.** Swap a carrier without touching the seat.
 
-**The Pioneer leans toward working on its own; the Settler leans toward working with the human in the loop.** A Pioneer usually carries a ticket through without the human. A Settler brings a decision to the human whenever it is not clearly its own to make.
-
-**`Docs/` belongs to the Settler.** Pioneer is read-only there. A deviation found during implementation is finished in code first, then handed off for reconciliation.
+**`Docs/` belongs to the Settler.** Pioneer is read-only there. A deviation found during implementation is finished in code first, then written up with its reason for the Settler to review.
 
 **Seats are session-scoped.** One seat per session, held for its lifetime. Changing seat means a new session; carry the context across with a handoff. Code review therefore never shares a session with the implementation it reviews — the session that wrote the code holds Pioneer, and review is the Settler's.
 
-**A session may start the other seat's session.** What passes between the two is still only what the [handoff protocol](#-the-handoff-protocol) lists for each direction. Anything that reports back to the session that started it by another route, such as a subagent, works under that session's seat and holds none of its own.
+**A Settler session may start a Pioneer session.** The Pioneer session starts from an empty context and is given only the ticket and the handoffs; what passes between the two is still only what the [handoff protocol](#-the-handoff-protocol) lists for each direction. Anything that reports back to the session that started it by another route, such as a subagent, works under that session's seat and holds none of its own.
 
-**The one exception: work nothing but the human can check.** When no test catches the executor's mistakes, the Pioneer's capability contract does not hold, so the Settler executes, and the human becomes the independent reviewer. See [§3.3](#33-choosing-the-executor).
+**Exception: the Settler may carry a task in a single session.** After discussing it, the human and the Settler may have the Settler alone execute a task; the ticket then carries the label `exec:settler`. See [§3.3](#33-choosing-the-executor).
 
 ---
 
@@ -64,9 +72,10 @@ Standardized protocols carry information between agents and across sessions.
 
 ### 🎫 The Ticket
 A ticket is the head of any implementation, and the anchor everything else is traced back to.
+
 *   **Medium**: a GitHub issue in the repository the work lands in.
 *   **Purpose**: the basis for implementation. It is the grain that commits (too fine) and the project docs (end state only) both miss.
-*   **Weight**: a ticket is near-permanent, so it holds only what has trace value for a later reader: the problem, the decisions and their reasons, the scope, and Done When. Context that only aligns the seats for this task (inferred mechanisms, investigation detail, design suggestions, unverified items, implementation order) goes in the handoff.
+*   **Weight**: a ticket is near-permanent, so it holds only what has trace value for a later reader: the problem, the decisions and their reasons, the scope, and Done When. Context that only aligns the seats for this task (inferred mechanisms, investigation detail, design suggestions, unverified items, implementation order) goes in the handoff. Done When lists only what can be verified before merge; what can be verified only after deployment belongs to a gate in the [delivery workflow](safechord.safezone.delivery.workflow.md).
 *   **Required Content**: [see template](#-github-issue-template)
 
 ### 🟢 Basic Communication: Git Commit Protocol
@@ -82,22 +91,32 @@ A ticket is the head of any implementation, and the anchor everything else is tr
     - Pioneer completes a spike or phase of development.
     - An agent hits errors outside its operational scope.
     - Human intervention calls for a handover (usually once context has grown long enough to degrade).
-*   **Both directions**: GitHub carries the summary and the handoff carries the detail.
-    - Settler → Pioneer, at kickoff: the ticket, plus a handoff when the Settler judges the ticket alone leaves the Pioneer short of context.
-    - Pioneer → Settler: the PR description, plus a handoff every time.
-    - `exec:settler` work: the PR description alone. The human is the only reviewer, and there is no second seat to hand to (§3.3).
-    - Settler → Pioneer, in review: a PR review comment. Add a handoff only when the Pioneer session cannot be resumed and a new session has to start without its context.
+*   **Between the seats**: one ticket's back-and-forth uses at most three files, each with a single author.
+    - `kickoff` (Settler → Pioneer, at the start): the ticket is the basis for starting; the Settler writes this only when it judges the ticket alone leaves the Pioneer short of context, and writes it once.
+    - `delivery` (Pioneer → Settler, on delivery): describes the branch as it stands. Every round updates it in place instead of adding a file; what has been dealt with is deleted, and the earlier state stays in the harness git history. Its header records which round this is and which commit it describes.
+    - `review` (Settler → Pioneer, in review): every round appends a section (`## Round N`) to the same file. Earlier rounds are neither rewritten nor deleted, so it stays visible whether each round's findings narrowed. Every finding has a fixed number (`R<round>-<n>`); each round opens by settling the findings still open from before, so the Pioneer needs to read only the latest round.
 *   **Lifecycle**: a handoff lives with its task. Delete it once the PR is merged, the ticket is closed, and reconciliation has landed in `Docs/`; the harness git history keeps it recoverable.
-*   **Linking**: the handoff points at the ticket, never the reverse. Anyone who can read a handoff can reach the ticket, but a ticket reader may not see the handoff, and a link on a permanent ticket would dangle once the handoff is deleted. When a ticket exists, the filename carries `<repo>-<issue_no>` in lowercase (e.g. `2026-09-19-safezone-64-worker-offset-commit.md`), so `ls .ai-session-handoffs | grep safezone-64-` finds it from the ticket side.
+*   **Linking**: the handoff points at the ticket, never the reverse. Anyone who can read a handoff can reach the ticket, but a ticket reader may not see the handoff, and a link on a permanent ticket would dangle once the handoff is deleted.
+*   **Naming**: when a ticket exists, the filename carries `<repo>-<issue_no>` in lowercase (e.g. `2026-09-19-safezone-64-worker-offset-commit.md`). The three files exchanged between the seats also end in their kind: `-kickoff`, `-delivery`, `-review` (e.g. `2026-09-19-safezone-64-worker-offset-commit-review.md`).
 *   **Resuming**: a session handed off on a reactive trigger can be resumed with the note's `Resume:` command, for example to fix review findings. A session handed off for context degradation is retired and not resumed.
 *   **Required Content**: [see template](#-handoff-template)
 
+### 🟣 The Pull Request
+*   **Medium**: a GitHub PR in the repository the work lands in.
+*   **Purpose**: the interface through which the human reviews and merges. While the seats iterate they exchange only the branch and handoffs, and no PR is open.
+*   **Timing**: the Settler writes and opens it once review passes. For `exec:settler` work it is opened once implementation is done; see [§3.3](#33-choosing-the-executor).
+*   **Required Content**: there is no template yet. The Settler decides the wording and structure to suit the work, and a template will be drawn once a few exist. Only the two sections below are required, each under its own heading whenever it has content:
+    - **Decisions made in review**: decisions taken during the review rounds that the human did not see.
+    - **Follow-up tickets**: new tickets cut out of this one; see [§3.2](#32-handling-review-findings).
+
 ### ⚪ Design Drafts
-*   **Medium**: Markdown files stored in `.ai-session-drafts/<domain>/`, where the domain is one of
-    `kdd/` (practice, seats, review flow), `delivery/` (release workflow, gates, soak),
-    `platform/` (networking, ingress, security, observability) or `app/` (SafeZone code: debugging and
-    improvement).
+*   **Medium**: Markdown files stored in `.ai-session-drafts/<domain>/`.
 *   **Purpose**: continuity for forward-looking discussion that does not touch the codebase directly. Usually precedes opening a ticket.
+*   **Domains**:
+    - `kdd/` (practice, seats, review flow)
+    - `delivery/` (release workflow, gates, soak)
+    - `platform/` (networking, ingress, security, observability)
+    - `app/` (SafeZone code: debugging and improvement)
 *   **Required Content**: [see template](#-draft-template)
 
 ---
@@ -117,7 +136,7 @@ That answer decides what reconciliation *is* — a check, or an act of authorshi
 | Path | Blueprint before work starts | Reconciliation is |
 | :--- | :--- | :--- |
 | `kdd:forward` | Yes | **Verification** — confirm the code matches the spec; amend the spec where it diverged |
-| `kdd:spike` | No | **Authorship** — write the result back as a new SSOT node |
+| `kdd:spike` | No | **Authorship** — after discussing it with the human, write the result back as a new SSOT node where one is needed |
 
 The label tells the Pioneer where to look: `kdd:forward` → read the blueprint first and implement to it; `kdd:spike` → do not go searching `Docs/`, it comes back empty.
 
@@ -127,41 +146,74 @@ The Settler opens and labels the ticket; the human adjusts it where needed.
 Applied to optimizations of existing modules and known architecture extensions.
 **Rule**: "Docs before Code"—no implementation without an updated blueprint.
 
-1.  **Strategic Design**: The human defines the "Why/What"; Settler updates the blueprint's Requirements (the section listing the promises tests must hold), sets its `app_version` to the ticket's milestone, appends the decision and its reasons to the decision log, and **opens the ticket and labels it `kdd:forward`**. The Settler then cuts the ticket's branch from `dev` and commits on it the tests that enforce the changed requirements, each carrying its requirement ID.
-2.  **Implementation**: Pioneer reads the blueprint and, on that branch, implements code that passes those tests, adding its own tests as the work needs, strictly within the defined boundaries.
-3.  **Completion**: Pioneer submits PR and generates a Legacy Note.
-4.  **Solidification**: Settler reviews the code against the pre-defined docs, and the human merges. **Reconciliation is a verification pass; amend the blueprint if the code diverged, then close the ticket.**
+1.  **Strategic Design** (Settler):
+    1. Discuss and define the "Why/What" with the human
+    2. Update the blueprint's Requirements (the section listing the promises tests must hold), and set its `app_version` to the ticket's milestone
+    3. Discuss with the human whether the decision belongs in the decision log; if it does, append the decision and its reasons
+    4. **Open the ticket and label it `kdd:forward`**
+    5. Cut the ticket's branch from `dev` and commit on it the tests that enforce the changed requirements, each carrying its requirement ID
+    6. Write a kickoff handoff if one is needed
+2.  **Implementation** (Pioneer): once the Settler has committed the requirement tests and handed over
+    1. Read the ticket, the blueprint, and the handoff if there is one
+    2. On the same branch, implement code that passes those tests
+    3. Add its own tests as the work needs, so that development follows TDD
+    4. When implementation is done, push the branch, open no PR, and write the handoff
+3.  **Review** (Settler): once the Pioneer has delivered
+    1. Read the Pioneer's handoff and review the code against the blueprint. How to dispatch and review, and when to stop, is in the `pioneer-dispatch` skill (`.claude/skills/pioneer-dispatch/SKILL.md`)
+    2. Send any findings back to implementation; see [§3.2](#32-handling-review-findings)
+    3. Once review passes, write the PR
+    4. If the CI the PR triggers fails, go back to review; once it passes, wait for the human to review and merge
+4.  **Solidification** (Settler): once the human has merged the PR
+    1. Where the code diverged from the blueprint and the divergence was reviewed, bring the blueprint in line
+    2. Delete the handoffs the task produced
+    3. Close the ticket
 
-**The two kinds of test have different owners.** A requirement test states a promise the rest of the system relies on, and belongs to the Settler: the Pioneer does not edit, loosen or delete it. Every other test is engineering, and belongs to the Pioneer: it adds, changes and replaces those as the implementation needs, and lists in the handoff any existing test it changed and why.
+**The two kinds of test have different owners.** A requirement test states a promise the rest of the system relies on, and belongs to the Settler: the Pioneer does not edit, loosen or delete it, though it may raise an objection for the Settler to consider. Every other test is engineering, and belongs to the Pioneer: it adds, changes and replaces those as the implementation needs, and lists in the handoff the tests it added, the existing tests it changed, and why.
+
+**Some problems cannot be fixed within the ticket.** The Pioneer neither fixes them nor opens a ticket: it writes what it found and why in its handoff to the Settler, and continues with the rest of the work.
 
 ### 🔴 Path B: `kdd:spike` (Frontier Mode)
 Applied to new tech integrations, unknown bug fixes, or performance stress tests.
 **Rule**: "Code before Docs"—prototyping is privileged over documentation.
 
-1.  **Strategic Design**: The human discusses feasibility; Settler creates a Design Draft if codebase state is required, then **opens the ticket and labels it `kdd:spike`**.
-2.  **Spike**: Pioneer implements a Demo/Spike without a blueprint to conform to, and writes all of its tests.
-3.  **Completion**: Pioneer submits PR and generates a detailed Legacy Note.
-4.  **Solidification**: **Critical Phase.** Settler performs the PR review, the human merges, and the Settler executes **Documentation Reconciliation**, reverse-engineering the spike results back into the SSOT in `Docs/`. Constraints worth keeping become the new document's Requirements; spike tests that already enforce them are kept as written. **Settle the ticket into a new project document and close it.**
+1.  **Strategic Design** (Settler):
+    1. Discuss and define the "Why/What" with the human
+    2. **Open the ticket and label it `kdd:spike`**, and write a kickoff handoff if one is needed
+    3. Cut the ticket's branch from `dev`
+2.  **Spike** (Pioneer): once the Settler has cut the branch and handed over
+    1. Read the ticket, and the handoff if there is one
+    2. Develop the code following TDD
+    3. When implementation is done, push the branch, open no PR, and write the handoff
+3.  **Review** (Settler): once the Pioneer has delivered
+    1. Read the Pioneer's handoff and review the code against the ticket's scope and Done When. How to dispatch and review, and when to stop, is in the `pioneer-dispatch` skill (`.claude/skills/pioneer-dispatch/SKILL.md`)
+    2. Send any findings back to implementation; see [§3.2](#32-handling-review-findings)
+    3. Once review passes, write the PR
+    4. If the CI the PR triggers fails, go back to review. If CI does not cover the component this task built, discuss with the human whether it should; if so, open a new ticket for it and carry on. Once CI passes, wait for the human to review and merge
+4.  **Solidification** (Settler): once the human has merged the PR
+    1. Discuss with the human whether the result needs settling into a document; if it does, write the document of the type that fits the work
+    2. Delete the handoffs the task produced
+    3. Close the ticket
 
 ### 3.2 Handling review findings
 
 Review reads the test diff separately from the code diff. A test changed so that it passes is the first thing to question.
 
-**Findings go back to the Pioneer** as a PR review comment (see the [handoff protocol](#-the-handoff-protocol)). The Pioneer fixes them on the PR branch, including any tests the fix needs, and the Settler reviews again before the human merges.
+**Findings go back to the Pioneer in a handoff** (see the [handoff protocol](#-the-handoff-protocol)).
 
-**A finding that the requirement tests missed.** When a defect breaks a blueprint requirement and no requirement test caught it, the gap is in the Settler's tests, so the Settler closes it: it adds the missing test to the PR branch, then sends the finding back. Left to the Pioneer, the seat under review would define what passing means. The commit:
+**A requirement test that does not match the blueprint's requirement.** There are two cases:
 
-1.  stands alone and touches only tests;
-2.  carries the trailer `Agent: Settler (requirement test)`;
-3.  states in `Test:` that the test fails on the Pioneer's current commit.
+1. The test is at fault
+    1. The test is too loose: the Settler tightens it
+    2. The test is too strict: the Settler loosens it, checking with particular care that it still holds the blueprint's requirement
 
-**Some findings cannot be fixed within the ticket.** The Pioneer does not edit or open tickets: it comments on the current ticket with what it found and why, and continues with the rest of the work. The Settler handles the ticket side:
+    The Settler commits the change itself under the rules below, then hands back to the Pioneer to pass the tests:
 
-| The finding | Settler |
-| :--- | :--- |
-| The fix requires loosening a requirement in the blueprint, or a test that enforces one | Takes it to the human before any fix |
-| The blueprint itself is wrong | Opens a new ticket for the blueprint |
-| It is a decision still to be made, or work outside this ticket | Opens a new ticket, links it, and passes the PR to the human to merge without it |
+    1. each change is a commit of its own
+    2. it carries the trailer `Agent: Settler (requirement test)`
+    3. the body states the reason
+2. The blueprint is at fault: stop the task and ask the human to judge the situation
+
+**A decision still to be made, or work outside this ticket.** Whether the Settler found it in review or it came from the Pioneer's handoff, the Settler opens a new ticket. It is linked in two places: the new ticket's Background points back at the original, so a later reader of the new ticket knows where it came from; the PR lists these follow-up tickets in a section of their own, so the human sees them before merging. The body of the PR does not need to describe them.
 
 **Exception: fixes that change no behavior.** If a fix touches only comments or documentation and cannot change what the code does, the Settler commits it directly. If the Settler is not sure, it asks the human. The commit:
 
@@ -171,24 +223,23 @@ Review reads the test diff separately from the code diff. A test changed so that
 
 ### 3.3 Choosing the executor
 
-§3.1 decides what reconciliation *is*. A separate question, also answered when the ticket is opened, decides **who executes**:
+§3.1 decides what form the task takes. A separate question decides **who executes**:
 
-> **Can anything other than the human catch the executor's mistakes?**
+**Almost always, the seats should stay separate.** Exceptions do happen, for reasons such as:
 
-| Answer | Executor | Ticket label |
-| :--- | :--- | :--- |
-| Yes: tests, `helm template`, CI, a preview deploy | Pioneer (the paths above) | none |
-| No: live system state, or decisions that interleave with measurement | **Settler** | `exec:settler` |
+1. The human or the Settler can tell in advance that the Pioneer cannot finish the task, for example because
+    1. the task covers too much ground
+    2. the Pioneer cannot operate the tools needed to verify it
+    3. the Pioneer's ability is judged certain to fall short
+2. The task is mostly thinking and little implementation: for example, work that comes down to a few lines of code once the discussion is over
 
-The two questions are independent, so the labels combine freely: a ticket can be `kdd:spike` + `exec:settler`.
+None of these conditions settles the matter on its own. The human and the Settler discuss the case in front of them and decide.
 
-**What replaces seat separation.** Separation exists so the session that did the work never reviews it. Under `exec:settler` that independence is gone, so the human takes it over explicitly, and signing off makes the human accountable for the change.
+**Label and flow.** A ticket the Settler will execute carries the label `exec:settler`, which combines with `kdd:forward` or `kdd:spike`. The flow is the path from [§3.1](#31-choosing-the-path) with the Settler as the implementer: the handoffs between seats and the review in step 3 are skipped, and the Settler opens the PR once implementation is done, for the human to review.
 
-1.  **Per-mutation sign-off.** Every action that changes live state is confirmed by the human before it runs.
-2.  **Read-back evidence.** State is captured before and after each change. Reconciliation cites measured values, never intended ones. Tests come first where they can: red before the change, green after.
-3.  **Scope ejection.** Anything testable that surfaces mid-task (chart changes, application code) goes to a new ticket for the Pioneer. The Settler does not absorb it.
+**Review responsibility.** Separation exists so the session that did the work never reviews it. Under `exec:settler` that independence is gone, so the human takes over review explicitly and is accountable for it.
 
-**The PR.** The Settler opens it with the label `review:human` and this header:
+**The PR label.** The Settler opens the PR with the label `review:human` and this header:
 
 ```markdown
 > ⚠️ **Executed by the Settler.** No independent agent review took place; the executor and
@@ -196,11 +247,7 @@ The two questions are independent, so the labels combine freely: a ticket can be
 > off transfers accountability to them.
 ```
 
-**The sign-off.** After review, the human adds `signed-off:human`. GitHub records who added a label and when, which makes the sign-off a separate, auditable act from the merge. A label is used because the PR author cannot approve their own PR, and every PR here is authored from the human's account.
-
-🛑 **The Settler never adds `signed-off:human`.** Agent actions run under the human's GitHub account, so a label the Settler added would look exactly like the human's signature. The label means something only if the human alone applies it.
-
-**Reconciliation timing.** Under `exec:settler`, `Docs/` may be written while the PR is open, because the same session holds both the evidence and the authorship. Docs commits are not pushed until the PR carries `signed-off:human`.
+**The sign-off.** After review, the human adds `signed-off:human`. No agent may add this label itself; that is what ensures the human reviewed the change and answers for it.
 
 ---
 
@@ -218,7 +265,7 @@ The two questions are independent, so the labels combine freely: a ticket can be
 ## Done When
 - [ ] [verifiable condition 1]
 - [ ] [verifiable condition 2]
-- [ ] Reconciliation complete
+- [ ] Reconciliation complete (`kdd:spike`: or confirmed with the human that none is needed)
 
 ## References
 - Blueprint: [`kdd:forward` only — link to the Docs/ page]
@@ -271,6 +318,54 @@ Legacy: [Pending issues for the next agent]
 ## Next Actions
 1. [Specific Instruction 1]
 2. [Specific Instruction 2]
+```
+
+A `kickoff` between the seats uses the template above as it is. `delivery` and `review` differ as follows.
+
+**`delivery`** (Pioneer, updated in place every round): the template above, with two more header lines and two more sections.
+
+```markdown
+> **Round**: [N, counted from 1]
+> **Head**: [the commit this note describes]
+
+## Response to Review
+[From round 2 on. One line per finding still open in the latest review round.]
+- R1-1: [how it was fixed, or why you disagree]
+
+## Raised for the Settler
+- [A problem that cannot be fixed inside this ticket: what was found, and why]
+- [An objection to a requirement test]
+```
+
+**`review`** (Settler, appended every round):
+
+```markdown
+# 📝 Review: [Task Name]
+
+> **From**: Settler / [Carrier] / [session id]
+> **Resume**: [command that resumes this session in its tool]
+> **To**: Pioneer / [session id]
+> **Ticket**: [<repo>-<issue_no>]
+> **Branch**: [Branch Name]
+
+---
+
+## Round 1 — reviewed [commit]
+**Verdict**: [Returned / Passed]
+
+### Findings
+- **R1-1** [Blocking] [what is wrong, where, how to reproduce it]
+- **R1-2** [Minor] [...]
+
+## Round 2 — reviewed [commit]
+**Verdict**: [Returned / Passed]
+
+### Earlier findings
+- R1-1: Resolved
+- R1-2: Open — [what is still missing]
+
+### Findings
+- **R2-1** [Blocking] [...]
 ```
 
 ### ⚪ Draft Template
