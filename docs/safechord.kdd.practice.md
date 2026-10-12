@@ -1,7 +1,7 @@
 ---
 title: 'KDD 2.0: Two-Engine Collaboration'
 doc_id: safechord.kdd.practice
-last_updated: '2026-10-11'
+last_updated: '2026-10-12'
 status: active
 authors:
   - bradyhau
@@ -95,7 +95,7 @@ A ticket is the head of any implementation, and the anchor everything else is tr
 *   **Between the seats**: one ticket's back-and-forth uses at most three files, each with a single author.
     - `kickoff` (Settler → Pioneer, at the start): the ticket is the basis for starting; the Settler writes this only when it judges the ticket alone leaves the Pioneer short of context, and writes it once.
     - `delivery` (Pioneer → Settler, on delivery): describes the branch as it stands. Every round updates it in place instead of adding a file; what has been dealt with is deleted, and the earlier state stays in the harness git history. Its header records which round this is and which commit it describes.
-    - `review` (Settler → Pioneer, in review): every round appends a section (`## Round N`) to the same file. Earlier rounds are neither rewritten nor deleted, so it stays visible whether each round's findings narrowed. Every finding has a fixed number (`R<round>-<n>`); each round opens by settling the findings still open from before, so the Pioneer needs to read only the latest round.
+    - `review` (Settler → Pioneer, in review): every round appends a section (`## Round N`) to the same file. Earlier rounds are neither rewritten nor deleted, so it stays visible whether each round's findings narrowed. Every finding has a fixed number (`R<round>-<n>`), and every Blocking finding names its cause; each round opens by settling the findings still open from before, so the Pioneer needs to read only the latest round. Each round closes with its coverage: what the Settler ran, what it probed, and what it left unchecked, so that a round with few findings can be told apart from a round that looked at little.
 *   **Lifecycle**: a handoff lives with its task. Delete it once the PR is merged, the ticket is closed, and reconciliation has landed in `Docs/`; the harness git history keeps it recoverable.
 *   **Linking**: the handoff points at the ticket, never the reverse. Anyone who can read a handoff can reach the ticket, but a ticket reader may not see the handoff, and a link on a permanent ticket would dangle once the handoff is deleted.
 *   **Naming**: when a ticket exists, the filename carries `<repo>-<issue_no>` in lowercase (e.g. `2026-09-19-safezone-64-worker-offset-commit.md`). The three files exchanged between the seats also end in their kind: `-kickoff`, `-delivery`, `-review` (e.g. `2026-09-19-safezone-64-worker-offset-commit-review.md`).
@@ -355,8 +355,13 @@ A `kickoff` between the seats uses the template above as it is. `delivery` and `
 **Verdict**: [Returned / Passed]
 
 ### Findings
-- **R1-1** [Blocking] [what is wrong, where, how to reproduce it]
+- **R1-1** [Blocking] [impl / boundary / kickoff] [what is wrong, where, how to reproduce it]
 - **R1-2** [Minor] [...]
+
+### Coverage
+- Ran: [the tests the Settler ran itself, and their result]
+- Probed: [each throwaway experiment: what it varied, what it showed]
+- Not checked: [the paths, conditions and files this round did not examine]
 
 ## Round 2 — reviewed [commit]
 **Verdict**: [Returned / Passed]
@@ -366,8 +371,21 @@ A `kickoff` between the seats uses the template above as it is. `delivery` and `
 - R1-2: Open — [what is still missing]
 
 ### Findings
-- **R2-1** [Blocking] [...]
+- **R2-1** [Blocking] [impl / boundary / kickoff] [...]
+
+### Coverage
+- [...]
 ```
+
+Every Blocking finding carries its cause, and may carry more than one:
+
+| Cause | Meaning |
+| :--- | :--- |
+| `impl` | An error inside the boundary: the ticket, the blueprint or the requirement tests already said what was right, and the implementation did not do it |
+| `boundary` | The boundary moved: nobody had anticipated this case before the work began |
+| `kickoff` | Traced to what the Settler handed over: the ticket, the kickoff, or a requirement test |
+
+The cause records where a round came from, so that tickets can be compared by cause and not only by how many rounds they took.
 
 ### ⚪ Draft Template
 ```markdown

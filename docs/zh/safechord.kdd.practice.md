@@ -66,7 +66,7 @@ SafeChord 使用 agent 的方式，依人類所在的位置分成幾種模式。
 *   **席位之間的交接**: 一張票的來回最多三個檔，每個檔只有一個作者。
     - `kickoff`（維護者 → 開拓者，開工）：開工的依據是票；維護者判斷光靠票 context 不夠時才寫，寫一次。
     - `delivery`（開拓者 → 維護者，交付）：描述分支的現況。每一輪交付都原地更新，不另開新檔；已經處理掉的內容直接刪除，舊的狀態留在 harness 的 git history。表頭記下這是第幾輪、描述的是哪個 commit。
-    - `review`（維護者 → 開拓者，審查）：每一輪審查在同一個檔追加一節（`## Round N`），前面的輪次不改寫也不刪除，讓每一輪的發現有沒有收窄看得出來。每個發現有固定編號（`R<輪>-<序>`）；每一輪開頭結算先前還開著的發現，所以開拓者只需要讀最新一輪。
+    - `review`（維護者 → 開拓者，審查）：每一輪審查在同一個檔追加一節（`## Round N`），前面的輪次不改寫也不刪除，讓每一輪的發現有沒有收窄看得出來。每個發現有固定編號（`R<輪>-<序>`），Blocking 的發現另外標上成因；每一輪開頭結算先前還開著的發現，所以開拓者只需要讀最新一輪。每一輪結尾記下涵蓋範圍：維護者跑了什麼、做了哪些實驗、哪些沒查，讓「發現少」與「看得少」分得出來。
 *   **生命週期**: handoff 跟著任務走。PR merge、票關閉、reconciliation 落進 `Docs/` 之後就刪除；harness 的 git history 會留著，需要時可以找回。
 *   **連結方向**: handoff 指向票，票不反指。看得到 handoff 的人一定找得到票，看得到票的人卻不一定看得到 handoff；而且 handoff 刪除後，永久的票上會留下一條死連結。
 *   **命名規則**: 有對應的票時，handoff 檔名帶上小寫的 `<repo>-<issue_no>`（例如 `2026-09-19-safezone-64-worker-offset-commit.md`）。席位之間交接的三種檔再以種類結尾：`-kickoff`、`-delivery`、`-review`（例如 `2026-09-19-safezone-64-worker-offset-commit-review.md`）。
@@ -326,8 +326,13 @@ Legacy: [留待下一個代理處理的待辦事項]
 **Verdict**: [Returned / Passed]
 
 ### Findings
-- **R1-1** [Blocking] [what is wrong, where, how to reproduce it]
+- **R1-1** [Blocking] [impl / boundary / kickoff] [what is wrong, where, how to reproduce it]
 - **R1-2** [Minor] [...]
+
+### Coverage
+- Ran: [the tests the Settler ran itself, and their result]
+- Probed: [each throwaway experiment: what it varied, what it showed]
+- Not checked: [the paths, conditions and files this round did not examine]
 
 ## Round 2 — reviewed [commit]
 **Verdict**: [Returned / Passed]
@@ -337,8 +342,21 @@ Legacy: [留待下一個代理處理的待辦事項]
 - R1-2: Open — [what is still missing]
 
 ### Findings
-- **R2-1** [Blocking] [...]
+- **R2-1** [Blocking] [impl / boundary / kickoff] [...]
+
+### Coverage
+- [...]
 ```
+
+每個 Blocking 的發現都標上成因，可以不只一個：
+
+| 成因 | 意思 |
+| :--- | :--- |
+| `impl` | 邊界內的錯：票、藍圖或需求測試已經說了什麼是對的，實作沒做到 |
+| `boundary` | 邊界移動：這個情境在開工前沒有人想到 |
+| `kickoff` | 追溯到維護者交出去的東西：票、kickoff，或某個需求測試 |
+
+成因記的是這一輪從哪裡來，之後才能按成因比較不同的票，不只是數輪數。
 
 ### ⚪ Draft 範本
 ```markdown
