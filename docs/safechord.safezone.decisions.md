@@ -2,7 +2,7 @@
 title: 'SafeZone Decision Log'
 doc_id: safechord.safezone.decisions
 doc_version: 0.1.0
-last_updated: '2026-10-07'
+last_updated: '2026-10-13'
 status: active
 authors:
   - bradyhau
@@ -135,7 +135,7 @@ code_paths: []
 *   **Why (Trade-off)**: Prioritizes throughput over strict exactly-once guarantees. In non-financial scenarios like SafeZone, this trade-off simplifies state management while remaining recoverable via upstream replays.
 
 ### ADR-013: Batch-First Persistence
-*   **Version**: v0.2.5 · **Status**: Accepted
+*   **Version**: v0.2.5 · **Status**: Superseded by ADR-029
 *   **Affects**: WK-R7
 *   **Decision**: Set default batch size to 1000 records.
 *   **Why**: Individual SQL inserts are the primary bottleneck for DB performance. Shifting pressure from DB IOPS to memory allows the system to handle simulator bursts effectively.
@@ -169,6 +169,18 @@ code_paths: []
 *   **Affects**: WK-R9, STD-R2
 *   **Decision**: The worker serves `GET /health` like every other service. It is healthy while its consume loop keeps turning, whatever the lag and whether or not Kafka and the database are reachable.
 *   **Why (Trade-off)**: The worker was designed as an event-driven consumer, not an API, so it had no health signal and Kubernetes could not tell a stuck worker from a working one. An HTTP endpoint was chosen over a heartbeat file checked by an exec probe so that all services are checked the same way, and so that metrics can later share the port. Health deliberately ignores lag, which is the autoscaler's concern, and ignores dependencies: if an unreachable broker or database failed the check, every worker would be restarted at once and come back to the same outage. The cost is that a worker cut off from its dependencies still reports healthy; that condition shows up as lag instead. Decided in SafeZone#71.
+
+### ADR-029: One write and one commit per poll
+*   **Version**: v0.3.8 · **Status**: Accepted
+*   **Affects**: WK-R2, WK-R3, WK-R4, WK-R7
+*   **Decision**: The worker persists what a poll returned and commits its offsets before it polls again, and keeps no event from one poll to the next. A batch is whatever one poll returns, up to the configured batch size. Supersedes ADR-013.
+*   **Why (Trade-off)**: An event held between polls can outlive the worker's ownership of its partition. Gathering events across polls, as ADR-013 had it, led either to a worker that stopped for good when the group rebalanced under light traffic, or to a worker that had lost a partition writing its older events over what the new owner had since stored. Holding nothing removes both, and it lets the client hold a rebalance back for exactly as long as one write and one commit take. The price is the one ADR-013 set out to avoid: under light traffic a poll returns a single event, so each event gets its own database transaction. Under a backlog a poll fills and the writes are batched as before, which is when batching matters. Offset commits are no more frequent than they were. Decided in SafeZone#64.
+
+### ADR-030: A failed offset commit ends the worker
+*   **Version**: v0.3.8 · **Status**: Accepted
+*   **Affects**: WK-R3
+*   **Decision**: When an offset commit fails, the worker stops and the process exits with a non-zero status after logging the cause. It does not log the failure and carry on, and it adds no retry of its own.
+*   **Why (Trade-off)**: Stopping loses nothing: the events are already stored, the next owner reads again from the last committed offset, and the idempotent upsert makes the repeat harmless. The Kafka client already retries the coordinator errors that clear by themselves, so a failure that reaches the worker is unlikely to pass by waiting, and one that repeats on every attempt must be visible. The exit has to be loud because it is the only signal the worker gives whatever runs it. Two costs are accepted: while the broker is unreachable the worker restarts in a loop, and consumption resumes only after the restart backoff once the broker is back; and when several workers fail together, their leaving and rejoining keeps the group rebalancing. Decided in SafeZone#64.
 
 ---
 
