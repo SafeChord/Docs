@@ -77,13 +77,19 @@ different cities or regions SHALL carry different keys.
 
 ### ING-R4: Success means the topic has the event
 The ingestor SHALL report success for a request only after the topic has acknowledged
-the event, and SHALL report failure when it cannot publish.
+the event, and SHALL report failure within 4 seconds when it cannot publish.
 
 #### Scenario: topic unavailable
 - GIVEN the ingestor cannot reach the topic
 - WHEN a valid record arrives
 - THEN the request fails
 - AND the caller is not told the data was published
+
+#### Scenario: topic stops acknowledging
+- GIVEN the topic stops acknowledging events after the ingestor has started
+- WHEN a valid record arrives
+- THEN the request fails within 4 seconds
+- AND the event may still reach the topic once it recovers
 
 ### ING-R5: An invalid record is rejected and nothing is published
 The ingestor SHALL reject a request that breaks the ingest request rules, and SHALL

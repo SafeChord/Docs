@@ -142,6 +142,12 @@ code_paths: []
 *   **Decision**: Refactored the flat directory structure into the `api/core/services/exceptions` layered pattern.
 *   **Why**: Standardizes development across all SafeZone services to reduce cognitive load for both AI and human engineers.
 
+### ADR-034: A publish the topic does not acknowledge fails after 4 seconds
+*   **Version**: v0.3.8 · **Status**: Accepted
+*   **Affects**: ING-R4
+*   **Decision**: The ingestor waits at most 4 seconds for the topic to acknowledge an event, then answers the request with a failure. The event is not taken back: the producer keeps what it has accepted and delivers it once the topic recovers, so a request reported as failed may still have been published.
+*   **Why (Trade-off)**: With the broker lost after startup, the producer retries without ever raising, and the request hung for over two minutes; the caller was never told the publish failed. 4 seconds sits below the simulator's 5-second client timeout, so the simulator sees the failure rather than its own timeout. The timeout does not take the event back from the producer, and that cost is accepted: in review, all 21 requests answered with a failure during an outage were delivered after it, and a caller that retries publishes the record twice. Duplicates are not new to the pipeline; the worker already consumes at least once (ADR-022). Decided in SafeZone#82.
+
 ---
 
 ## Worker
