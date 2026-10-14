@@ -169,5 +169,5 @@ fit the tables as the table contract defines them.
 | Channel | Direction | Contract | Also assumed |
 | :--- | :--- | :--- | :--- |
 | Case event topic | Consumes | `SafeZone/contract/covid_event.json` | Events for one city and region arrive on one partition, in production order. WK-R2 depends on this. |
-| Case table | Writes | `SafeZone/contract/schema.sql`. The file does not exist until SafeZone#70 lands; until then `SafeZone/utils/db/schema.py` defines the table. | None. |
+| Case table | Writes | `SafeZone/contract/schema.sql` | None. |
 | Administrative-area tables (cities, regions) | Reads | Same as the case table. | Complete when the worker starts. Rows added later are not seen until restart. |

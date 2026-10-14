@@ -134,7 +134,7 @@ requires. Its reads fit the tables as the table contract defines them.
 | Channel | Direction | Contract | Also assumed |
 | :--- | :--- | :--- | :--- |
 | Query API | Serves | No language-neutral contract yet. `SafeZone/utils/pydantic_model/` is authoritative and the dashboard mirrors it by hand; no ticket yet. | None. |
-| Case table | Reads | `SafeZone/contract/schema.sql`. The file does not exist until SafeZone#70 lands; until then `SafeZone/utils/db/schema.py` defines the table. | One row per date, city and region. |
+| Case table | Reads | `SafeZone/contract/schema.sql` | One row per date, city and region. |
 | Administrative-area and population tables | Reads | Same as the case table. | Complete when the API starts. Rows added later are not seen until restart. |
 | Cache version key | Reads | No contract file. The key name is duplicated between the relay CLI and this service; no ticket yet. | Its value changes after every simulation trigger that adds data. |
 | Response cache | Reads / Writes | Private to this service. | None. |

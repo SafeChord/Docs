@@ -77,8 +77,8 @@ SafeZone 服務之間共用的合約，以及各自的定義位置。服務藍�
 
 | 合約 | 定義 | 使用它的語言 | 現況 |
 | :--- | :--- | :--- | :--- |
-| 病例事件（Kafka topic） | `SafeZone/contract/covid_event.json` | Python、Go | 語言中立。檔案目前還在 `SafeZone/utils/contract/`；搬移與 STD-R4 要求的測試追蹤於 SafeZone#70。 |
-| 資料庫資料表 | `SafeZone/contract/schema.sql` | Python、Go | 語言中立；`SafeZone/utils/db/schema.py` 是它的 Python 實作。檔案尚未存在，在 SafeZone#70 落地之前，資料表只由 `schema.py` 定義。 |
+| 病例事件（Kafka topic） | `SafeZone/contract/covid_event.json` | Python、Go | 語言中立。 |
+| 資料庫資料表 | `SafeZone/contract/schema.sql` | Python、Go | 語言中立；`SafeZone/utils/db/schema.py` 是它的 Python 實作。 |
 | 服務的請求與回應模型 | `SafeZone/utils/pydantic_model/` | Python、TypeScript | 只有 Python 定義。Dashboard 以手抄方式對應。尚無票。 |
 | 行政區界與區域名稱 | `SafeZone/utils/geo_data/` | Python、TypeScript | 語言中立。以它檢查 dashboard 地圖資料的測試追蹤於 SafeZone#55。 |
 | 快取版本鍵 | 無 | Python | 鍵名在 relay CLI 與 Analytics API 各寫一份。尚無票。 |

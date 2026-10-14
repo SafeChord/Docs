@@ -90,7 +90,7 @@ Analytics API 必須依 STD-R4 遵守依賴表列出的每一份合約。它的�
 | Channel | 方向 | 合約 | 另外假設 |
 | :--- | :--- | :--- | :--- |
 | 查詢 API | 提供 | 尚無語言中立的合約。以 `SafeZone/utils/pydantic_model/` 為準，dashboard 以手抄方式對應；尚無票。 | 無。 |
-| 病例表 | 讀取 | `SafeZone/contract/schema.sql`。檔案要到 SafeZone#70 落地才存在；在那之前由 `SafeZone/utils/db/schema.py` 定義這張表。 | 每個日期、城市、區域一列。 |
+| 病例表 | 讀取 | `SafeZone/contract/schema.sql` | 每個日期、城市、區域一列。 |
 | 行政區與人口資料表 | 讀取 | 同病例表。 | API 啟動時資料已齊。之後新增的資料要重啟才看得到。 |
 | 快取版本鍵 | 讀取 | 沒有合約檔。鍵名在 relay CLI 與本服務各寫一份；尚無票。 | 每次有新增資料的模擬觸發之後，它的值都會改變。 |
 | 回應快取 | 讀取 / 寫入 | 本服務私有。 | 無。 |

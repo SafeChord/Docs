@@ -119,8 +119,8 @@ blueprints point at these files from their Dependencies table.
 
 | Contract | Definition | Languages using it | State |
 | :--- | :--- | :--- | :--- |
-| Case event (Kafka topic) | `SafeZone/contract/covid_event.json` | Python, Go | Language-neutral. The file is still at `SafeZone/utils/contract/`; the move and the tests per STD-R4 are tracked in SafeZone#70. |
-| Database tables | `SafeZone/contract/schema.sql` | Python, Go | Language-neutral; `SafeZone/utils/db/schema.py` is its Python implementation. The file does not exist yet, and `schema.py` alone defines the tables until SafeZone#70 lands. |
+| Case event (Kafka topic) | `SafeZone/contract/covid_event.json` | Python, Go | Language-neutral. |
+| Database tables | `SafeZone/contract/schema.sql` | Python, Go | Language-neutral; `SafeZone/utils/db/schema.py` is its Python implementation. |
 | Service request and response models | `SafeZone/utils/pydantic_model/` | Python, TypeScript | Python-only definition. The dashboard mirrors it by hand. No ticket yet. |
 | Administrative boundaries and region names | `SafeZone/utils/geo_data/` | Python, TypeScript | Language-neutral. A check of the dashboard's map data against it is tracked in SafeZone#55. |
 | Cache version key | None | Python | The key name is duplicated between the relay CLI and the Analytics API. No ticket yet. |

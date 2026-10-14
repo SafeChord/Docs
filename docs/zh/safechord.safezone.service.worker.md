@@ -121,5 +121,5 @@ Worker 必須依 STD-R4 遵守依賴表列出的每一份合約。它接受事�
 | Channel | 方向 | 合約 | 另外假設 |
 | :--- | :--- | :--- | :--- |
 | 病例事件 topic | 消費 | `SafeZone/contract/covid_event.json` | 同一城市與區域的事件落在同一個 partition，順序即生產順序。WK-R2 依賴這點。 |
-| 病例表 | 寫入 | `SafeZone/contract/schema.sql`。檔案要到 SafeZone#70 落地才存在；在那之前由 `SafeZone/utils/db/schema.py` 定義這張表。 | 無。 |
+| 病例表 | 寫入 | `SafeZone/contract/schema.sql` | 無。 |
 | 行政區資料表（cities、regions） | 讀取 | 同病例表。 | Worker 啟動時資料已齊。之後新增的資料要重啟才看得到。 |
