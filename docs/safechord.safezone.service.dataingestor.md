@@ -6,7 +6,7 @@ authors:
   - bradyhau
   - Gemini CLI
   - Claude Opus 5.5
-last_updated: '2026-10-07'
+last_updated: '2026-10-14'
 summary: The Data Ingestor is the single entry point for case data. It validates each incoming record and publishes it to Kafka as a case event, keyed so that events for one city and region stay in order.
 keywords:
   - Data Ingestor
@@ -57,9 +57,9 @@ event topic, carrying the request's date, city, region and case count unchanged.
 - WHEN the ingestor accepts it
 - THEN one event with the same date, city, region and case count is on the topic
 
-### ING-R2: Published events satisfy the event contract
-Every event the ingestor publishes SHALL satisfy the event contract. This applies STD-R4
-to the case event.
+### ING-R2: The ingestor honours the contracts it depends on
+The ingestor SHALL honour every contract its Dependencies table names, as STD-R4
+requires. Every event it publishes satisfies the event contract.
 
 #### Scenario: event checked against the contract
 - GIVEN any record the ingestor accepts
@@ -89,8 +89,8 @@ the event, and SHALL report failure when it cannot publish.
 The ingestor SHALL reject a request that breaks the ingest request rules, and SHALL
 publish nothing for it.
 
-#### Scenario: record with an invalid date
-- GIVEN a request whose date is not a calendar date string
+#### Scenario: invalid record
+- GIVEN a request that breaks an ingest request rule
 - WHEN it arrives
 - THEN the request is rejected as invalid
 - AND no event is published
@@ -100,4 +100,4 @@ publish nothing for it.
 | Channel | Direction | Contract | Also assumed |
 | :--- | :--- | :--- | :--- |
 | Ingest API | Serves | `SafeZone/utils/pydantic_model/request.py`, shared by its Python callers. | None. |
-| Case event topic | Produces | `SafeZone/utils/contract/covid_event.json` | None. The key rule in ING-R3 is what the contract file cannot express. |
+| Case event topic | Produces | `SafeZone/contract/covid_event.json` | None. The key rule in ING-R3 is what the contract file cannot express. |

@@ -77,12 +77,20 @@
 - WHEN 許多相同的請求同時到達同一個 instance
 - THEN 資料庫只被查詢一次
 
+### API-R9：Analytics API 遵守它依賴的合約
+Analytics API 必須依 STD-R4 遵守依賴表列出的每一份合約。它的讀取對得上資料表合約定義的資料表。
+
+#### 情境：照合約定義的資料表
+- GIVEN 依資料表合約建立的資料表
+- WHEN 從資料庫回答一個查詢
+- THEN 讀取成功
+
 ## 3. 依賴
 
 | Channel | 方向 | 合約 | 另外假設 |
 | :--- | :--- | :--- | :--- |
 | 查詢 API | 提供 | 尚無語言中立的合約。以 `SafeZone/utils/pydantic_model/` 為準，dashboard 以手抄方式對應；尚無票。 | 無。 |
-| 病例表 | 讀取 | 尚無語言中立的合約。以 `SafeZone/utils/db/schema.py` 為準；SQL 匯出追蹤於 SafeZone#70。 | 每個日期、城市、區域一列。 |
+| 病例表 | 讀取 | `SafeZone/contract/schema.sql`。檔案要到 SafeZone#70 落地才存在；在那之前由 `SafeZone/utils/db/schema.py` 定義這張表。 | 每個日期、城市、區域一列。 |
 | 行政區與人口資料表 | 讀取 | 同病例表。 | API 啟動時資料已齊。之後新增的資料要重啟才看得到。 |
 | 快取版本鍵 | 讀取 | 沒有合約檔。鍵名在 relay CLI 與本服務各寫一份；尚無票。 | 每次有新增資料的模擬觸發之後，它的值都會改變。 |
 | 回應快取 | 讀取 / 寫入 | 本服務私有。 | 無。 |

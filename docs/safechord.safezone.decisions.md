@@ -2,7 +2,7 @@
 title: 'SafeZone Decision Log'
 doc_id: safechord.safezone.decisions
 doc_version: 0.1.0
-last_updated: '2026-10-13'
+last_updated: '2026-10-14'
 status: active
 authors:
   - bradyhau
@@ -51,19 +51,19 @@ code_paths: []
 ## Cross-service
 
 ### ADR-024: Shared contracts are language-neutral files, verified by unit tests
-*   **Version**: v0.3.8 · **Status**: Accepted
+*   **Version**: v0.3.8 · **Status**: Superseded by ADR-031
 *   **Affects**: STD-R3, STD-R4
 *   **Decision**: A contract used from more than one language is defined once, as a language-neutral file under `SafeZone/utils/contract/`. Each service verifies its own implementation against that file with a unit test. Models are not generated from the contract.
 *   **Why**: The case event had three hand-maintained versions (a JSON Schema, a Python model, a Go struct) that disagreed on three fields, and nothing noticed. The tables were defined only as Python code, which the Go worker could not read, so its SQL was hand-copied. Both came from never deciding how a contract crosses a language boundary. Generation was set aside because the contract file already existed and only lacked consumers, and because the ingest request model doubles as an HTTP request model with its own error messages. Decided in SafeZone#70.
 
 ### ADR-025: The case event contract records the wire as it runs
-*   **Version**: v0.3.8 · **Status**: Accepted
+*   **Version**: v0.3.8 · **Status**: Superseded by ADR-032
 *   **Affects**: ING-R2, WK-R1
 *   **Decision**: `covid_event.json` is corrected to match what the Data Ingestor emits today. `version` is the contract version. The worker does not act on `version` yet.
 *   **Why**: The ingestor is the only producer on the topic, so its output is the format in production; aligning the file to it changes no production code. A version check in the worker would have no effect while one version exists, and the choice between skipping and stopping on an unsupported version has no concrete case to decide against. Decided in SafeZone#70.
 
 ### ADR-026: Table definitions stay Python-sourced, with a SQL export
-*   **Version**: v0.3.8 · **Status**: Accepted
+*   **Version**: v0.3.8 · **Status**: Superseded by ADR-033
 *   **Affects**: STD-R3
 *   **Decision**: `utils/db/schema.py` remains the source of the table definitions. A SQL export of it is committed as the language-neutral artifact, with a test that fails when the two differ.
 *   **Why (Trade-off)**: Making SQL the source would replace how the database is initialized and rewrite the worker's persistence code while SafeZone#64 is changing it. The export gives other languages something to verify against at a fraction of that cost. The source stays a single-language implementation, which ADR-024 treats as a gap; the direction is revisited in v0.4.0, when the schema changes anyway. Decided in SafeZone#70.
@@ -73,6 +73,24 @@ code_paths: []
 *   **Affects**: STD-R1, STD-R2
 *   **Decision**: The Python Microservice Scaffold document is archived. Its trace and health standards move to the service standards. Its engineering principles (test-first, injected dependencies, framework-free business logic) move to `SafeZone/.ai-rules.md`. Its directory layout, layer rules, and Dockerfile patterns are no longer mandated by documentation.
 *   **Why**: The scaffold fixed how code is written to the level of file names, which caps an implementer at the document author's ability and could not be reviewed for Go at all. A directory layout is also something an agent reads from the codebase directly. Keeping it in `Docs/` meant every structural refactor had to change documentation first. ADR-016, ADR-017 and ADR-018 record refactors that already happened and stay as they are.
+
+### ADR-031: Contracts live in `SafeZone/contract/`, apart from any language's code
+*   **Version**: v0.3.8 · **Status**: Accepted
+*   **Affects**: STD-R3, STD-R4
+*   **Decision**: A contract used from more than one language is defined once, as a language-neutral file under `SafeZone/contract/`, at the top of the repository. `SafeZone/utils/` holds shared Python code only, including the Python implementations of contracts. Each implementation is verified against the contract file by a unit test: a service's own implementation in that service, a shared one in `utils/`. Models are not generated from the contract. Supersedes ADR-024.
+*   **Why**: ADR-024 put the contract files inside `utils/`, the shared library of the Python services. The Go worker had to reach into another language's library for its contract, and the directory did not show which file was the definition and which an implementation of it. `utils/` stopped being a separate repository in SafeZone#66, so nothing ties the contract files to it any longer. The rest of ADR-024 stands. Decided in SafeZone#70.
+
+### ADR-032: The case event contract is strict, and the services follow it
+*   **Version**: v0.3.8 · **Status**: Accepted
+*   **Affects**: ING-R2, ING-R5, WK-R1, WK-R5
+*   **Decision**: `covid_event.json` states what a case event must be, not what the Data Ingestor happens to emit: a fixed `event_type` and `version`, every field required, no field beyond those listed, a date that is a real calendar date, and a case count the table can hold. A service that accepts more than the contract is brought in line in its own ticket. `version` is the contract version, and adding a field takes a new one. The worker may still accept more than the contract allows, and does not act on `version` yet. Supersedes ADR-025.
+*   **Why (Trade-off)**: Recording the wire as it ran would have written two gaps into the contract: the ingest API and the worker both let through a date that is no calendar date and a case count the table cannot hold. Settling the contract first and aligning the services to it costs the production changes ADR-025 avoided (SafeZone#82, SafeZone#85). In return the contract is something a new consumer can rely on. A value is adjusted when development shows it to be wrong. Decided in SafeZone#70.
+
+### ADR-033: The table contract is a SQL file, and the Python schema implements it
+*   **Version**: v0.3.8 · **Status**: Accepted
+*   **Affects**: STD-R3, STD-R4
+*   **Decision**: `SafeZone/contract/schema.sql` is the definition of the tables. `utils/db/schema.py` is the Python implementation of it, and a test in `utils/` fails when the two differ. The database is still created from `schema.py`. Supersedes ADR-026.
+*   **Why (Trade-off)**: ADR-026 kept the Python code as the source and the SQL as a copy of it, which left the one definition bound to one language. Its two reasons no longer hold: SafeZone#64 is merged, and a SQL definition does not require rewriting the worker's persistence code, only checking it. Initializing the database from the SQL file is the part with a real cost, and it stays for v0.4.0. Until then the test compares the SQL that `schema.py` generates with the file, so the file has to keep the form SQLAlchemy emits. Decided in SafeZone#70.
 
 ---
 

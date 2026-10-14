@@ -41,7 +41,7 @@
 - THEN 回應不是成功狀態
 
 ### STD-R3：共用的合約只有一份定義
-一個以上服務依賴的合約，必須恰好只有一份定義。兩端的服務以不同語言撰寫時，這份定義必須是 `SafeZone/utils/contract/` 底下的語言中立檔案。各服務自己的 model、struct 或資料表定義，都是它的實作。
+一個以上服務依賴的合約，必須恰好只有一份定義。兩端的服務以不同語言撰寫時，這份定義必須是 `SafeZone/contract/` 底下的語言中立檔案。各服務自己的 model、struct 或資料表定義，都是它的實作。
 
 #### 情境：同一語言的兩個服務
 - GIVEN 一份只有 Python 服務使用的合約
@@ -54,7 +54,7 @@
 - THEN 它實作的是語言中立的檔案，而不是另一個服務的程式碼
 
 ### STD-R4：服務要證明自己遵守碰到的每份合約
-對於服務生產或消費的每份合約，該服務必須有一個 unit test，在它的實作與合約定義不一致時失敗。生產端只送出合約允許的內容。消費端接受合約允許的一切，也可以接受更多。
+對於服務生產或消費的每份合約，該服務必須有一個 unit test，在它的實作與合約定義不一致時失敗。生產端只送出合約允許的內容。消費端接受合約允許的一切，也可以接受更多。由多個服務共用的實作，自己帶著這個測試。
 
 #### 情境：生產端漂移
 - GIVEN 一個對某合約生產的服務
@@ -66,14 +66,19 @@
 - WHEN 它無法接受合約允許的內容
 - THEN 該服務的某個 unit test 失敗
 
+#### 情境：共用的實作漂移
+- GIVEN `SafeZone/utils/` 底下一份由多個服務 import 的合約實作
+- WHEN 它與合約定義不一致
+- THEN `SafeZone/utils/` 的某個 unit test 失敗
+
 ## 2. 合約
 
 SafeZone 服務之間共用的合約，以及各自的定義位置。服務藍圖的依賴表會指向這些檔案。
 
 | 合約 | 定義 | 使用它的語言 | 現況 |
 | :--- | :--- | :--- | :--- |
-| 病例事件（Kafka topic） | `SafeZone/utils/contract/covid_event.json` | Python、Go | 語言中立。STD-R4 要求的測試追蹤於 SafeZone#70。 |
-| 資料庫資料表 | `SafeZone/utils/db/schema.py` | Python、Go | 只有 Python 定義。`SafeZone/utils/contract/` 底下的 SQL 匯出追蹤於 SafeZone#70。 |
+| 病例事件（Kafka topic） | `SafeZone/contract/covid_event.json` | Python、Go | 語言中立。檔案目前還在 `SafeZone/utils/contract/`；搬移與 STD-R4 要求的測試追蹤於 SafeZone#70。 |
+| 資料庫資料表 | `SafeZone/contract/schema.sql` | Python、Go | 語言中立；`SafeZone/utils/db/schema.py` 是它的 Python 實作。檔案尚未存在，在 SafeZone#70 落地之前，資料表只由 `schema.py` 定義。 |
 | 服務的請求與回應模型 | `SafeZone/utils/pydantic_model/` | Python、TypeScript | 只有 Python 定義。Dashboard 以手抄方式對應。尚無票。 |
 | 行政區界與區域名稱 | `SafeZone/utils/geo_data/` | Python、TypeScript | 語言中立。以它檢查 dashboard 地圖資料的測試追蹤於 SafeZone#55。 |
 | 快取版本鍵 | 無 | Python | 鍵名在 relay CLI 與 Analytics API 各寫一份。尚無票。 |

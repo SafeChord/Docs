@@ -7,7 +7,7 @@ status: active
 authors:
   - bradyhau
   - Claude Opus 5.5
-last_updated: '2026-10-07'
+last_updated: '2026-10-14'
 summary: The promises every SafeZone service makes to the rest of the system - trace propagation, a health endpoint, and how a contract shared between services is defined and verified. Service blueprints link here instead of repeating them.
 keywords:
   - Service Standards
@@ -22,7 +22,8 @@ parent_doc: safechord.safezone
 archetype: blueprint
 code_paths:
   - SafeZone/services
-  - SafeZone/utils/contract
+  - SafeZone/contract
+  - SafeZone/utils
 ---
 
 # SafeZone Service Standards (Blueprint)
@@ -76,7 +77,7 @@ its work. A service that serves no other HTTP traffic still serves this endpoint
 ### STD-R3: A shared contract has one definition
 A contract that more than one service depends on SHALL have exactly one definition.
 When the services on either side are written in different languages, that definition
-SHALL be a language-neutral file under `SafeZone/utils/contract/`. Each service's own
+SHALL be a language-neutral file under `SafeZone/contract/`. Each service's own
 model, struct, or table definition is an implementation of it.
 
 #### Scenario: two services in one language
@@ -93,7 +94,8 @@ model, struct, or table definition is an implementation of it.
 For every contract a service produces to or consumes from, the service SHALL have a
 unit test that fails when its implementation and the contract definition disagree.
 A producer emits only what the contract allows. A consumer accepts everything the
-contract allows, and may accept more.
+contract allows, and may accept more. An implementation that several services share
+carries this test itself.
 
 #### Scenario: producer drifts
 - GIVEN a service that produces to a contract
@@ -105,6 +107,11 @@ contract allows, and may accept more.
 - WHEN it cannot accept something the contract allows
 - THEN a unit test in that service fails
 
+#### Scenario: shared implementation drifts
+- GIVEN an implementation of a contract under `SafeZone/utils/` that several services import
+- WHEN it disagrees with the contract definition
+- THEN a unit test of `SafeZone/utils/` fails
+
 ## 2. Contracts
 
 The contracts shared between SafeZone services, and where each is defined. Service
@@ -112,8 +119,8 @@ blueprints point at these files from their Dependencies table.
 
 | Contract | Definition | Languages using it | State |
 | :--- | :--- | :--- | :--- |
-| Case event (Kafka topic) | `SafeZone/utils/contract/covid_event.json` | Python, Go | Language-neutral. Tests per STD-R4 tracked in SafeZone#70. |
-| Database tables | `SafeZone/utils/db/schema.py` | Python, Go | Python-only definition. A SQL export under `SafeZone/utils/contract/` is tracked in SafeZone#70. |
+| Case event (Kafka topic) | `SafeZone/contract/covid_event.json` | Python, Go | Language-neutral. The file is still at `SafeZone/utils/contract/`; the move and the tests per STD-R4 are tracked in SafeZone#70. |
+| Database tables | `SafeZone/contract/schema.sql` | Python, Go | Language-neutral; `SafeZone/utils/db/schema.py` is its Python implementation. The file does not exist yet, and `schema.py` alone defines the tables until SafeZone#70 lands. |
 | Service request and response models | `SafeZone/utils/pydantic_model/` | Python, TypeScript | Python-only definition. The dashboard mirrors it by hand. No ticket yet. |
 | Administrative boundaries and region names | `SafeZone/utils/geo_data/` | Python, TypeScript | Language-neutral. A check of the dashboard's map data against it is tracked in SafeZone#55. |
 | Cache version key | None | Python | The key name is duplicated between the relay CLI and the Analytics API. No ticket yet. |

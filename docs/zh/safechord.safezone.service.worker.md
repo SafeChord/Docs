@@ -14,7 +14,7 @@
 每條需求都是系統其他部分會依賴的承諾。守住某條需求的測試會帶上它的 ID。所有服務共用的需求放在[服務標準](safechord.safezone.service.standards.md)，這裡不重複。
 
 ### WK-R1：有效事件會被儲存
-Worker 必須把讀到的每一筆有效事件，儲存為該事件的日期、城市、區域的病例數。事件符合事件合約，且城市與區域存在於行政區資料表時，才算有效。
+Worker 必須把讀到的每一筆有效事件，儲存為該事件的日期、城市、區域的病例數。Worker 存得了的事件就是有效事件。凡是符合事件合約、且城市與區域存在於行政區資料表的事件，都是有效事件。
 
 #### 情境：有效事件
 - GIVEN topic 上有一筆有效事件
@@ -103,10 +103,23 @@ Worker 處理一筆事件時寫出的每一行 log，都必須帶有該事件的
 - WHEN 請求 `/health`
 - THEN 回應狀態為 200
 
+### WK-R10：Worker 遵守它依賴的合約
+Worker 必須依 STD-R4 遵守依賴表列出的每一份合約。它接受事件合約允許的每一筆事件，它的讀寫也對得上資料表合約定義的資料表。
+
+#### 情境：合約允許的事件
+- GIVEN 一筆符合事件合約的事件
+- WHEN worker 讀到它
+- THEN worker 解析得了它，也不因為它的形狀而拒絕它
+
+#### 情境：照合約定義的資料表
+- GIVEN 依資料表合約建立的資料表
+- WHEN worker 讀取行政區並寫入一筆病例數
+- THEN 兩者都成功
+
 ## 3. 依賴
 
 | Channel | 方向 | 合約 | 另外假設 |
 | :--- | :--- | :--- | :--- |
-| 病例事件 topic | 消費 | `SafeZone/utils/contract/covid_event.json` | 同一城市與區域的事件落在同一個 partition，順序即生產順序。WK-R2 依賴這點。 |
-| 病例表 | 寫入 | 尚無語言中立的合約。以 `SafeZone/utils/db/schema.py` 為準；SQL 匯出追蹤於 SafeZone#70。 | 無。 |
+| 病例事件 topic | 消費 | `SafeZone/contract/covid_event.json` | 同一城市與區域的事件落在同一個 partition，順序即生產順序。WK-R2 依賴這點。 |
+| 病例表 | 寫入 | `SafeZone/contract/schema.sql`。檔案要到 SafeZone#70 落地才存在；在那之前由 `SafeZone/utils/db/schema.py` 定義這張表。 | 無。 |
 | 行政區資料表（cities、regions） | 讀取 | 同病例表。 | Worker 啟動時資料已齊。之後新增的資料要重啟才看得到。 |

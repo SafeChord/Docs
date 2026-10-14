@@ -6,7 +6,7 @@ authors:
   - bradyhau
   - Gemini CLI
   - Claude Opus 5.5
-last_updated: '2026-10-07'
+last_updated: '2026-10-14'
 summary: The Analytics API answers how many cases occurred in a time window for the nation, a city, or a region, as a count or as a rate per 10,000 residents. It serves repeated queries from a cache that is invalidated when the data set changes.
 keywords:
   - Analytics API
@@ -24,7 +24,7 @@ archetype: blueprint
 code_paths:
   - SafeZone/services/analytics-api
 doc_version: 0.4.0
-app_version: 0.3.7
+app_version: 0.3.8
 ---
 
 # Analytics API (Service Blueprint)
@@ -120,12 +120,21 @@ result in a single database query.
 - WHEN many identical requests arrive at one instance at the same moment
 - THEN the database is queried once
 
+### API-R9: The Analytics API honours the contracts it depends on
+The Analytics API SHALL honour every contract its Dependencies table names, as STD-R4
+requires. Its reads fit the tables as the table contract defines them.
+
+#### Scenario: tables as the contract defines them
+- GIVEN tables created from the table contract
+- WHEN a query is answered from the database
+- THEN the read succeeds
+
 ## 3. Dependencies
 
 | Channel | Direction | Contract | Also assumed |
 | :--- | :--- | :--- | :--- |
 | Query API | Serves | No language-neutral contract yet. `SafeZone/utils/pydantic_model/` is authoritative and the dashboard mirrors it by hand; no ticket yet. | None. |
-| Case table | Reads | No language-neutral contract yet. `SafeZone/utils/db/schema.py` is authoritative; a SQL export is tracked in SafeZone#70. | One row per date, city and region. |
+| Case table | Reads | `SafeZone/contract/schema.sql`. The file does not exist until SafeZone#70 lands; until then `SafeZone/utils/db/schema.py` defines the table. | One row per date, city and region. |
 | Administrative-area and population tables | Reads | Same as the case table. | Complete when the API starts. Rows added later are not seen until restart. |
 | Cache version key | Reads | No contract file. The key name is duplicated between the relay CLI and this service; no ticket yet. | Its value changes after every simulation trigger that adds data. |
 | Response cache | Reads / Writes | Private to this service. | None. |

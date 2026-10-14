@@ -6,7 +6,7 @@ authors:
   - bradyhau
   - Gemini CLI
   - Claude Opus 5.5
-last_updated: '2026-10-07'
+last_updated: '2026-10-14'
 summary: The Worker consumes case events from Kafka and persists them to PostgreSQL. It guarantees that every valid event is stored, that the latest event for a key wins, and that committed progress never runs ahead of what is stored.
 keywords:
   - Worker
@@ -49,8 +49,9 @@ one carries its ID. Requirements shared by every service live in the
 
 ### WK-R1: Valid events are persisted
 The worker SHALL store every valid event it reads as the case count for that event's
-date, city and region. An event is valid when it satisfies the event contract and names
-a city and region present in the administrative-area tables.
+date, city and region. An event is valid when the worker can store it. Every event that
+satisfies the event contract and names a city and region present in the
+administrative-area tables is valid.
 
 #### Scenario: valid event
 - GIVEN a valid event on the topic
@@ -148,10 +149,25 @@ Kafka or the database is unreachable.
 - WHEN `/health` is requested
 - THEN the response status is 200
 
+### WK-R10: The worker honours the contracts it depends on
+The worker SHALL honour every contract its Dependencies table names, as STD-R4
+requires. It accepts every event the event contract allows, and its reads and writes
+fit the tables as the table contract defines them.
+
+#### Scenario: event the contract allows
+- GIVEN an event that satisfies the event contract
+- WHEN the worker reads it
+- THEN the worker parses it and does not reject it for its shape
+
+#### Scenario: tables as the contract defines them
+- GIVEN tables created from the table contract
+- WHEN the worker reads the administrative areas and writes a case count
+- THEN both succeed
+
 ## 3. Dependencies
 
 | Channel | Direction | Contract | Also assumed |
 | :--- | :--- | :--- | :--- |
-| Case event topic | Consumes | `SafeZone/utils/contract/covid_event.json` | Events for one city and region arrive on one partition, in production order. WK-R2 depends on this. |
-| Case table | Writes | No language-neutral contract yet. `SafeZone/utils/db/schema.py` is authoritative; a SQL export is tracked in SafeZone#70. | None. |
+| Case event topic | Consumes | `SafeZone/contract/covid_event.json` | Events for one city and region arrive on one partition, in production order. WK-R2 depends on this. |
+| Case table | Writes | `SafeZone/contract/schema.sql`. The file does not exist until SafeZone#70 lands; until then `SafeZone/utils/db/schema.py` defines the table. | None. |
 | Administrative-area tables (cities, regions) | Reads | Same as the case table. | Complete when the worker starts. Rows added later are not seen until restart. |
