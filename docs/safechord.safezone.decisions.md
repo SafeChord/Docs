@@ -2,7 +2,7 @@
 title: 'SafeZone Decision Log'
 doc_id: safechord.safezone.decisions
 doc_version: 0.1.0
-last_updated: '2026-10-14'
+last_updated: '2026-10-16'
 status: active
 authors:
   - bradyhau
@@ -201,10 +201,16 @@ code_paths: []
 *   **Why (Trade-off)**: An event held between polls can outlive the worker's ownership of its partition. Gathering events across polls, as ADR-013 had it, led either to a worker that stopped for good when the group rebalanced under light traffic, or to a worker that had lost a partition writing its older events over what the new owner had since stored. Holding nothing removes both, and it lets the client hold a rebalance back for exactly as long as one write and one commit take. The price is the one ADR-013 set out to avoid: under light traffic a poll returns a single event, so each event gets its own database transaction. Under a backlog a poll fills and the writes are batched as before, which is when batching matters. Offset commits are no more frequent than they were. Decided in SafeZone#64.
 
 ### ADR-030: A failed offset commit ends the worker
-*   **Version**: v0.3.8 · **Status**: Accepted
+*   **Version**: v0.3.8 · **Status**: Superseded by ADR-035
 *   **Affects**: WK-R3
 *   **Decision**: When an offset commit fails, the worker stops and the process exits with a non-zero status after logging the cause. It does not log the failure and carry on, and it adds no retry of its own.
 *   **Why (Trade-off)**: Stopping loses nothing: the events are already stored, the next owner reads again from the last committed offset, and the idempotent upsert makes the repeat harmless. The Kafka client already retries the coordinator errors that clear by themselves, so a failure that reaches the worker is unlikely to pass by waiting, and one that repeats on every attempt must be visible. The exit has to be loud because it is the only signal the worker gives whatever runs it. Two costs are accepted: while the broker is unreachable the worker restarts in a loop, and consumption resumes only after the restart backoff once the broker is back; and when several workers fail together, their leaving and rejoining keeps the group rebalancing. Decided in SafeZone#64.
+
+### ADR-035: The worker rides out an unreachable dependency instead of exiting
+*   **Version**: v0.3.8 · **Status**: Accepted
+*   **Affects**: WK-R3, WK-R9, WK-R11
+*   **Decision**: A failed poll, a failed write and a failed offset commit no longer end the worker. After a failed write the worker drops the events that poll returned, moves its position back to the first of them, and reads them again on a later turn. After a failed commit it carries on, and the next commit that succeeds covers it. It waits between failed attempts. A write or a commit that gets no answer within a configured timeout, set below the liveness window, counts as failed. Failures are not sorted into transient and permanent: every one of the three is ridden out. Supersedes ADR-030.
+*   **Why (Trade-off)**: ADR-028 kept dependencies out of the health check so that an outage would not restart every worker at once into the same outage, and the error handling did exactly that: against an in-process broker, the worker exited 0.7 seconds after the broker was lost and 0.3 seconds after a commit failed. Exiting bought nothing: either way nothing unstored is committed, and in the same reproduction the Kafka client, polled again, recovered by itself about two seconds after the broker came back. Retrying a failed write in place was set aside because it holds the group's rebalance back for as long as the database is down; reading the events again keeps ADR-029's rule that no event outlives its poll. ADR-030 reasoned that a commit failure reaching the worker is unlikely to pass by waiting, which does not hold for an unreachable broker, the common case of a failed commit; keeping it would have left a broker outage ending the worker or not depending on which call it hit. The timeout exists because a database or broker that takes a call and never answers stalls the loop instead of failing it: a commit sent to a silent broker waited 46 seconds, long enough for the liveness probe to restart the worker. Sorting failures was set aside because it buys visibility, not correctness. The cost is that a failure that never clears by itself, such as wrong credentials, a missing table or a batch the database rejects for its content, leaves a worker that reports healthy and makes no progress. That shows only as lag and repeated error logs, the condition ADR-028 already accepted for a worker cut off from its dependencies. Decided in SafeZone#98.
 
 ---
 

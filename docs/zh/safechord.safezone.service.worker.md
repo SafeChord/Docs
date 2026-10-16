@@ -116,6 +116,27 @@ Worker 必須依 STD-R4 遵守依賴表列出的每一份合約。它接受事�
 - WHEN worker 讀取行政區並寫入一筆病例數
 - THEN 兩者都成功
 
+### WK-R11：依賴連不上不會結束 worker
+Kafka 或資料庫連不上的期間，worker 必須讓消費迴圈繼續轉動，不得結束。依賴恢復後，它必須不經重啟，從已提交的進度繼續。寫入或 offset 提交在設定的依賴逾時內沒有回應，就算失敗。
+
+#### 情境：Kafka 連不上
+- GIVEN 一個執行中的 worker
+- WHEN Kafka 停止回應，之後恢復
+- THEN worker 沒有結束
+- AND Kafka 恢復後產生的事件會被儲存並提交
+
+#### 情境：資料庫連不上
+- GIVEN topic 上有事件，資料庫拒絕寫入，或收下寫入後一直不回應
+- WHEN 資料庫恢復
+- THEN 每一筆事件都由同一個 worker 存入
+- AND 資料庫斷線期間，已提交的 offset 沒有移動
+
+#### 情境：offset 提交失敗
+- GIVEN 已經存入的事件
+- WHEN Kafka 拒絕 offset 提交，或收下後一直不回應，之後恢復回應
+- THEN worker 沒有結束
+- AND 已提交的 offset 到達 log 的結尾
+
 ## 3. 依賴
 
 | Channel | 方向 | 合約 | 另外假設 |

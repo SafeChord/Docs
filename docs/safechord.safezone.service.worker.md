@@ -164,6 +164,30 @@ fit the tables as the table contract defines them.
 - WHEN the worker reads the administrative areas and writes a case count
 - THEN both succeed
 
+### WK-R11: An unreachable dependency does not end the worker
+While Kafka or the database is unreachable, the worker SHALL keep its consume loop turning
+and SHALL NOT exit. Once the dependency is back, it SHALL resume from its committed progress
+without a restart. A write or an offset commit that gets no answer within the configured
+dependency timeout counts as failed.
+
+#### Scenario: Kafka unreachable
+- GIVEN a running worker
+- WHEN Kafka stops answering and later comes back
+- THEN the worker has not exited
+- AND events produced after Kafka is back are persisted and committed
+
+#### Scenario: database unreachable
+- GIVEN events on the topic and a database that refuses writes, or takes them and never answers
+- WHEN the database comes back
+- THEN every event is persisted, by the same worker
+- AND the committed offset did not move while the database was down
+
+#### Scenario: offset commit fails
+- GIVEN events already persisted
+- WHEN Kafka refuses the offset commit, or takes it and never answers, and later answers again
+- THEN the worker has not exited
+- AND the committed offset reaches the end of the log
+
 ## 3. Dependencies
 
 | Channel | Direction | Contract | Also assumed |
