@@ -86,7 +86,7 @@ Worker 處理一筆事件時寫出的每一行 log，都必須帶有該事件的
 - THEN 記錄這次跳過的 log 帶有該 trace ID
 
 ### WK-R9：健康狀態反映消費迴圈
-只有在消費迴圈於設定的 liveness 時間窗內轉過時，worker 才能回報健康（STD-R2）。Topic 閒置時，以及 Kafka 或資料庫連不上時，它都必須維持健康。
+只有在消費迴圈於設定的 liveness 時間窗內轉過時，worker 才能回報健康（STD-R2）。只要迴圈還在轉，不論 topic 有沒有事件、Kafka 或資料庫連不連得上，它都必須維持健康。
 
 #### 情境：topic 閒置
 - GIVEN 一個沒有事件可消費的 worker

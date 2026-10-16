@@ -6,7 +6,7 @@ authors:
   - bradyhau
   - Gemini CLI
   - Claude Opus 5.5
-last_updated: '2026-10-14'
+last_updated: '2026-10-16'
 summary: The Worker consumes case events from Kafka and persists them to PostgreSQL. It guarantees that every valid event is stored, that the latest event for a key wins, and that committed progress never runs ahead of what is stored.
 keywords:
   - Worker
@@ -131,8 +131,8 @@ ID, whether the event is persisted or skipped. This applies STD-R1 to a consumer
 
 ### WK-R9: Health reflects the consume loop
 The worker SHALL report healthy (STD-R2) only while its consume loop has turned within
-the configured liveness window. It SHALL stay healthy while the topic is idle, and while
-Kafka or the database is unreachable.
+the configured liveness window. While the loop still turns, it SHALL stay healthy whether
+or not the topic has events, and whether or not Kafka or the database is reachable.
 
 #### Scenario: idle topic
 - GIVEN a worker with no events to consume
