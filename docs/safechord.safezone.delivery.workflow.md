@@ -173,7 +173,7 @@ graph TD
        - *Continuous Services*: Cover **6 to 12 hours** to verify steady-state resource and memory profiles.
      - Validate via `/validate-soak (AI Skill)`. If passed, tag `v0.X.Y-staging` on `staging` and PR `staging` to `main` (archive).
 
-- **Staging Rescue**: In case of staging environment failure, refer to [7. Rollback & recovery](#7-rollback--recovery) for temporary staging rescue and forward-fix procedures.
+- **Staging Rescue**: In case of staging environment failure, refer to [7. Rollback & recovery](#7-rollback-recovery) for temporary staging rescue and forward-fix procedures.
 
 ---
 
@@ -218,7 +218,7 @@ App and Deploy version numbers drift independently to reflect their respective r
     - At the start of a release cycle (Step A1), the App `VERSION` file is bumped directly on the `release/*` branch to set the target version (e.g., `0.3.7`), ensuring a frozen-pin semantic for the release codebase. All dev images generated during this cycle will use this version as a prefix (`0.3.7-<sha>`).
     - **Guards**: To prevent human error, the release pipeline (`release.yml`) automatically fails if the finalized Git tag (e.g., `v0.3.7`) does not match the content of the App `VERSION` file. Additionally, the release is always cut from a dedicated `release/*` branch (acting as a **frozen pin** for that version's codebase), guaranteeing that no unvalidated changes bypass the release gate.
 
-## 7. Rollback & recovery
+## 7. Rollback & recovery {#7-rollback-recovery}
 *   **Forward-fix only**: The project does not support automated rollback; issues are addressed by shipping forward fixes.
 *   **Staging Rescue**: In case of staging environment failure, the ArgoCD `targetRevision` may be temporarily pinned to a known good release tag (`v0.X.Y-staging`) to restore showcasing functionality while a forward-fix is prepared.
 

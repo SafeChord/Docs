@@ -173,7 +173,7 @@ graph TD
        - *持續服務*：涵蓋 **6 到 12 小時**，以驗證穩定狀態的資源與記憶體輪廓。
      - 透過 `/validate-soak (AI Skill)` 驗證。若通過，在 `staging` 上標記 `v0.X.Y-staging`，並 PR `staging` 至 `main`（歸檔）。
 
-- **Staging 救援**：若 Staging 環境發生故障，請參考 [7. 回滾與復原](#7-回滾與復原) 以執行暫時性固定與 forward-fix 流程。
+- **Staging 救援**：若 Staging 環境發生故障，請參考 [7. 回滾與復原](#7-rollback-recovery) 以執行暫時性固定與 forward-fix 流程。
 
 ---
 
@@ -218,7 +218,7 @@ App 與 Deploy 版本號獨立漂移，以分別反映各自 the 發行單位：
     - 在發行週期開始時（步驟 A1），App 的 `VERSION` 檔案會直接在 `release/*` 分支上更新以設定目標版本（例如 0.3.7），以確保發行代碼庫的 frozen-pin 語意。在此週期產生的所有 dev 映像檔都將使用此版本作為前綴（`0.3.7-<sha>`）。
     - **保護措施**：為防止人為錯誤，發行 pipeline (`release.yml`) 在最終 Git 標籤 (例如 `v0.3.7`) 與 App `VERSION` 檔案內容不一致時會自動失效。此外，發行版一律自專用的 `release/*` 分支切出（作為該版本程式碼的**凍結鎖定**），保證未經驗證的變更無法繞過發行閘門。
 
-## 7. 回滾與復原
+## 7. 回滾與復原 {#7-rollback-recovery}
 *   **僅前向修復 (Forward-fix)**：專案不支援自動回滾；所有問題皆透過推送 forward-fix 解決。
 *   **Staging 救援**：若 staging環境故障，ArgoCD `targetRevision` 可暫時固定至已知正常的發行標籤（`v0.X.Y-staging`）以恢復展示功能，同時準備 forward-fix。
 

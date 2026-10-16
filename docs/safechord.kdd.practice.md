@@ -88,7 +88,7 @@ A ticket is the head of any implementation, and the anchor everything else is tr
 *   **Format**: strict [Conventional Commits](https://www.conventionalcommits.org/).
 *   **Required Content**: [see template](#git-commit-template)
 
-### 🔴 The Handoff Protocol
+### 🔴 The Handoff Protocol {#the-handoff-protocol}
 *   **Medium**: Markdown files stored in `.ai-session-handoffs/`.
 *   **Purpose**: the carrier across AI tool sessions. The counterparty may be the next session or another agent.
 *   **Example triggers**:
@@ -129,7 +129,7 @@ A ticket is the head of any implementation, and the anchor everything else is tr
 
 SafeChord employs a label-based **Dual-Track Workflow** to balance "Docs-First" rigor with "Spike-First" agility.
 
-### 3.1 Choosing the path
+### 3.1 Choosing the path {#31-choosing-the-path}
 
 The two paths are **not** told apart by how much planning happened up front. They are told apart by one question, answerable when the ticket is opened:
 
@@ -175,7 +175,7 @@ Applied to optimizations of existing modules and known architecture extensions.
 
 **A ticket that changes no requirement** (documentation, or a refactor that keeps behavior) skips sub-steps 2 and 5 of step 1, and its reconciliation checks that the blueprint's wording still matches. If the change forces a requirement test to change all the same, such as a rename the move causes, that change is a commit of its own under the rules of [§3.2](#32-handling-review-findings), and its assertions and inputs stay as they were.
 
-#### Writing the requirement tests
+#### Writing the requirement tests {#writing-the-requirement-tests}
 
 The Settler writes them before anyone has chosen a mechanism, so a test can only hold the cases the Settler thought of. These checks close the gaps earlier tickets fell through:
 
@@ -212,7 +212,7 @@ Applied to new tech integrations, unknown bug fixes, or performance stress tests
     3. Switch the repo's checkout back to `dev` and update it, then delete the ticket's local branch and its run directory (`.ai-runs/<repo>-<issue_no>/`, where one exists). The remote branch is deleted on merge
     4. Close the ticket
 
-### 3.2 Handling review findings
+### 3.2 Handling review findings {#32-handling-review-findings}
 
 Review reads the test diff separately from the code diff. A test changed so that it passes is the first thing to question.
 
@@ -239,7 +239,7 @@ Review reads the test diff separately from the code diff. A test changed so that
 2.  carries the trailer `Agent: Settler (review fix)`;
 3.  states in `Impact:` why the change affects no behavior, so it can be audited by reading.
 
-### 3.3 Choosing the executor
+### 3.3 Choosing the executor {#33-choosing-the-executor}
 
 §3.1 decides what form the task takes. A separate question decides **who executes**:
 
@@ -273,7 +273,7 @@ None of these conditions settles the matter on its own. The human and the Settle
 
 ## 4. Operational Templates (Appendices)
 
-### 🎫 GitHub Issue Template
+### 🎫 GitHub Issue Template {#github-issue-template}
 ```markdown
 ## Background
 [Why is this needed? What does the current state look like?]
@@ -293,7 +293,7 @@ None of these conditions settles the matter on its own. The human and the Settle
 
 The reconciliation item is the one Done When ticked after merge: it is the last step of the flow, not a condition the PR can show.
 
-### 🟢 Git Commit Template
+### 🟢 Git Commit Template {#git-commit-template}
 ```text
 <type>(<scope>): <subject> (50 chars max)
 
@@ -308,7 +308,7 @@ Agent: [Pioneer / Settler / Settler (review fix) / Settler (requirement test)]
 Legacy: [Pending issues for the next agent]
 ```
 
-### 🔴 Handoff Template
+### 🔴 Handoff Template {#handoff-template}
 ```markdown
 # 📝 Legacy Note: [Task Name]
 
@@ -408,7 +408,7 @@ Every Blocking finding carries its cause, and may carry more than one:
 
 The cause records where a round came from, so that tickets can be compared by cause and not only by how many rounds they took.
 
-### ⚪ Draft Template
+### ⚪ Draft Template {#draft-template}
 ```markdown
 ---
 title: 'Design Draft: [Topic]'

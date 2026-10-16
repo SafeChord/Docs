@@ -32,9 +32,9 @@ SafeChord 使用 agent 的方式，依人類所在的位置分成幾種模式。
 
 **席位綁定在 session 上。** 一個 session 持一個席位，持到結束。換席位就是換 session，用交接把 context 帶過去。因此程式碼審查不會跟它所審查的實作共用 session——寫程式碼的那個 session 持開拓者，而審查是維護者的事。
 
-**維護者 session 可以啟動開拓者 session。** 開拓者 session 從空的 context 開始，只拿到票與 handoff；兩者之間的溝通仍然只有[交接協定](#-交接協定)為各個方向列出的那些。透過其他途徑向啟動它的 session 回報的執行者，例如 subagent，算在那個 session 的席位底下，自己不持席位。
+**維護者 session 可以啟動開拓者 session。** 開拓者 session 從空的 context 開始，只拿到票與 handoff；兩者之間的溝通仍然只有[交接協定](#the-handoff-protocol)為各個方向列出的那些。透過其他途徑向啟動它的 session 回報的執行者，例如 subagent，算在那個 session 的席位底下，自己不持席位。
 
-**例外：維護者能單 session 完成任務。** 人類與維護者討論後，可以讓該輪任務只由維護者執行，票掛上 `exec:settler` label。詳細說明見 [§3.3](#33-選擇執行者)。
+**例外：維護者能單 session 完成任務。** 人類與維護者討論後，可以讓該輪任務只由維護者執行，票掛上 `exec:settler` label。詳細說明見 [§3.3](#33-choosing-the-executor)。
 
 ---
 
@@ -51,15 +51,15 @@ SafeChord 使用 agent 的方式，依人類所在的位置分成幾種模式。
 *   **完成條件寫意圖，不寫形狀**: 寫結果必須成立的事（「logger 的輸出除了 `worker_id` 之外都不變」、「沒有任何 assertion 或測試輸入被改動」），不寫 diff 或名稱長什麼樣（「欄位名稱不變」、「diff 只動到 import」）。寫成形狀的條件，錯的改動照樣過、對的改動反而不過，而且範圍一允許改名，就跟範圍自相矛盾。
 *   **時效**: 開票之後過了一段時間才動工的票，動工前要對照當下的藍圖與程式碼再核對一次。指向已經改寫的章節的引用、被後來的票改掉的「現況」，先在票上改正。
 *   **分支**: `<type>/issue-<issue_no>-<slug>`，`<type>` 是這次改動的 commit type。`refactor/` 前綴保留給掛著 `mode:refactor` label 的票，這個 label 由人類與維護者在開票時約定：這個前綴會打開 agent 的 refactor mode，在這個模式下結構完整優先於最小 diff，範圍照樣有約束力。沒有掛這個 label 的 `type:refactor` 票，分支用 `chore/`。
-*   **必要內容**: [參考範本](#-github-issue-範本)
+*   **必要內容**: [參考範本](#github-issue-template)
 
 ### 🟢 基本溝通：Git Commit 協定
 *   **媒介**: git
 *   **目的**: 在實作過程中的細粒資訊載體。
 *   **格式**: 嚴格遵循 [Conventional Commits](https://www.conventionalcommits.org/)。
-*   **必要內容**: [參考範本](#-git-commit-範本)
+*   **必要內容**: [參考範本](#git-commit-template)
 
-### 🔴 交接協定
+### 🔴 交接協定 {#the-handoff-protocol}
 *   **媒介**: 存放在 `.ai-session-handoffs/` 的 Markdown 檔案。
 *   **目的**: 跨 ai 工具 session 的載體。交接對象包含下一個 session，或另一個代理。
 *   **觸發條件舉例**:
@@ -74,15 +74,15 @@ SafeChord 使用 agent 的方式，依人類所在的位置分成幾種模式。
 *   **連結方向**: handoff 指向票，票不反指。看得到 handoff 的人一定找得到票，看得到票的人卻不一定看得到 handoff；而且 handoff 刪除後，永久的票上會留下一條死連結。
 *   **命名規則**: 有對應的票時，handoff 檔名帶上小寫的 `<repo>-<issue_no>`（例如 `2026-09-19-safezone-64-worker-offset-commit.md`）。席位之間交接的三種檔再以種類結尾：`-kickoff`、`-delivery`、`-review`（例如 `2026-09-19-safezone-64-worker-offset-commit-review.md`）。
 *   **叫回 session**: 因里程碑、卡關或人類移交而交接的 session，可以用筆記裡的 `Resume:` 指令叫回來，例如修正審查發現的問題。因 Context 劣化而交接的 session 就此退休，不再叫回。
-*   **必要內容**: [參考範本](#-handoff-範本)
+*   **必要內容**: [參考範本](#handoff-template)
 
 ### 🟣 Pull Request
 *   **媒介**: 工作所在 repository 的 GitHub PR。
 *   **目的**: 給人類審核與合併的介面。迭代期間兩個席位只靠分支與 handoff 來回，不開 PR。
-*   **時機**: 審查通過後，由維護者撰寫並開出。`exec:settler` 的任務在實作完成後開出，另見 [§3.3](#33-選擇執行者)。
+*   **時機**: 審查通過後，由維護者撰寫並開出。`exec:settler` 的任務在實作完成後開出，另見 [§3.3](#33-choosing-the-executor)。
 *   **必要內容**: 目前不設範本，寫法與結構由維護者依該次工作決定，累積幾份之後再歸納。只有下面兩段，有內容時必須各自成段：
     - **審查中的決定**：審查來回期間做了、而人類沒看到的決定。
-    - **衍生問題**：從這張票切出去的新票，見 [§3.2](#32-處理審查發現的問題)。
+    - **衍生問題**：從這張票切出去的新票，見 [§3.2](#32-handling-review-findings)。
 
 ### ⚪ 設計草稿
 *   **媒介**: 存放在 `.ai-session-drafts/<domain>/` 的 Markdown 檔案。
@@ -92,7 +92,7 @@ SafeChord 使用 agent 的方式，依人類所在的位置分成幾種模式。
     - `delivery/`（release workflow、gate、soak）
     - `platform/`（網路、ingress、安全、可觀測性）
     - `app/`（SafeZone 程式的 debug 與改進）。
-*   **必要內容**: [參考範本](#-draft-範本)
+*   **必要內容**: [參考範本](#draft-template)
 
 ---
 
@@ -100,7 +100,7 @@ SafeChord 使用 agent 的方式，依人類所在的位置分成幾種模式。
 
 SafeChord 採用基於標籤的 **雙軌工作流程**，以平衡「文件優先」的嚴謹性與「Spike 優先」的靈活性。
 
-### 3.1 選擇路徑
+### 3.1 選擇路徑 {#31-choosing-the-path}
 
 兩條路徑**不是**用「動工前規劃了多少」來分的。分界只有一個問題，而且開票當下就答得出來：
 
@@ -126,7 +126,7 @@ SafeChord 採用基於標籤的 **雙軌工作流程**，以平衡「文件優�
     2. 更新藍圖的「需求」（列出測試必須守住之承諾的段落），把藍圖的 `app_version` 設成該票所在的 milestone
     3. 與人類討論決策是否寫入決策日誌，要寫入就將決定與理由追加到決策日誌
     4. 然後**開票並標記 `kdd:forward`**
-    5. 接著從 `dev` 開出該票的分支，把守住變動需求的測試 commit 在上面，每個測試帶上對應的需求 ID，commit 帶 trailer `Agent: Settler (requirement test)`。寫法見[下方](#撰寫需求測試)
+    5. 接著從 `dev` 開出該票的分支，把守住變動需求的測試 commit 在上面，每個測試帶上對應的需求 ID，commit 帶 trailer `Agent: Settler (requirement test)`。寫法見[下方](#writing-the-requirement-tests)
     6. 若有需要，撰寫 kickoff handoff
 2.  **實作**（開拓者）: 當維護者完成需求的測試提交並換手
     1. 讀取文件包含票、藍圖、handoff(若存在)
@@ -135,7 +135,7 @@ SafeChord 採用基於標籤的 **雙軌工作流程**，以平衡「文件優�
     4. 實作完成後 push 分支、不開 PR，並產生 handoff 筆記
 3.  **審查**（維護者）: 當開拓者實作完成
     1. 讀取開拓者的 handoff，根據藍圖定義進行程式碼審查。派遣與審查的做法、何時該停，見 `pioneer-dispatch` skill（`.claude/skills/pioneer-dispatch/SKILL.md`）
-    2. 若有審查意見退回實作，詳情參考 [§3.2](#32-處理審查發現的問題)。
+    2. 若有審查意見退回實作，詳情參考 [§3.2](#32-handling-review-findings)。
     3. 審查通過則撰寫 PR
     4. 若 PR 觸發的 CI 沒有通過，退回審查；通過後等待人類審核合併
 4.  **鞏固**（維護者）: 當 PR 被人類合併。
@@ -144,9 +144,9 @@ SafeChord 採用基於標籤的 **雙軌工作流程**，以平衡「文件優�
     3. 把 repo 的 checkout 切回 `dev` 並更新，刪掉該票的本地分支與 run 目錄（`.ai-runs/<repo>-<issue_no>/`，有的話）。遠端分支在合併時已自動刪除
     4. 關閉票
 
-**沒有改動任何需求的票**（純文件，或行為不變的重構）跳過步驟 1 的第 2、5 小步，文件對齊就是確認藍圖的措辭仍然相符。如果改動還是逼得需求測試要跟著改，例如搬移造成的改名，那個改動依 [§3.2](#32-處理審查發現的問題) 的規則自成一個 commit，assertion 與輸入維持原樣。
+**沒有改動任何需求的票**（純文件，或行為不變的重構）跳過步驟 1 的第 2、5 小步，文件對齊就是確認藍圖的措辭仍然相符。如果改動還是逼得需求測試要跟著改，例如搬移造成的改名，那個改動依 [§3.2](#32-handling-review-findings) 的規則自成一個 commit，assertion 與輸入維持原樣。
 
-#### 撰寫需求測試
+#### 撰寫需求測試 {#writing-the-requirement-tests}
 
 維護者在任何人選定機制之前就寫好需求測試，所以測試只守得住維護者想得到的情況。下面這幾項檢查，補的是先前的票掉進去過的洞：
 
@@ -174,7 +174,7 @@ SafeChord 採用基於標籤的 **雙軌工作流程**，以平衡「文件優�
     3. 實作完成後 push 分支、不開 PR，並產生 handoff 筆記
 3.  **審查**（維護者）: 當開拓者實作完成
     1. 讀取開拓者的 handoff，根據票的範圍與完成條件進行程式碼審查。派遣與審查的做法、何時該停，見 `pioneer-dispatch` skill（`.claude/skills/pioneer-dispatch/SKILL.md`）
-    2. 若有審查意見退回實作，詳情參考 [§3.2](#32-處理審查發現的問題)。
+    2. 若有審查意見退回實作，詳情參考 [§3.2](#32-handling-review-findings)。
     3. 審查通過則撰寫 PR
     4. 若 PR 觸發的 CI 沒有通過，退回審查；若 CI 不存在該輪開發元件，與人類討論是否有 CI 需求，有需求就開新票處理，並逕行後續流程。通過後等待人類審核合併
 4.  **鞏固**（維護者）: 當 PR 被人類合併。
@@ -183,11 +183,11 @@ SafeChord 採用基於標籤的 **雙軌工作流程**，以平衡「文件優�
     3. 把 repo 的 checkout 切回 `dev` 並更新，刪掉該票的本地分支與 run 目錄（`.ai-runs/<repo>-<issue_no>/`，有的話）。遠端分支在合併時已自動刪除
     4. 關閉票
 
-### 3.2 處理審查發現的問題
+### 3.2 處理審查發現的問題 {#32-handling-review-findings}
 
 審查時，測試的 diff 與程式的 diff 分開讀。為了讓測試通過而修改測試，是第一個要追問的地方。
 
-**發現的問題以 handoff 退回開拓者修**（見[交接協定](#-交接協定)）。
+**發現的問題以 handoff 退回開拓者修**（見[交接協定](#the-handoff-protocol)）。
 
 **需求測試跟藍圖需求對不上。** 有以下兩種狀況：
 
@@ -210,7 +210,7 @@ SafeChord 採用基於標籤的 **雙軌工作流程**，以平衡「文件優�
 2.  帶 trailer `Agent: Settler (review fix)`；
 3.  在 `Impact:` 寫明為什麼這個修改不影響行為，讓人用讀的就能稽核。
 
-### 3.3 選擇執行者
+### 3.3 選擇執行者 {#33-choosing-the-executor}
 
 §3.1 決定任務的形式 **是什麼**。另一個問題決定**誰來執行**：
 
@@ -224,7 +224,7 @@ SafeChord 採用基於標籤的 **雙軌工作流程**，以平衡「文件優�
 
 但是這些條件都不是必然，人類跟維護者應該根據當下狀況討論判斷要不要這樣處理。
 
-**標記與流程。** 決定由維護者執行的票掛上 `exec:settler` label，可以跟 `kdd:forward` 或 `kdd:spike` 並存。流程沿用 [§3.1](#31-選擇路徑) 的路徑，只是實作者換成維護者：席位之間的 handoff 與步驟 3 的審查省略，實作完成後直接開 PR，由人類審查。執行中碰到的票外工作，照樣依 [§3.2](#32-處理審查發現的問題) 開新票，列在 PR 裡。
+**標記與流程。** 決定由維護者執行的票掛上 `exec:settler` label，可以跟 `kdd:forward` 或 `kdd:spike` 並存。流程沿用 [§3.1](#31-choosing-the-path) 的路徑，只是實作者換成維護者：席位之間的 handoff 與步驟 3 的審查省略，實作完成後直接開 PR，由人類審查。執行中碰到的票外工作，照樣依 [§3.2](#32-handling-review-findings) 開新票，列在 PR 裡。
 
 **審查責任。** 分離席位是為了讓做事的 session 不審查自己的成果。在 `exec:settler` 下這個獨立性不存在了，所以由人類明確接手審查並承擔責任。
 
@@ -244,7 +244,7 @@ SafeChord 採用基於標籤的 **雙軌工作流程**，以平衡「文件優�
 
 ## 4. 操作範本（附錄）
 
-### 🎫 GitHub Issue 範本
+### 🎫 GitHub Issue 範本 {#github-issue-template}
 ```markdown
 ## 背景
 [為什麼需要這件事？現況是什麼？]
@@ -264,7 +264,7 @@ SafeChord 採用基於標籤的 **雙軌工作流程**，以平衡「文件優�
 
 文件對齊那一條是唯一在合併後才勾的完成條件：它是流程的最後一步，不是 PR 能證明的條件。
 
-### 🟢 Git Commit 範本
+### 🟢 Git Commit 範本 {#git-commit-template}
 ```text
 <type>(<scope>): <subject> (最多50字)
 
@@ -279,7 +279,7 @@ Agent: [開拓者 / 維護者 / 維護者 (review fix) / 維護者 (requirement 
 Legacy: [留待下一個代理處理的待辦事項]
 ```
 
-### 🔴 Handoff 範本
+### 🔴 Handoff 範本 {#handoff-template}
 ```markdown
 # 📝 Legacy Note: [Task Name]
 
@@ -379,7 +379,7 @@ Legacy: [留待下一個代理處理的待辦事項]
 
 成因記的是這一輪從哪裡來，之後才能按成因比較不同的票，不只是數輪數。
 
-### ⚪ Draft 範本
+### ⚪ Draft 範本 {#draft-template}
 ```markdown
 ---
 title: 'Design Draft: [Topic]'
