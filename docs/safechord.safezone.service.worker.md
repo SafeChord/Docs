@@ -81,6 +81,12 @@ deliberately skipped (WK-R5).
 - WHEN the worker stops without persisting them
 - THEN those events are delivered again after restart
 
+#### Scenario: another partition's writes succeed
+- GIVEN an event whose write keeps failing, and events on another partition whose writes succeed
+- WHEN the worker commits the other partition's progress
+- THEN the failing event's offset is not committed
+- AND that event is delivered again after restart
+
 ### WK-R4: Committed progress never moves backwards
 The consumer group's committed offset for a partition SHALL never decrease, and SHALL
 reach the end of the log once every event is processed.

@@ -42,6 +42,12 @@ Worker 必須在事件已被儲存或被刻意跳過（WK-R5）之後，才提�
 - WHEN worker 在儲存前停止
 - THEN 重啟後這些事件會再次被送達
 
+#### 情境：另一個 partition 的寫入成功
+- GIVEN 一筆寫入一直失敗的事件，以及另一個 partition 上寫入成功的事件
+- WHEN worker 提交另一個 partition 的進度
+- THEN 寫入失敗那筆事件的 offset 沒有被提交
+- AND 重啟後那筆事件會再次被送達
+
 ### WK-R4：已提交的進度不會倒退
 Consumer group 對任一 partition 已提交的 offset 必須永不減少，並在所有事件處理完後到達 log 末端。
 
