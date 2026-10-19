@@ -1,7 +1,7 @@
 ---
 title: 'KDD 2.0: Two-Engine Collaboration'
 doc_id: safechord.kdd.practice
-last_updated: '2026-10-16'
+last_updated: '2026-10-19'
 status: active
 authors:
   - bradyhau
@@ -105,13 +105,18 @@ A ticket is the head of any implementation, and the anchor everything else is tr
 *   **Resuming**: a session handed off on a reactive trigger can be resumed with the note's `Resume:` command, for example to fix review findings. A session handed off for context degradation is retired and not resumed.
 *   **Required Content**: [see template](#handoff-template)
 
-### 🟣 The Pull Request
+### 🟣 The Pull Request {#the-pull-request}
 *   **Medium**: a GitHub PR in the repository the work lands in.
 *   **Purpose**: the interface through which the human reviews and merges. While the seats iterate they exchange only the branch and handoffs, and no PR is open.
 *   **Timing**: the Settler writes and opens it once review passes. For `exec:settler` work it is opened once implementation is done; see [§3.3](#33-choosing-the-executor).
-*   **Required Content**: there is no template yet. The Settler decides the wording and structure to suit the work, and a template will be drawn once a few exist. Only the two sections below are required, each under its own heading whenever it has content:
-    - **Decisions made in review**: decisions taken during the review rounds that the human did not see.
-    - **Follow-up tickets**: new tickets cut out of this one; see [§3.2](#32-handling-review-findings).
+*   **Sorting what was left unverified**: before writing the PR, the Settler takes everything left unverified (the review rounds' "Not checked" lines, the delivery handoff's "Unverified / Uncertain", and under `exec:settler` what it did not verify itself) and sorts each item by the harm it can do:
+    - no real harm: dropped
+    - harm, and it can be checked within the ticket: checked now
+    - harm, and it cannot be checked before merge: stated under **Merge Danger**. A check that can run only once the release is cut or deployed also goes on the milestone's release record ticket (`chore(release): checks held for the vX.Y.Z release`, opened if none exists), with a link back to this ticket
+    - no danger at merge, but worth doing: a follow-up ticket; see [§3.2](#32-handling-review-findings)
+
+    Whether an item can harm often depends on context the Settler lacks, such as what the platform already handles or how much real traffic there is. The Settler then asks whether merge is when the harm would land; if not, the item becomes a ticket or is dropped. When unsure, it opens the ticket and says in its Background that the premise is unverified. The PR carries no list of what was not checked.
+*   **Required Content**: [see template](#pull-request-template)
 
 ### ⚪ Design Drafts
 *   **Medium**: Markdown files stored in `.ai-session-drafts/<domain>/`.
@@ -168,7 +173,7 @@ Applied to optimizations of existing modules and known architecture extensions.
     3. Once review passes, write the PR
     4. If the CI the PR triggers fails, go back to review; once it passes, wait for the human to review and merge
 4.  **Solidification** (Settler): once the human has merged the PR
-    1. Where the code diverged from the blueprint and the divergence was reviewed, bring the blueprint in line
+    1. Where the code diverged from the blueprint and the divergence was reviewed, bring the blueprint in line. If the PR's SSOT feedback box is ticked, write its entries into `Docs/` as well
     2. Delete the handoffs the task produced
     3. Switch the repo's checkout back to `dev` and update it, then delete the ticket's local branch and its run directory (`.ai-runs/<repo>-<issue_no>/`, where one exists). The remote branch is deleted on merge
     4. Close the ticket
@@ -207,7 +212,7 @@ Applied to new tech integrations, unknown bug fixes, or performance stress tests
     3. Once review passes, write the PR
     4. If the CI the PR triggers fails, go back to review. If CI does not cover the component this task built, discuss with the human whether it should; if so, open a new ticket for it and carry on. Once CI passes, wait for the human to review and merge
 4.  **Solidification** (Settler): once the human has merged the PR
-    1. Discuss with the human whether the result needs settling into a document; if it does, write the document of the type that fits the work
+    1. Discuss with the human whether the result needs settling into a document; if it does, write the document of the type that fits the work. If the PR's SSOT feedback box is ticked, write its entries into `Docs/` as well
     2. Delete the handoffs the task produced
     3. Switch the repo's checkout back to `dev` and update it, then delete the ticket's local branch and its run directory (`.ai-runs/<repo>-<issue_no>/`, where one exists). The remote branch is deleted on merge
     4. Close the ticket
@@ -265,7 +270,7 @@ None of these conditions settles the matter on its own. The human and the Settle
 > transfers accountability to them.
 ```
 
-**What the PR adds.** With no review file, nothing else records what went unexamined, and the human is the only reviewer. The PR therefore carries a **Not checked** section: the paths, conditions and commands the Settler did not verify.
+**What was left unverified.** With no review file, what the Settler did not verify itself goes through the same sorting as a review's ([§2, the Pull Request](#the-pull-request)) before the PR is written. Whatever can harm and could not be checked before merge is stated under the PR's Merge Danger, where the human, the only reviewer, reads it.
 
 **Merge is the sign-off.** The human merges after reviewing the change, and the merge is what transfers accountability. No agent merges an `exec:settler` PR.
 
@@ -407,6 +412,51 @@ Every Blocking finding carries its cause, and may carry more than one:
 | `kickoff` | Traced to what the Settler handed over: the ticket, the kickoff, or a requirement test |
 
 The cause records where a round came from, so that tickets can be compared by cause and not only by how many rounds they took.
+
+### 🟣 Pull Request Template {#pull-request-template}
+```markdown
+[exec:settler only: the header from §3.3]
+Ticket: #[issue_no]
+
+## Summary
+[The smallest view that makes the change clear]
+
+## Evidence
+- [A contrast per behavior: what failed before and passes now]
+- [The regression run, one line]
+
+## Merge Danger: [low / medium / high]
+[What merging sets off, what a revert would not undo, who is hit if this is wrong]
+Deferred to release: [the check] → #[release record ticket]
+
+## SSOT feedback
+- **Gap**: [requirement or ADR] says nothing about [what]. This PR chose [what].
+- **Requirement test**: [test] added / modified: [what the promise now pins].
+
+- [ ] Tighten the SSOT with the above (unticked at merge: left as is)
+
+## Decisions made in review
+- [A decision the human did not see, Minor findings left open included]
+
+## Follow-up tickets
+- #[issue_no]
+```
+
+The ticket line, Summary, Evidence and Merge Danger are in every PR. The other sections appear only when they have content, and the "Deferred to release" line only when there is such a check. The ticket line uses no closing keyword: the ticket closes after reconciliation, not on merge. Under `exec:settler`, "Decisions made in review" is headed "Decisions made during implementation".
+
+**Merge Danger** is graded by what it costs if the change is wrong:
+
+| Level | If this is wrong | The human |
+| :--- | :--- | :--- |
+| `low` | A revert puts everything back | Merges |
+| `medium` | A revert puts it back, but someone or something was hit first | Knows where to look after merge |
+| `high` | Something a revert does not undo, or a manual step before or after merge | Reads the description before merging |
+
+A check deferred to release does not raise the level: the release's gates hold it.
+
+**SSOT feedback** reports where the SSOT left room. A Gap is a choice the SSOT left open that something outside the service, an operator or the deployment can observe; a choice visible only inside the code is a decision. A requirement test added or modified after pre-work changes the precise form of a promise. Ticking the box means reconciliation writes every entry into `Docs/`; to write only some, the human says which in a PR comment, and the comment wins.
+
+How to fill each section (the forms for Summary and Evidence, the floors for Merge Danger, the prose rules) is in the `pr-body` skill (`.claude/skills/pr-body/SKILL.md`).
 
 ### ⚪ Draft Template {#draft-template}
 ```markdown

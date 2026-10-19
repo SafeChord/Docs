@@ -76,13 +76,18 @@ SafeChord 使用 agent 的方式，依人類所在的位置分成幾種模式。
 *   **叫回 session**: 因里程碑、卡關或人類移交而交接的 session，可以用筆記裡的 `Resume:` 指令叫回來，例如修正審查發現的問題。因 Context 劣化而交接的 session 就此退休，不再叫回。
 *   **必要內容**: [參考範本](#handoff-template)
 
-### 🟣 Pull Request
+### 🟣 Pull Request {#the-pull-request}
 *   **媒介**: 工作所在 repository 的 GitHub PR。
 *   **目的**: 給人類審核與合併的介面。迭代期間兩個席位只靠分支與 handoff 來回，不開 PR。
 *   **時機**: 審查通過後，由維護者撰寫並開出。`exec:settler` 的任務在實作完成後開出，另見 [§3.3](#33-choosing-the-executor)。
-*   **必要內容**: 目前不設範本，寫法與結構由維護者依該次工作決定，累積幾份之後再歸納。只有下面兩段，有內容時必須各自成段：
-    - **審查中的決定**：審查來回期間做了、而人類沒看到的決定。
-    - **衍生問題**：從這張票切出去的新票，見 [§3.2](#32-handling-review-findings)。
+*   **分流沒驗證的項目**: 寫 PR 之前，維護者把所有沒驗證的項目（各輪 review 的「Not checked」、delivery handoff 的「Unverified / Uncertain」，`exec:settler` 下則是自己沒驗證的部分）按可能造成的危害逐條分流：
+    - 沒有真實危害：刪掉
+    - 有危害，在這張票內做得到：現在就驗
+    - 有危害，merge 前做不到：寫進 **Merge Danger**。只能在切出 release 或部署之後才能做的檢查，另外附加到該 milestone 的 release 記錄票（`chore(release): checks held for the vX.Y.Z release`，沒有就開一張），並連回這張票
+    - merge 時不危險，但值得之後做：開 follow-up ticket，見 [§3.2](#32-handling-review-findings)
+
+    一個項目有沒有危害，常取決於維護者缺的 context，例如平台已經處理了什麼、真實流量多少。這時就問：危害是不是在 merge 時發生？不是的話，就開票或刪掉。不確定時開票，並在票的 Background 寫明前提還沒驗證。PR 裡不列「沒查什麼」的清單。
+*   **必要內容**: [見範本](#pull-request-template)
 
 ### ⚪ 設計草稿
 *   **媒介**: 存放在 `.ai-session-drafts/<domain>/` 的 Markdown 檔案。
@@ -139,7 +144,7 @@ SafeChord 採用基於標籤的 **雙軌工作流程**，以平衡「文件優�
     3. 審查通過則撰寫 PR
     4. 若 PR 觸發的 CI 沒有通過，退回審查；通過後等待人類審核合併
 4.  **鞏固**（維護者）: 當 PR 被人類合併。
-    1. 如果程式實作跟藍圖有被審核過的偏差，對齊到藍圖當中
+    1. 如果程式實作跟藍圖有被審核過的偏差，對齊到藍圖當中。PR 的 SSOT feedback 若有勾選，也把各條寫進 `Docs/`
     2. 刪除過程中產生的 handoff 文件
     3. 把 repo 的 checkout 切回 `dev` 並更新，刪掉該票的本地分支與 run 目錄（`.ai-runs/<repo>-<issue_no>/`，有的話）。遠端分支在合併時已自動刪除
     4. 關閉票
@@ -178,7 +183,7 @@ SafeChord 採用基於標籤的 **雙軌工作流程**，以平衡「文件優�
     3. 審查通過則撰寫 PR
     4. 若 PR 觸發的 CI 沒有通過，退回審查；若 CI 不存在該輪開發元件，與人類討論是否有 CI 需求，有需求就開新票處理，並逕行後續流程。通過後等待人類審核合併
 4.  **鞏固**（維護者）: 當 PR 被人類合併。
-    1. 與人類討論是否有文件固化的需求，存在的話撰寫該輪開發對應類型的文件
+    1. 與人類討論是否有文件固化的需求，存在的話撰寫該輪開發對應類型的文件。PR 的 SSOT feedback 若有勾選，也把各條寫進 `Docs/`
     2. 刪除過程中產生的 handoff 文件
     3. 把 repo 的 checkout 切回 `dev` 並更新，刪掉該票的本地分支與 run 目錄（`.ai-runs/<repo>-<issue_no>/`，有的話）。遠端分支在合併時已自動刪除
     4. 關閉票
@@ -236,7 +241,7 @@ SafeChord 採用基於標籤的 **雙軌工作流程**，以平衡「文件優�
 > transfers accountability to them.
 ```
 
-**PR 要多寫的一節。** 沒有 review 檔，就沒有別的地方記下哪些沒查過，而人類是唯一的審查者。所以 PR 要有 **Not checked** 一節，列出維護者沒驗證的路徑、條件與指令。
+**沒驗證的項目。** 沒有 review 檔，維護者自己沒驗證的部分，在寫 PR 之前照 review 的同一套分流處理（[§2 的 Pull Request](#the-pull-request)）。有危害而 merge 前做不到的，寫進 PR 的 Merge Danger，讓唯一的審查者——人類——讀到。
 
 **合併就是簽核。** 人類審查完後合併，合併本身就把責任轉移給人類。任何 agent 都不合併 `exec:settler` 的 PR。
 
@@ -378,6 +383,51 @@ Legacy: [留待下一個代理處理的待辦事項]
 | `kickoff` | 追溯到維護者交出去的東西：票、kickoff，或某個需求測試 |
 
 成因記的是這一輪從哪裡來，之後才能按成因比較不同的票，不只是數輪數。
+
+### 🟣 Pull Request 範本 {#pull-request-template}
+```markdown
+[exec:settler only: the header from §3.3]
+Ticket: #[issue_no]
+
+## Summary
+[The smallest view that makes the change clear]
+
+## Evidence
+- [A contrast per behavior: what failed before and passes now]
+- [The regression run, one line]
+
+## Merge Danger: [low / medium / high]
+[What merging sets off, what a revert would not undo, who is hit if this is wrong]
+Deferred to release: [the check] → #[release record ticket]
+
+## SSOT feedback
+- **Gap**: [requirement or ADR] says nothing about [what]. This PR chose [what].
+- **Requirement test**: [test] added / modified: [what the promise now pins].
+
+- [ ] Tighten the SSOT with the above (unticked at merge: left as is)
+
+## Decisions made in review
+- [A decision the human did not see, Minor findings left open included]
+
+## Follow-up tickets
+- #[issue_no]
+```
+
+票的那一行、Summary、Evidence、Merge Danger 每份 PR 都有。其他段落有內容才出現，「Deferred to release」那行也只在有這類檢查時才寫。票的那一行不用關票關鍵字：票在 reconciliation 之後才關，不是 merge 時。`exec:settler` 下，「Decisions made in review」標題改為「Decisions made during implementation」。
+
+**Merge Danger** 依改錯時的代價分級：
+
+| 等級 | 如果改錯了 | 人類要做的 |
+| :--- | :--- | :--- |
+| `low` | revert 就能完全回到原狀 | 直接 merge |
+| `medium` | revert 能退回，但在那之前已經有人或服務受到影響 | 知道 merge 後要看哪裡 |
+| `high` | 有 revert 退不回的東西，或 merge 前後需要手動步驟 | merge 前讀完描述 |
+
+延到 release 的檢查不拉高等級：擋住它的是 release 的 gate。
+
+**SSOT feedback** 回報 SSOT 留下空白的地方。Gap 是 SSOT 沒規定、而服務外部、operator 或部署看得到的選擇；只有程式內部看得到的選擇算 decision。前置工作之後新增或修改的需求測試，等於改了承諾的精確形式。勾選代表 reconciliation 把每一條都寫進 `Docs/`；只想寫其中幾條，人類在 PR comment 註明，以 comment 為準。
+
+每一段怎麼寫（Summary 與 Evidence 的形式、Merge Danger 的下限、行文規則）在 `pr-body` skill（`.claude/skills/pr-body/SKILL.md`）。
 
 ### ⚪ Draft 範本 {#draft-template}
 ```markdown
