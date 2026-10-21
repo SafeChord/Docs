@@ -52,13 +52,7 @@ Open `http://127.0.0.1:8000` in your browser.
 
 ## 🤝 Contribution & Workflow
 
-We follow a strict **"Doc-First"** policy driven by KDD:
-
-1.  **Update the Spec**: Before changing any code in `SafeZone` or `SafeZone-Deploy`, update the corresponding specification file in `docs/`.
-2.  **Align with AI**: Use these documents as the context prompt for your AI coding assistant.
-3.  **Verify**: Ensure `safechord.knowledgetree.md` accurately reflects the new structure.
-
-For detailed collaboration rules, please read **[KDD Practice](docs/safechord.kdd.practice.md)**.
+How a page is written is defined in [`.ai-rules.md`](.ai-rules.md); how a change moves from ticket to merge, in the [KDD Practice](docs/safechord.kdd.practice.md).
 
 ## 📄 License
 

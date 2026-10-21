@@ -1,20 +1,6 @@
 ---
 title: "[Decision/Concept Name]"
-doc_id: safechord.[layer].[concept]
-doc_version: [Document Version]
-last_updated: "YYYY-MM-DD"
 status: draft
-authors:
-  - [Author Name]
-context_scope: "[System-Wide / Specific Layer]"
-summary: "[One sentence summary of the decision or architectural principle.]"
-keywords:
-  - [Tag1]
-  - [Tag2]
-logical_path: "SafeChord.[Layer].[Concept]"
-related_docs:
-  - "[Related Blueprint/Map]"
-parent_doc: "[Parent Doc ID]"
 archetype: brain
 code_paths: []
 ---
@@ -23,6 +9,7 @@ code_paths: []
 
 > **Type**: Brain (Architectural Decision Record or Design Principle)
 > **Focus**: Background, Justification (Why), Trade-offs, and Long-term Impact.
+> **Constraint**: No current state and no procedure. What holds now lives in a blueprint or a manifest; how to do something lives in a script.
 
 ---
 
@@ -54,9 +41,5 @@ Honestly document the side effects and technical debt introduced by this decisio
 | :--- | :--- | :--- |
 | High throughput | Complex state management | Automated health checks |
 
-## 5. Implementation Status
-*   **Effective Version**: SafeChord vX.Y.Z
-*   **Link to Code/POC**: [Link to relevant module or PR]
-
-## 6. References
+## 5. References
 *   External links, research papers, or GitHub issues.

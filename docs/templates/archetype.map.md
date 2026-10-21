@@ -1,22 +1,6 @@
 ---
 title: "[System/Module Name] Overview"
-doc_id: safechord.[layer].[module]
-doc_version: [Document Version]
-app_version: "[Repository Version or null]"
-last_updated: "YYYY-MM-DD"
 status: draft
-authors:
-  - [Author Name]
-context_scope: "[System-Wide / Repository]"
-summary: "[High-level executive summary of this system's boundaries and purpose.]"
-keywords:
-  - [Tag1]
-  - [Tag2]
-logical_path: "SafeChord.[Layer].[Module]"
-related_docs:
-  - "[Sub-component Blueprint 1]"
-  - "[Sub-component Blueprint 2]"
-parent_doc: "[Parent Map ID or null]"
 archetype: map
 code_paths:
   - "[Repo/Folder Root Path]"
@@ -33,7 +17,7 @@ code_paths:
 ## 1. System Context & Visualization
 *(Required)*
 *   **Definition**: A one-sentence definition of what this system is.
-*   **Visual Context**: Use Mermaid diagrams to show the system boundary and high-level interactions.
+*   **Visual Context** *(Optional)*: a Mermaid diagram, only when three or more things connect in a way prose would flatten (`.ai-rules.md` §3.4). The diagram is then the home of that structure; the prose does not restate its edges.
 ```mermaid
 graph TB
     A[Upstream] --> B([This System])

@@ -1,21 +1,6 @@
 ---
 title: "[Workflow Name] Script"
-doc_id: safechord.[layer].workflow.[name]
-doc_version: [Document Version]
-app_version: [Target Application Version]
-last_updated: "YYYY-MM-DD"
 status: draft
-authors:
-  - [Author Name]
-context_scope: "[Repository Name]"
-summary: "[One sentence description of the process goal and trigger.]"
-keywords:
-  - [Tag1]
-  - [Tag2]
-logical_path: "SafeChord.[Layer].Workflow.[Name]"
-related_docs:
-  - "[Related Blueprint Doc]"
-parent_doc: "[Parent Doc ID]"
 archetype: script
 code_paths:
   - "[Script/Workflow Root Path]"
@@ -25,7 +10,7 @@ code_paths:
 
 > **Type**: Script (Standard Operating Procedure / Dynamic Workflow)
 > **Focus**: Step-by-step execution, actors, order of operations, and verification.
-> **KDD Rule**: Implementation (scripts/commands) should ideally live in the codebase.
+> **Constraint**: Commands and scripts live in the codebase; a step names them. Reasons live in the decision log.
 
 ---
 

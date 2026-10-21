@@ -25,6 +25,10 @@ archetype: brain
 
 # Knowledge-Driven Development (KDD)
 
+> **Type**: Brain (Design Principle)
+> **Focus**: Why SafeChord develops from knowledge, and how documents, tests and agents divide the work.
+> **Constraint**: No procedure (the [practice](safechord.kdd.practice.md)). No rules for writing a page (`Docs/.ai-rules.md`).
+
 SafeChord is more than a software project; it is an architectural experiment on **"How to build software in the AI era."** The core methodology we employ is called **KDD (Knowledge-Driven Development)**.
 
 ---
@@ -58,12 +62,7 @@ If we grant AI maximal implementation freedom, how do we prevent it from "going 
 *   **AI without boundaries is a disaster**: Giving a powerful agent tool a vague goal often leads to infinite divergence, hallucinated features, and redundant refactoring.
 *   **From "Quality Assurance" to "Convergence Mechanism"**: Under KDD, **Test-Driven Development (TDD)** undergoes a qualitative change. Tests are no longer just for bug prevention; they are the **"Physical Red Walls"** that guide AI toward convergence.
 *   **Intent in Docs, Specs in Code**: This is a critical distinction. In the Markdown Knowledge Map, we only preserve the **Why**, the **What**, and the **Architectural Decision Records (ADR)**. The resulting detailed API Contracts (Schemas) and specific Test Cases live exclusively within the **Codebase** (actual code and test files).
-*   **Layer-Specific SSOT Boundaries**: The above principle applies differently depending on the layer:
-
-    | Layer | Docs are SSOT for | Codebase is SSOT for |
-    | :--- | :--- | :--- |
-    | **App (Imperative)** | Business Requirements (Why/What), ADRs | Endpoints, Schemas, Test Cases (How) |
-    | **Infra (Declarative)** | Design Constraints (budget, latency targets, capacity ceilings), Architectural Rationale (Why this topology) | Manifests, Helm values, current deployed state |
+*   **Layer-Specific SSOT Boundaries**: The above principle applies differently depending on the layer. Which document owns which fact, layer by layer, is defined in the [Docs rules](https://github.com/SafeChord/Docs/blob/main/.ai-rules.md#32-where-a-fact-lives).
 
     In imperative application code, the code tells you *How* but hides *Why*—so docs fill the gap. In declarative infrastructure (GitOps), **manifests themselves express intent** (desired state). Here, docs serve a different role: consolidating the *design constraints and cross-cutting rationale* scattered across dozens of YAML files into a single readable narrative. Docs do not duplicate manifest values; they define the **red walls** (cost ceilings, latency targets, availability requirements) within which manifests must operate.
 

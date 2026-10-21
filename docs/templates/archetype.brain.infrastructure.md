@@ -1,36 +1,17 @@
 ---
 title: "Policy: [Infrastructure Component Name]"
-doc_id: safechord.chorde.[component]
-doc_version: [Document Version]
-app_version: [Target Platform Version]
 status: draft
-authors:
-  - [Author Name]
-last_updated: "YYYY-MM-DD"
-summary: "[One sentence: what infrastructure concern this addresses and the core design constraint.]"
-keywords:
-  - [keyword1]
-  - [keyword2]
-logical_path: "SafeChord.Chorde.[Component]"
-related_docs:
-  - "[Related Infra/Platform Doc]"
-parent_doc: "[Parent Doc ID]"
 archetype: brain
 code_paths:
   - "Chorde/gitops/k3han/manifests/[component]"
-tech_stack:
-  - [Technology]
 ---
 
 # [Component Name] (Brain)
 
-> Inherits from `archetype.brain.md`. Specialized for declarative infrastructure
-> components managed via GitOps.
->
-> **Key distinction from App-layer blueprints**: In declarative infrastructure,
-> manifests themselves express desired state. This document defines the
-> **design constraints and architectural rationale** — the red walls within
-> which manifests must operate. It does NOT duplicate manifest values.
+> **Type**: Brain (Infrastructure)
+> **Focus**: The design constraints manifests must operate within, and the rationale behind them.
+> **Constraint**: No manifest values: manifests express desired state and live under `code_paths`.
+> A measured value appears only in Reference Snapshots, labelled with its date.
 
 ---
 

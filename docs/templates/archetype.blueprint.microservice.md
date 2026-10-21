@@ -1,24 +1,11 @@
 ---
 title: "Service: [Service Name]"
-doc_id: safechord.safezone.service.[name]
-doc_version: [Document Version — bump on every edit]
-app_version: [First application version this revision of the spec applies to]
 status: draft
-authors:
-  - [Author Name]
-last_updated: "YYYY-MM-DD"
-summary: "[One sentence: core role, data flow position, key characteristic]"
-keywords:
-  - [keyword1]
-  - [keyword2]
-logical_path: "SafeChord.SafeZone.Service.[Name]"
-related_docs:
-  - "safechord.safezone.service.standards.md"
-  - "safechord.safezone.decisions.md"
-parent_doc: "safechord.safezone"
 archetype: blueprint
 code_paths:
   - "SafeZone/services/[service-name]"
+app_version: [First application version this revision of the spec applies to]
+doc_version: [Document Version — bump on every edit]
 ---
 
 # [Service Name] (Service Blueprint)
