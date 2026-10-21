@@ -1,32 +1,11 @@
 ---
 title: 'Map: SafeZone Deployment & Operations'
-doc_id: safechord.safezone.deployment
 status: active
-authors:
-  - bradyhau
-  - Gemini CLI
-last_updated: '2026-09-19'
-summary: Navigation map and architectural decision records for SafeZone's deployment layer. Covers the tiered Helm chart structure, the DAG-based deployment phase ordering, and how physical cluster constraints (cross-border latency, service dependencies) drive the design of SafeZone-Deploy.
-keywords:
-  - Deployment
-  - Operations
-  - Helm
-  - GitOps
-  - Umbrella Chart
-  - KEDA
-logical_path: SafeChord.SafeZone.Deployment
-related_docs:
-  - safechord.safezone.delivery.workflow.md
-  - safechord.environment.md
-  - safechord.safezone.md
-  - safechord.chorde.k3han.cluster.md
-parent_doc: safechord.safezone
 archetype: map
 code_paths:
   - SafeZone-Deploy/helm-charts
   - SafeZone-Deploy/deploy
   - SafeZone-Deploy/.github/workflows
-doc_version: 0.3.1
 ---
 
 # SafeZone Deployment

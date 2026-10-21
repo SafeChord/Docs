@@ -1,26 +1,6 @@
 ---
 title: 'Service: Data Ingestor'
-doc_id: safechord.safezone.service.dataingestor
 status: active
-authors:
-  - bradyhau
-  - Gemini CLI
-  - Claude Opus 5.5
-last_updated: '2026-10-14'
-summary: The Data Ingestor is the single entry point for case data. It validates each incoming record and publishes it to Kafka as a case event, keyed so that events for one city and region stay in order.
-keywords:
-  - Data Ingestor
-  - Kafka Producer
-  - Gateway
-  - Event Driven
-  - FastAPI
-  - Load Leveling
-logical_path: SafeChord.SafeZone.Service.DataIngestor
-related_docs:
-  - safechord.safezone.service.standards.md
-  - safechord.safezone.decisions.md
-  - safechord.safezone.changelog.md
-parent_doc: safechord.safezone
 archetype: blueprint
 code_paths:
   - SafeZone/services/data-ingestor

@@ -1,25 +1,6 @@
 ---
 title: 'Service: Analytics API'
-doc_id: safechord.safezone.service.analyticsapi
 status: active
-authors:
-  - bradyhau
-  - Gemini CLI
-  - Claude Opus 5.5
-last_updated: '2026-10-14'
-summary: The Analytics API answers how many cases occurred in a time window for the nation, a city, or a region, as a count or as a rate per 10,000 residents. It serves repeated queries from a cache that is invalidated when the data set changes.
-keywords:
-  - Analytics API
-  - FastAPI
-  - Redis Cache
-  - Global Invalidation
-  - Cache Versioning
-logical_path: SafeChord.SafeZone.Service.AnalyticsAPI
-related_docs:
-  - safechord.safezone.service.standards.md
-  - safechord.safezone.decisions.md
-  - safechord.safezone.changelog.md
-parent_doc: safechord.safezone
 archetype: blueprint
 code_paths:
   - SafeZone/services/analytics-api

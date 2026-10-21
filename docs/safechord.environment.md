@@ -1,30 +1,7 @@
 ---
 title: Environment Landscape & Evolution
-doc_id: safechord.environment
-last_updated: '2026-05-02'
 status: active
-authors:
-  - bradyhau
-  - Gemini CLI
-context_scope: Global
-summary: Defines the environmental strategy for the SafeChord system. Explains how we make pragmatic architectural trade-offs between resource isolation and platform integration across different lifecycle stages (Local, Preview, Staging).
-keywords:
-  - Environment
-  - Docker Compose
-  - Kubernetes
-  - GitOps
-  - Service Discovery
-  - PaaS
-  - Valkey
-  - Kafka
-logical_path: SafeChord.Environment
-related_docs:
-  - safechord.chorde.k3han.md
-  - safechord.safezone.deployment.md
-parent_doc: safechord
-doc_version: 0.3.5
 archetype: map
-app_version: null
 ---
 
 # Environment Evolution

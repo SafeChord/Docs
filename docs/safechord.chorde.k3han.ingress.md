@@ -1,36 +1,12 @@
 ---
 title: 'Policy: Ingress & Network Perimeter'
-doc_id: safechord.chorde.k3han.ingress
 status: active
-authors:
-  - bradyhau
-  - Gemini CLI
-last_updated: '2026-06-04'
-summary: Consolidates the architectural rationale and design constraints of the K3han cluster's edge topology using NGINX Gateway Fabric (NGF).
-keywords:
-  - Ingress Policy
-  - Zero Trust
-  - Gateway API
-  - Design Constraints
-  - Edge Topology
-logical_path: SafeChord.Chorde.K3han.Networking.Ingress
-related_docs:
-  - safechord.chorde.k3han.md
-  - safechord.chorde.k3han.cluster.md
-parent_doc: safechord.chorde.k3han
 archetype: brain
 code_paths:
   - Chorde/gitops/k3han/manifests/nginx-gateway-fabric
   - Chorde/gitops/k3han/manifests/private-gateway
   - Chorde/gitops/k3han/manifests/public-gateway
   - Chorde/gitops/k3han/manifests/cloudflared
-tech_stack:
-  - NGINX Gateway Fabric
-  - Gateway API
-  - Cloudflare Tunnel
-  - GCP Firewall
-doc_version: 0.3.6
-app_version: 0.3.0
 ---
 
 # Ingress & Network Policy (Brain)

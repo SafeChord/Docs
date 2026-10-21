@@ -1,25 +1,6 @@
 ---
 title: Knowledge-Driven Development (KDD)
-doc_id: safechord.kdd.introduction
-last_updated: '2026-05-02'
 status: active
-authors:
-  - bradyhau
-  - Gemini CLI
-context_scope: Methodology
-summary: An introduction to Knowledge-Driven Development (KDD), the core development methodology of SafeChord. Explains how physical knowledge maps create long-term compound memory and how TDD serves as a convergence boundary for AI agents, redefining software engineering in the age of LLMs.
-keywords:
-  - KDD
-  - Knowledge Map
-  - TDD
-  - AI Collaboration
-  - LLM Wiki
-logical_path: SafeChord.KDD.Introduction
-related_docs:
-  - safechord.kdd.practice.md
-  - safechord.knowledgetree.md
-parent_doc: safechord.knowledgetree
-doc_version: 0.3.5
 archetype: brain
 ---
 

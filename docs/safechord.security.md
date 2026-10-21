@@ -1,29 +1,6 @@
 ---
 title: Security Architecture & Governance
-doc_id: safechord.security
-last_updated: '2026-05-02'
 status: active
-authors:
-  - bradyhau
-  - Gemini CLI
-context_scope: Global
-summary: Defines the multi-layered security governance principles for SafeChord. Covers GitOps-native secret management using SealedSecrets, Principle of Least Privilege (RBAC), GCP firewall hardening, and end-to-end encryption strategies.
-keywords:
-  - Security
-  - SecretOps
-  - SealedSecrets
-  - Cloudflare Full (Strict)
-  - Origin Hardening
-  - Basic Auth
-  - IAM
-  - NetworkPolicy
-logical_path: SafeChord.Security
-related_docs:
-  - safechord.environment.md
-  - safechord.safezone.deployment.md
-  - safechord.chorde.k3han.ingress.md
-parent_doc: safechord
-doc_version: 0.3.5
 archetype: brain
 ---
 

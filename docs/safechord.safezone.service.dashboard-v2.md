@@ -1,27 +1,8 @@
 ---
 title: "Service: Dashboard v2"
-doc_id: safechord.safezone.service.dashboard-v2
 doc_version: 0.2.0
 app_version: 0.3.7
 status: active
-authors:
-  - bradyhau
-  - Gemini CLI
-  - Claude Opus 5.5
-last_updated: '2026-10-07'
-summary: Dashboard v2 is the browser interface of SafeZone. It shows case figures on a map and in charts for the simulation's current date, and follows that date as it advances.
-keywords:
-  - Dashboard v2
-  - React
-  - SPA
-  - MapLibre
-logical_path: "SafeChord.SafeZone.Service.DashboardV2"
-related_docs:
-  - safechord.safezone.service.standards.md
-  - safechord.safezone.decisions.md
-  - safechord.safezone.changelog.md
-  - safechord.safezone.toolkit.timeserver.md
-parent_doc: safechord.safezone
 archetype: blueprint
 code_paths:
   - "SafeZone/services/dashboard-v2"

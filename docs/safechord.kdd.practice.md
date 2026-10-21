@@ -1,27 +1,7 @@
 ---
 title: 'KDD 2.0: Two-Engine Collaboration'
-doc_id: safechord.kdd.practice
 last_updated: '2026-10-19'
 status: active
-authors:
-  - bradyhau
-  - Gemini CLI
-  - Claude Opus 5
-  - Claude Opus 5.5
-context_scope: Methodology
-summary: Defines the Two-Engine collaboration model for SafeChord development, from discussion through merge and ticket close. Specifies the Pioneer and Settler seats and their current carriers, the dual-track workflow and its ticket lifecycle, the Git commit, handoff and pull request protocols, and the operational templates for each artifact.
-keywords:
-  - Two-Engine
-  - Claude Code
-  - Git Commit Protocol
-  - Legacy Handoff
-  - Ticket Lifecycle
-  - Pull Request
-logical_path: SafeChord.KDD.Practice
-related_docs:
-  - safechord.kdd.introduction.md
-  - safechord.safezone.delivery.workflow.md
-parent_doc: safechord.kdd.introduction
 doc_version: 0.4.0
 archetype: script
 code_paths: []

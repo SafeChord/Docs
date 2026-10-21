@@ -1,30 +1,9 @@
 ---
 title: 'Map: SafeZone Application Architecture'
-doc_id: safechord.safezone
 status: active
-authors:
-  - bradyhau
-  - Gemini CLI
-last_updated: '2026-10-07'
-summary: The navigational map for the SafeZone application layer. Defines the microservice architecture, asynchronous data flow, and the responsibility boundaries of each component.
-keywords:
-  - SafeZone
-  - Map
-  - Architecture
-  - Data Flow
-  - Microservices
-logical_path: SafeChord.SafeZone
-related_docs:
-  - safechord.safezone.service.dataingestor.md
-  - safechord.safezone.service.worker.md
-  - safechord.safezone.service.analyticsapi.md
-  - safechord.safezone.deployment.md
-parent_doc: safechord
 archetype: map
 code_paths:
   - SafeZone/services
-doc_version: 0.3.6
-app_version: 0.3.2
 ---
 
 # 🗺️ SafeZone Application Map

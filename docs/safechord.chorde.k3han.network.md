@@ -1,38 +1,10 @@
 ---
 title: 'Policy: Pod Data Path & CNI'
-doc_id: safechord.chorde.k3han.network
 status: active
-authors:
-  - bradyhau
-  - Claude Opus 5.5
-last_updated: '2026-09-25'
-summary: Explains how pod-to-pod traffic actually moves across the K3han cluster. flannel stays the CNI but its VXLAN overlay is idle; Tailscale subnet routes carry every cross-node packet in a single WireGuard tunnel. Separates the mechanism (what the kernel and the two projects actually do) from the four decisions taken on top of it, each with its own alternatives and cost.
-keywords:
-  - CNI
-  - flannel
-  - Tailscale
-  - Pod Networking
-  - Policy Routing
-  - NetworkPolicy
-  - PMTUD
-logical_path: SafeChord.Chorde.K3han.Networking.PodDataPath
-related_docs:
-  - safechord.chorde.k3han.md
-  - safechord.chorde.k3han.cluster.md
-  - safechord.chorde.k3han.ingress.md
-parent_doc: safechord.chorde.k3han
 archetype: brain
-template_variant: brain.infrastructure.v2-trial
 code_paths:
   - Chorde/cluster/k3han
   - Chorde/scripts/test/pod-path
-tech_stack:
-  - flannel
-  - Tailscale
-  - kube-router (k3s embedded NetworkPolicy)
-  - Linux netfilter / policy routing
-doc_version: 0.3.8
-app_version: 0.3.0
 ---
 
 # Pod Data Path & CNI (Brain)

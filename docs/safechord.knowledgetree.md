@@ -1,24 +1,7 @@
 ---
 title: SafeChord Knowledge Tree
-doc_id: safechord.knowledgetree
-last_updated: '2026-09-26'
 status: active
-authors:
-  - bradyhau
-  - Gemini CLI
-context_scope: Project Root
-summary: The centralized navigational graph for the SafeChord project. Defines the 4-layer decoupled architecture and provides a semantic directory to all core documentation nodes.
-keywords:
-  - SafeChord
-  - Knowledge Graph
-  - Architecture Map
-  - Navigation
-logical_path: SafeChord.KnowledgeTree
-related_docs:
-  - index.md
-doc_version: 0.3.5
 archetype: map
-app_version: null
 ---
 
 # SafeChord Knowledge Map

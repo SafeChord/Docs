@@ -1,30 +1,10 @@
 ---
 title: 'Map: Chorde Platform Framework'
-doc_id: safechord.chorde
 status: active
-authors:
-  - bradyhau
-  - Gemini CLI
-last_updated: '2026-05-02'
-summary: Navigational map for the Chorde platform layer. Defines the multi-cluster management framework, GitOps v2 synchronization mechanisms, and infrastructure lifecycle policies.
-keywords:
-  - Chorde
-  - Platform Layer
-  - Multi-cluster
-  - GitOps v2
-  - ApplicationSet
-  - Hybrid Cloud
-logical_path: SafeChord.Chorde
-related_docs:
-  - index.md
-  - safechord.chorde.k3han.md
-parent_doc: safechord
 archetype: map
 code_paths:
   - Chorde/cluster
   - Chorde/gitops
-doc_version: 0.3.5
-app_version: 0.3.0
 ---
 
 # 🛠️ Chorde Platform Map

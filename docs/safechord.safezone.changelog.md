@@ -1,27 +1,7 @@
 ---
 title: SafeZone ChangeLog
-doc_id: safechord.safezone.changelog
-last_updated: '2026-05-25'
 status: active
-authors:
-  - bradyhau
-  - Gemini CLI
-context_scope: SafeZone Module
-summary: Records the version evolution of the SafeZone application layer. This document is a critical reference for AI agents to track architectural changes, deprecated features, and newly introduced technologies.
-keywords:
-  - SafeZone
-  - Changelog
-  - Release Notes
-  - v0.3.5
-  - React SPA
-  - Nginx Decoupling
-logical_path: SafeChord.SafeZone.ChangeLog
-related_docs:
-  - safechord.knowledgetree.md
-  - safechord.safezone.md
-parent_doc: safechord.safezone
-doc_version: 0.3.5
-app_version: 0.3.5
+archetype: changelog
 ---
 
 # SafeZone ChangeLog

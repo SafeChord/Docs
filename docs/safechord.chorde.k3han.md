@@ -1,32 +1,10 @@
 ---
 title: 'Map: K3han Hybrid Cluster'
-doc_id: safechord.chorde.k3han
 status: active
-authors:
-  - bradyhau
-  - Gemini CLI
-last_updated: '2026-10-05'
-summary: Navigational map for the K3han subsystem. Indexes specification documents regarding hybrid-cloud topology, network perimeters (Ingress), and resource scheduling policies.
-keywords:
-  - K3han
-  - Map
-  - Hybrid Cloud
-  - Index
-  - Navigation
-logical_path: SafeChord.Chorde.K3han
-related_docs:
-  - safechord.chorde.md
-  - safechord.chorde.k3han.cluster.md
-  - safechord.chorde.k3han.ingress.md
-  - safechord.chorde.k3han.scheduling.md
-  - safechord.chorde.k3han.storage.md
-parent_doc: safechord.chorde
 archetype: map
 code_paths:
   - Chorde/cluster/k3han
   - Chorde/gitops/k3han
-doc_version: 0.3.5
-app_version: 0.3.0
 ---
 
 # 🗺️ K3han Subsystem Map

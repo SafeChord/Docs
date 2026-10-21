@@ -1,28 +1,7 @@
 ---
 title: 'Platform: K3han Changelog'
-doc_id: safechord.chorde.k3han.changelog
 status: active
-authors:
-  - bradyhau
-  - Gemini CLI
-  - Claude Opus 5
-  - Claude Opus 5.5
-last_updated: '2026-10-05'
-summary: Records the architectural evolution of the K3han cluster. Tracks changes in node layout, GitOps orchestration, operator management, and design philosophy shifts since v0.1.0.
-keywords:
-  - K3han
-  - Changelog
-  - Infrastructure Evolution
-  - Release Notes
-  - GitOps v2
-logical_path: SafeChord.Chorde.K3han.Changelog
-related_docs:
-  - safechord.knowledgetree.md
-  - safechord.chorde.k3han.md
-parent_doc: safechord.chorde.k3han
-tech_stack: []
-doc_version: 0.3.9
-app_version: 0.3.0
+archetype: changelog
 ---
 
 # K3han Platform Changelog

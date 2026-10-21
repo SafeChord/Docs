@@ -1,26 +1,6 @@
 ---
 title: 'SafeZone Decision Log'
-doc_id: safechord.safezone.decisions
-doc_version: 0.1.0
-last_updated: '2026-10-16'
 status: active
-authors:
-  - bradyhau
-  - Gemini CLI
-  - Claude Opus 5.5
-context_scope: SafeZone Module
-summary: The append-only record of why SafeZone is built the way it is. One entry per decision, grouped by service, each naming the requirements it affects. Entries are never edited after acceptance; a changed decision gets a new entry that supersedes the old one.
-keywords:
-  - ADR
-  - Decision Log
-  - Trade-offs
-  - SafeZone
-logical_path: SafeChord.SafeZone.Decisions
-related_docs:
-  - safechord.safezone.md
-  - safechord.safezone.service.standards.md
-  - safechord.safezone.changelog.md
-parent_doc: safechord.safezone
 archetype: brain
 code_paths: []
 ---

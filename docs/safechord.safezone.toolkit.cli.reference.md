@@ -1,27 +1,9 @@
 ---
 title: 'Toolkit: CLI Command Reference (Instruction Set)'
-doc_id: safechord.safezone.toolkit.cli.reference
 status: active
-authors:
-  - bradyhau
-  - Gemini CLI
-last_updated: '2026-06-24'
-summary: Comprehensive operation manual for the SafeZone CLI. Fully expanded with strict parameter limits, expected JSON wrapper structures, and runbooks optimized for AI Operators.
-keywords:
-  - szcli
-  - Command Reference
-  - Instruction Set
-  - AI Operators
-  - JSON Envelope
-logical_path: SafeChord.SafeZone.Toolkit.CLI.Reference
-related_docs:
-  - safechord.safezone.toolkit.cli.md
-parent_doc: safechord.safezone.toolkit.cli
 archetype: script
 code_paths:
   - SafeZone/toolkit/cli/command
-doc_version: 0.4.0
-app_version: 0.3.2
 ---
 
 # CLI Instruction Set (szcli) - AI-Optimized Manual

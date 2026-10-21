@@ -1,25 +1,7 @@
 ---
 title: 'KDD: Collaboration Model Changelog'
-doc_id: safechord.kdd.changelog
 status: active
-authors:
-  - bradyhau
-  - Gemini CLI
-  - Claude Opus 5
-last_updated: '2026-10-07'
-summary: Records how the SafeChord collaboration model itself changed — the seating, the workflow, and the protocols. Each entry states the decision, what it replaced, and what was rejected, so that a spec no longer in force is still recoverable.
-keywords:
-  - KDD
-  - Changelog
-  - Collaboration Model
-  - Seats
-  - Design History
-logical_path: SafeChord.KDD.Changelog
-related_docs:
-  - safechord.kdd.practice.md
-  - safechord.kdd.introduction.md
-parent_doc: safechord.kdd.introduction
-doc_version: 0.4.0
+archetype: changelog
 ---
 
 # KDD Collaboration Model Changelog

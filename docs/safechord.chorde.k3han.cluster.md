@@ -1,34 +1,10 @@
 ---
 title: 'Strategy: K3han Cluster Topology'
-doc_id: safechord.chorde.k3han.cluster
 status: active
-authors:
-  - bradyhau
-  - Gemini CLI
-  - Claude Opus 5
-  - Claude Opus 5.5
-last_updated: '2026-09-25'
-summary: Defines the strategic physical topology, hardware specifications, and cost-efficiency of the K3han hybrid-cloud cluster, plus the node classification dimensions and kernel invariants every cluster node must satisfy.
-keywords:
-  - K3han
-  - Topology
-  - Hybrid Cloud
-  - Cost Control
-  - Tailscale
-  - Kernel Invariants
-  - Node Platform
-logical_path: SafeChord.Chorde.K3han.Cluster
-related_docs:
-  - safechord.chorde.k3han.md
-  - safechord.chorde.k3han.ingress.md
-  - safechord.chorde.k3han.scheduling.md
-parent_doc: safechord.chorde.k3han
 archetype: brain
 code_paths:
   - Chorde/cluster/k3han
   - Chorde/gitops/k3han
-doc_version: 0.3.8
-app_version: 0.3.0
 ---
 
 # K3han Cluster Topology (Strategy)

@@ -1,35 +1,7 @@
 ---
 title: 'Map: SafeChord Ecosystem'
-doc_id: safechord
 status: active
-authors:
-  - bradyhau
-  - Gemini CLI
-last_updated: '2026-05-02'
-summary: The top-level navigational map for the SafeChord project. Defines the system-wide architecture context, the MVA design philosophy, and the strategic evolution roadmap. This is the entry point for understanding the SafeChord ecosystem.
-keywords:
-  - SafeChord
-  - Project Overview
-  - MVA
-  - Architecture Context
-  - Hybrid Cloud
-  - System Map
-logical_path: SafeChord
-related_docs:
-  - safechord.knowledgetree.md
-  - safechord.environment.md
-  - safechord.safezone.md
-  - safechord.chorde.md
-parent_doc: null
 archetype: map
-tech_stack:
-  - Kubernetes (K3s)
-  - Python (FastAPI)
-  - Golang (Franz-Go)
-  - Kafka, PostgreSQL, Redis
-  - ArgoCD, KEDA, Cloudflare
-doc_version: 0.3.5
-app_version: null
 ---
 
 # 🎼 SafeChord Ecosystem

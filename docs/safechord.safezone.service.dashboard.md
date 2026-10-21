@@ -1,24 +1,6 @@
 ---
 title: 'Service: Dashboard (v1)'
-doc_id: safechord.safezone.service.dashboard
 status: legacy
-authors:
-  - bradyhau
-  - Gemini CLI
-  - Claude Opus 5.5
-last_updated: '2026-10-07'
-summary: The Legacy Dashboard (v1) is the original interactive user interface of SafeZone, built with Plotly Dash. Succeeded by Dashboard v2.
-keywords:
-  - Dashboard
-  - Plotly Dash
-  - Legacy
-logical_path: SafeChord.SafeZone.Service.Dashboard
-related_docs:
-  - safechord.safezone.service.dashboard-v2.md
-  - safechord.safezone.service.analyticsapi.md
-  - safechord.safezone.toolkit.timeserver.md
-  - safechord.safezone.decisions.md
-parent_doc: safechord.safezone
 archetype: blueprint
 code_paths:
   - SafeZone/services/dashboard

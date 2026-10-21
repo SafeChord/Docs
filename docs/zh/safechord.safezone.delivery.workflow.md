@@ -1,34 +1,3 @@
----
-title: 'Script: SafeZone 統一交付工作流程'
-doc_id: safechord.safezone.workflow.delivery
-doc_version: 0.3.6
-app_version: 0.3.6
-last_updated: '2026-06-21'
-status: active
-authors:
-  - bradyhau
-  - Claude Code
-  - Gemini CLI
-context_scope: SafeZone App & Deploy Repos
-summary: 定義涵蓋 SafeZone (App) 與 SafeZone-Deploy (Deploy) 儲存庫的端到端統一交付管線，採用混合式 GitOps + IssueOps 推廣模型與解耦版號規則。
-keywords:
-  - CI/CD
-  - GitOps
-  - IssueOps
-  - Pipeline
-  - Promotion
-logical_path: SafeChord.SafeZone.Workflow.Delivery
-related_docs:
-  - safechord.safezone.md
-  - safechord.safezone.deployment.md
-  - safechord.environment.md
-parent_doc: safechord.safezone
-archetype: script
-code_paths:
-  - SafeZone/.github/workflows
-  - SafeZone-Deploy
----
-
 # SafeChord 統一交付工作流程 (App + Deploy)
 
 > **狀態**：正式版本 (canonical)。已對齊至 `Docs/` 作為單一事實來源 (SSOT)。

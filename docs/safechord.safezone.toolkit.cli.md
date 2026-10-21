@@ -1,33 +1,9 @@
 ---
 title: 'Toolkit: SafeZone CLI (szcli)'
-doc_id: safechord.safezone.toolkit.cli
 status: active
-authors:
-  - bradyhau
-  - Gemini CLI
-last_updated: '2026-05-02'
-summary: SafeZone CLI (szcli) is the system's control plane. It adopts a Client-Relay architecture to enable secure, high-privilege operations (Database, Dataflow, Time) from outside the cluster while maintaining strict RBAC and distributed traceability.
-keywords:
-  - szcli
-  - Client-Relay
-  - Typer
-  - Smoke Test
-  - Trace ID Genesis
-  - OAuth Relay
-logical_path: SafeChord.SafeZone.Toolkit.CLI
-related_docs:
-  - safechord.safezone.toolkit.cli.reference.md
-  - safechord.security.md
-parent_doc: safechord.safezone.toolkit
 archetype: blueprint
 code_paths:
   - SafeZone/toolkit/cli
-tech_stack:
-  - Python 3.13
-  - Typer (Client Framework)
-  - FastAPI (Relay Server)
-  - Google OAuth 2.0
-  - Rich (Terminal UI)
 doc_version: 0.3.5
 app_version: 0.3.2
 ---

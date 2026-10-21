@@ -1,24 +1,8 @@
 ---
 title: 'SafeZone Service Standards'
-doc_id: safechord.safezone.service.standards
 doc_version: 0.2.0
 app_version: 0.3.8
 status: active
-authors:
-  - bradyhau
-  - Claude Opus 5.5
-last_updated: '2026-10-14'
-summary: The promises every SafeZone service makes to the rest of the system - trace propagation, a health endpoint, and how a contract shared between services is defined and verified. Service blueprints link here instead of repeating them.
-keywords:
-  - Service Standards
-  - Traceability
-  - Health Check
-  - Contract
-logical_path: SafeChord.SafeZone.Service.Standards
-related_docs:
-  - safechord.safezone.md
-  - safechord.safezone.decisions.md
-parent_doc: safechord.safezone
 archetype: blueprint
 code_paths:
   - SafeZone/services

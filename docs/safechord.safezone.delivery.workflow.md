@@ -1,28 +1,6 @@
 ---
 title: 'Script: SafeZone Unified Delivery Workflow'
-doc_id: safechord.safezone.workflow.delivery
-doc_version: 0.3.6
-app_version: 0.3.6
-last_updated: '2026-06-18'
 status: active
-authors:
-  - bradyhau
-  - Claude Code
-  - Gemini CLI
-context_scope: SafeZone App & Deploy Repos
-summary: Defines the unified, end-to-end delivery pipeline across SafeZone (App) and SafeZone-Deploy (Deploy) repositories, employing a hybrid GitOps + IssueOps promotion model with decoupled versioning rules.
-keywords:
-  - CI/CD
-  - GitOps
-  - IssueOps
-  - Pipeline
-  - Promotion
-logical_path: SafeChord.SafeZone.Workflow.Delivery
-related_docs:
-  - safechord.safezone.md
-  - safechord.safezone.deployment.md
-  - safechord.environment.md
-parent_doc: safechord.safezone
 archetype: script
 code_paths:
   - SafeZone/.github/workflows

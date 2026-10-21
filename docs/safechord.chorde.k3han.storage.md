@@ -1,35 +1,10 @@
 ---
 title: 'Policy: K3han Persistent Storage'
-doc_id: safechord.chorde.k3han.storage
 status: active
-authors:
-  - bradyhau
-  - Claude Opus 5.5
-last_updated: '2026-10-05'
-summary: Defines where stateful platform workloads on K3han keep their data and what each volume is expected to survive. Volumes are static node-local PVs on the node their consumer is pinned to; durability against node loss comes from the data being rebuildable, not from the volume.
-keywords:
-  - Persistent Volume
-  - Local Volume
-  - NFS
-  - Durability
-  - Data Locality
-logical_path: SafeChord.Chorde.K3han.Storage
-related_docs:
-  - safechord.chorde.k3han.md
-  - safechord.chorde.k3han.scheduling.md
-  - safechord.chorde.k3han.cluster.md
-parent_doc: safechord.chorde.k3han
 archetype: brain
 code_paths:
   - Chorde/gitops/k3han/manifests
   - SafeZone-Deploy/deploy
-tech_stack:
-  - Kubernetes local volumes
-  - CloudNativePG
-  - Strimzi
-  - Valkey
-doc_version: 0.3.9
-app_version: 0.3.0
 ---
 
 # Persistent Storage Policy (Brain)

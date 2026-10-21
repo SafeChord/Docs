@@ -1,39 +1,12 @@
 ---
 title: 'Policy: K3han Monitoring & Observability'
-doc_id: safechord.chorde.k3han.monitoring
 status: active
-authors:
-  - bradyhau
-  - Gemini CLI
-last_updated: '2026-05-06'
-summary: Defines the strategic observability architecture for the K3han hybrid-cloud cluster. Focuses on balancing monitoring overhead across asymmetric hardware (GCE 1GB vs Home 16GB), ensuring log persistence via S3 archiving, and routing actionable alerts while suppressing K3s structural noise.
-keywords:
-  - Monitoring
-  - Observability
-  - Prometheus
-  - Loki
-  - Alloy
-  - Fluent-bit
-  - S3 Offloading
-  - Tailscale Mesh
-  - Alertmanager
-logical_path: SafeChord.Chorde.K3han.Monitoring
-related_docs:
-  - safechord.chorde.k3han.cluster.md
-  - safechord.chorde.k3han.scheduling.md
-parent_doc: safechord.chorde.k3han
 archetype: brain
 code_paths:
   - Chorde/gitops/k3han/manifests/prometheus
   - Chorde/gitops/k3han/manifests/loki
   - Chorde/gitops/k3han/manifests/alloy
   - Chorde/gitops/k3han/manifests/fluent-bit
-tech_stack:
-  - Prometheus Operator (7d local retention)
-  - Loki (SingleBinary with S3 Archiving)
-  - Grafana Alloy (tier: medium — acer-agent)
-  - Fluent-bit (tier: low — GCE Ingress)
-doc_version: 0.3.9
 ---
 
 # Observability & Monitoring Policy (Brain)

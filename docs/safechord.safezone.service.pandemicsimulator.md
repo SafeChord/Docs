@@ -1,26 +1,6 @@
 ---
 title: 'Service: Pandemic Simulator'
-doc_id: safechord.safezone.service.pandemicsimulator
 status: active
-authors:
-  - bradyhau
-  - Gemini CLI
-  - Claude Opus 5.5
-last_updated: '2026-10-07'
-summary: The Pandemic Simulator is the source of the SafeZone data flow. On a trigger it replays the case records of a date or a date range from a static data file and sends them to the Data Ingestor.
-keywords:
-  - Pandemic Simulator
-  - Data Generation
-  - AsyncIO
-  - Control Plane
-  - System Seeding
-logical_path: SafeChord.SafeZone.Service.PandemicSimulator
-related_docs:
-  - safechord.safezone.service.standards.md
-  - safechord.safezone.decisions.md
-  - safechord.safezone.changelog.md
-  - safechord.safezone.toolkit.cli.md
-parent_doc: safechord.safezone
 archetype: blueprint
 code_paths:
   - SafeZone/services/pandemic-simulator

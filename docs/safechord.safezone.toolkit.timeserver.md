@@ -1,30 +1,9 @@
 ---
 title: 'Toolkit: Time Server'
-doc_id: safechord.safezone.toolkit.timeserver
 status: active
-authors:
-  - bradyhau
-  - Gemini CLI
-last_updated: '2026-05-02'
-summary: The Time Server is the central "Time Nexus" of SafeZone. It maintains the system's singular "Virtual Date," providing Time Travel and Acceleration capabilities that untether the simulation pipeline from physical time constraints.
-keywords:
-  - Time Server
-  - Mock Time
-  - Time Travel
-  - Redis
-  - FastAPI
-logical_path: SafeChord.SafeZone.Toolkit.TimeServer
-related_docs:
-  - safechord.safezone.toolkit.cli.md
-  - safechord.safezone.service.dashboard.md
-parent_doc: safechord.safezone.toolkit
 archetype: blueprint
 code_paths:
   - SafeZone/toolkit/time-server
-tech_stack:
-  - Python 3.13
-  - FastAPI
-  - Redis (State Store)
 doc_version: 0.3.5
 app_version: 0.3.0
 ---

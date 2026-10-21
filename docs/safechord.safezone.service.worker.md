@@ -1,25 +1,6 @@
 ---
 title: 'Service: Worker (Golang)'
-doc_id: safechord.safezone.service.worker
 status: active
-authors:
-  - bradyhau
-  - Gemini CLI
-  - Claude Opus 5.5
-last_updated: '2026-10-16'
-summary: The Worker consumes case events from Kafka and persists them to PostgreSQL. It guarantees that every valid event is stored, that the latest event for a key wins, and that committed progress never runs ahead of what is stored.
-keywords:
-  - Worker
-  - Kafka Consumer
-  - Golang
-  - PostgreSQL
-  - Idempotency
-logical_path: SafeChord.SafeZone.Service.Worker
-related_docs:
-  - safechord.safezone.service.standards.md
-  - safechord.safezone.decisions.md
-  - safechord.safezone.changelog.md
-parent_doc: safechord.safezone
 archetype: blueprint
 code_paths:
   - SafeZone/services/worker-golang

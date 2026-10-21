@@ -1,28 +1,9 @@
 ---
 title: 'Policy: K3han Scheduling Strategy'
-doc_id: safechord.chorde.k3han.scheduling
 status: active
-authors:
-  - bradyhau
-  - Gemini CLI
-last_updated: '2026-05-02'
-summary: Defines the resource orchestration logic for the K3han hybrid-cloud cluster. Covers Node Affinity, Taints, and operator-driven isolation to solve high-latency and resource contention challenges.
-keywords:
-  - Scheduling
-  - Affinity
-  - Taints
-  - Data Locality
-  - Reliability Tiering
-logical_path: SafeChord.Chorde.K3han.Scheduling
-related_docs:
-  - safechord.chorde.k3han.cluster.md
-  - safechord.safezone.deployment.md
-parent_doc: safechord.chorde.k3han
 archetype: brain
 code_paths:
   - Chorde/gitops/k3han/manifests
-doc_version: 0.3.5
-app_version: 0.3.0
 ---
 
 # Scheduling & Orchestration Policy (Brain)
