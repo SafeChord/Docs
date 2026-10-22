@@ -87,7 +87,7 @@ In Staging, SafeZone no longer manages its own foundational infra. Instead, it c
 To ensure system stability during environment transitions, we follow the principle: **"Intent in Docs, Values in Code."** Concrete service discovery DNS addresses, connection strings, and topic names are treated as highly volatile implementation details and should be retrieved directly from the source code of the respective environment:
 
 *   **Local (Compose)**: Consult `.yml` and `.env` files in `SafeZone/docker-compose/`.
-*   **Preview (CI)**: Consult Kustomize patches and manifests in `SafeZone-Deploy/deploy/preview/`.
+*   **Preview (CI)**: Consult the Helm values and ArgoCD Applications in `SafeZone-Deploy/deploy/preview/`.
 *   **Staging (Platform)**: Consult the Helm values and ArgoCD Applications in `SafeZone-Deploy/deploy/staging/`; the platform services it plugs into are in `Chorde/gitops/`.
 
 ### Service Discovery Mechanism
