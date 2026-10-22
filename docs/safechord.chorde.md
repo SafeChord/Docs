@@ -37,7 +37,7 @@ Chorde/
 │       ├── stages/          # [Layer 0: Orchestrator] Stage-based ApplicationSets
 │       │   ├── 00-bootstrap.yaml  # Core: ArgoCD, SealedSecrets, Ingress
 │       │   ├── 01-platform.yaml   # Ops: Monitoring, Logging, Operators
-│       │   └── 02-components.yaml # App: DB, MQ, SafeZone Microservices
+│       │   └── 02-components.yaml # App: DB, MQ
 │       │
 │       └── manifests/       # [Content] Declarative Resources (YAML/Helm)
 │           ├── alloy/       # Multiple Sources Pattern
