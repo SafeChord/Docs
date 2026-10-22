@@ -1,76 +1,48 @@
-# SafeZone CLI（工具包技術藍圖）
+# SafeZone CLI（工具包藍圖）
 
-> **類型**：Blueprint（技術規格）
-> **焦點**：編排、安全中繼模式與維運自動化。
-> **限制**：實作細節（CLI 子命令、OAuth 流程）存放於程式碼庫中。
-
----
+SafeZone CLI（`szcli`）是系統編排的主要介面，透過安全的 Proxy 模式，銜接外部開發環境與內部叢集資源。
 
 ## 1. 職責與定位
-*（必要）*
-*   **角色**：編排器／閘道／維運工具
-*   **核心目標**：
-    *   **統一入口(Unified Ingress)**：作為系統的單一控制點，開發者無需處理複雜的內部 K8s 連線字串。
-    *   **安全邊界**：採用中繼(Relay)模式，允許外部使用者執行受控操作（例如資料庫播種），同時不直接暴露 DB/Redis 埠。
-    *   **自動化驗證**：整合**煙霧測試引擎(Smoke Test Engine)**，透過 CSV 驅動的腳本驗證端到端資料流。
-*   **特性**：Client-Relay 架構、有狀態認證（本地 Token 快取）。
+*   **系統控制平面**：管理工作的統一入口，包含資料庫播種、觸發模擬及驗證系統狀態。
+*   **安全閘道（Relay 模式）**：透過可信任的內部 API 轉送命令，保護內部基礎設施（PostgreSQL、Redis），不必直接轉送埠，也不必公開資料庫存取。
+*   **驗證引擎**：內含**容器原生煙霧測試引擎（Container-Native Smoke Test Engine）**，使用 CSV 驅動的測試案例自動驗證端到端資料流。
 
-## 2. 檔案結構
-*（建議 — 僅目錄層級）*
-```text
-SafeZone/toolkit/cli/
-├── command/                      # [客戶端] Typer 應用程式（執行於主機／堡壘機）
-│   ├── main.py                   # 子命令註冊
-│   └── bin/client.py             # 感知認證的 HTTP 客戶端
-├── relay/                        # [伺服器] FastAPI 應用程式（執行於叢集內）
-│   ├── api/endpoints.py          # 受信任操作與 RBAC
-│   └── bin/                      # 領域邏輯輔助函式
-└── ops/                          # [自動化] CSV 驅動的測試引擎
-    ├── smoke_test.py             # 引擎核心
-    └── test_cases/               # 測試定義 (*.csv)
-```
+## 2. 架構：Client-Relay 模式
 
-## 3. 業務需求
-*（必要）*
+不同於標準微服務，`szcli` 分為三個功能層：
 
-### 功能性
-*   **資料流控制**：必須提供觸發模擬與驗證資料持久性的命令。
-*   **系統維護**：提供資料庫初始化、快取清除、虛擬時間調整等命令。
-*   **安全性中繼**：中繼必須驗證 Google ID Token，並根據白名單強制執行 RBAC。
+### 2.1 Client（`command/`）
+*   **技術**：Typer + Rich。
+*   **角色**：處理使用者輸入、命令列引數及終端機呈現。
+*   **認證**：管理**無頭 Google OAuth**。會自動處理 Token Refresh 邏輯，為 Relay 取得有效的 ID Token。
+*   **可追蹤性**：擔任 **Trace ID 起點**。每次 `szcli` 執行都會產生新的 `uuid4` 作為 `trace_id`，注入所有記錄，並透過 `X-Trace-ID` 標頭轉送給 Relay。
 
-### 非功能性
-*   **無頭操作(Headless Operation)**：必須支援在 CI/CD 環境（GitHub Actions）中使用 Refresh Token 進行全自動執行。
-*   **可觀測性(Observability)**：CLI 輸出必須同時具備機器可讀（JSON）與人類友善（Rich Tables）的格式。
+### 2.2 Relay（`relay/`）
+*   **技術**：FastAPI。
+*   **角色**：在 Kubernetes 叢集內執行的可信任 Proxy。
+*   **安全性**：驗證 Client 的 Google ID Token，並強制執行以允許清單為基礎的 RBAC。
+*   **執行**：將已授權的 HTTP 請求轉換為對內部資料庫與服務的直接操作。
+
+### 2.3 煙霧測試引擎（`ops/`）
+*   **邏輯**：以 Python 執行引擎取代複雜的 Bash/JQ 腳本。
+*   **機制**：依序執行斷言，並透過智慧輪詢處理最終一致性。如需測試案例模式的詳細清單，請參閱 [CLI 命令參考](safechord.safezone.toolkit.cli.reference.md)。
+
+## 3. 技術需求與可觀測性
+
+### 3.1 分散式可追蹤性
+*   **起始要求**：CLI 必須啟動追蹤鏈。每個命令開始時，都會在全域情境中設定 `trace_id`。
+*   **傳遞**：所有對 Relay 的請求都必須包含 `X-Trace-ID` 標頭。
+
+### 3.2 命令模式
+完整的命令、旗標及意圖導向指令集，請參閱 **[CLI 命令參考（指令集）](safechord.safezone.toolkit.cli.reference.md)**。此手冊是人類操作人員與 AI Agent 的主要依據。
 
 ## 4. 相依性與控制
-*（必要）*
 
 | 相依項目 | 類型 | 說明 |
 | :--- | :--- | :--- |
-| **Google Identity** | 認證提供者 | Relay 使用 Google 公開金鑰進行 Token 驗證。 |
-| **叢集基礎設施** | 資料接收端 | Relay 需要直接連線至 PostgreSQL 與 Redis。 |
-| **時間伺服器** | 下游服務 | CLI 透過呼叫時間伺服器 API 管理模擬時間。 |
+| **Google Identity** | 認證 | 用於 Relay 的身分驗證。 |
+| **叢集資源** | 接收端 | Relay 需要直接存取 PostgreSQL 與 Redis。 |
+| **時間伺服器** | 下游 | CLI 是虛擬時間設定的主要控制器。 |
 
-## 5. TDD 收斂邊界
-*（必要）*
-
-> ⚠️ **KDD 注意事項**：此元件在早期是以快速原型方式開發，未全面實施 TDD。為符合 KDD 2.0 標準，任何未來的重構或功能新增都必須建立下列自動化驗證邊界。
-
-| 維度 | 約束意圖 | 測試範圍 |
-| :--- | :--- | :--- |
-| **命令解析** | 確保子命令參數與旗標能透過 `typer.testing.CliRunner` 正確解析。 | `command/`（後續補寫） |
-| **Relay RBAC** | 驗證 Relay 對未授權 Token 回應 403 Forbidden，並接受白名單中的 Email。 | `relay/`（後續補寫） |
-| **煙霧引擎邏輯** | 驗證 CSV 解析器能正確將測試步驟轉換為 API 呼叫。 | `ops/`（後續補寫） |
-
-## 6. 架構決策記錄 (ADR)
-*（選擇性 — 隨著元件演進而追加）*
-
-*   **[v0.3.0] Client-Relay 架構**
-    *   **決策**：將 CLI 拆分為瘦客戶端與受信任的叢集中繼。
-    *   **原因**：解決將資料庫憑證暴露給開發者筆電的安全風險。Relay 在 VPC 內扮演「信任代理」。
-*   **[v0.1.0] 優先速度而非覆蓋率**
-    *   **決策**：在早期 MVP 階段省略 CLI 的初始單元測試。
-    *   **原因**：功能需求高度不穩定。**修正**：根據 KDD 2.0，此決策現已視為技術負債。未來工作必須補寫測試，為 AI 代理提供「實體紅線(Physical Red Wall)」。
-
-## 7. 外部連結
-*   **命令參考**：[CLI 指令集 (szcli)](safechord.safezone.toolkit.cli.reference.md)
+---
+> **Agent 指示**：此元件採用非標準目錄結構。修改 CLI 命令或 Relay 邏輯時，請確保遵循跨元件相依性（例如 `utils/` 中共用的 Pydantic 模型）。
