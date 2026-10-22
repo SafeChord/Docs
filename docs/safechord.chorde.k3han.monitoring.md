@@ -41,7 +41,7 @@ We adopt a **"Centralized Control, Distributed Collection"** pattern based on no
 ### 3.1 Metrics Path (Pull Model across Mesh)
 Prometheus scrapes metrics across the international border.
 *   **Relabeling**: Maps local node IPs to **Tailscale IPs (100.64.x.x)** via `relabel_configs` to bypass cross-border NAT restrictions. Applies to `/metrics`, `/metrics/cadvisor`, and `/metrics/probes` endpoints.
-*   **Retention**: 7 days / 10Gi (Local Buffer) to minimize local disk IOPS contention.
+*   **Retention**: a short local buffer, to minimize local disk IOPS contention. Its window and size are manifest values, under `code_paths`.
 
 ### 3.2 Logs Path (Offloading to S3)
 To ensure durability against Home Lab volatility, logs are treated as transient on-node and persistent in the cloud.
