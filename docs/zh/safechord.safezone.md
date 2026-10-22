@@ -109,6 +109,6 @@ SafeZone 遵循**關注點分離**原則，將邏輯解耦至各專業微服務�
 ## 4. 運維連結
 
 *   **部署架構**：[部署與運維](safechord.safezone.deployment.md)
-*   **CI/CD 管線**：[統一交付工作流程](safechord.safezone.delivery.workflow.md)
+*   **CI/CD 管線**：[統一交付工作流程](safechord.kdd.practice.delivery.md)
 *   **服務標準與合約**：[每個服務的共同承諾，以及各共用合約的定義位置](safechord.safezone.service.standards.md)
 *   **決策日誌**：[SafeZone 為什麼這樣設計](safechord.safezone.decisions.md)

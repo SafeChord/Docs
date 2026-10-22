@@ -41,6 +41,7 @@ SafeChord utilizes a **Decoupled 4-Layer** architecture. Choose your reading pat
         *   [📄 safechord.kdd.introduction.md](safechord.kdd.introduction.md) (Introduction to KDD philosophy)
         *   [📄 safechord.kdd.practice.md](safechord.kdd.practice.md) ⭐ (Practice: Modes, Shared Protocols & Templates)
             *   [📄 safechord.kdd.practice.development.md](safechord.kdd.practice.development.md) (Development: The Two-Engine Model, Dual-Track Flow & Review)
+            *   [📄 safechord.kdd.practice.delivery.md](safechord.kdd.practice.delivery.md) ⭐ (Delivery: SafeZone's Unified Delivery Workflow)
         *   [📄 safechord.kdd.changelog.md](safechord.kdd.changelog.md) (🔄 Collaboration Model History & Superseded Designs)
 
     *   🟦 **Application Layer (Repo: SafeZone)**
@@ -60,12 +61,10 @@ SafeChord utilizes a **Decoupled 4-Layer** architecture. Choose your reading pat
         *   **Toolkit & Workflow**
             *   [📄 safechord.safezone.toolkit.timeserver.md](safechord.safezone.toolkit.timeserver.md) (Time Server: Virtual Clock Controller)
             *   [📄 safechord.safezone.toolkit.cli.md](safechord.safezone.toolkit.cli.md) (SZCLI: Operations Tooling & CLI Relay)
-            *   [📄 safechord.safezone.delivery.workflow.md](safechord.safezone.delivery.workflow.md) ⭐ (Script: Unified Delivery Workflow)
 
     *   🟨 **Deployment Layer (Repo: SafeZone-Deploy)**
         *   *Focus: Configuration, Helm, GitOps CD*
         *   [📄 safechord.safezone.deployment.md](safechord.safezone.deployment.md) ⭐ (Deployment Architecture & Global ADRs)
-            *   [📄 safechord.safezone.delivery.workflow.md](safechord.safezone.delivery.workflow.md) (Script: Unified Delivery Workflow)
 
     *   🟥 **Infrastructure Layer (Repo: Chorde)**
         *   *Focus: Kubernetes, Platform Operators, Scheduling*

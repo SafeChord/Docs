@@ -12,8 +12,8 @@ SafeChord 使用 agent 的方式，依人類所在的位置分成幾種模式。
 | :--- | :--- | :--- | :--- |
 | 討論 | 全程參與，一起做決定 | 單一 agent 與人類對談；產出是票、設計草稿，或對 `Docs/` 的修改 | 本文件 §2 |
 | 開發 | 最後的守門員，合併前看一次 | 兩個席位互相制衡 | [開發](safechord.kdd.practice.development.md) |
-| 發版 | 全程參與，每個 gate 簽核 | 單一 agent 與人類協作 | [發版流程](safechord.safezone.delivery.workflow.md) |
-| live 維運 | 未定 | 未定 | — |
+| 交付 | 全程參與，每個 gate 簽核 | 單一 agent 與人類協作 | [交付](safechord.kdd.practice.delivery.md) |
+| 維運 | 未定 | 未定 | — |
 
 ---
 
@@ -32,7 +32,7 @@ SafeChord 使用 agent 的方式，依人類所在的位置分成幾種模式。
 
 *   **媒介**: 工作所在 repository 的 GitHub issue。
 *   **目的**: 作為實作依據, 補的是 commit（太細）與專案文件（只有終態）都漏掉的那層粒度。
-*   **份量**: 票幾乎是永久的，所以只放對日後讀者有追溯價值的內容：問題、決策與理由、範圍、Done When。只為這次任務對齊席位用的 context（推測的機制、調查細節、設計建議、未驗證項目、實作順序）放進 handoff。完成條件只寫合併前驗得了的；部署後才驗得了的，歸[發版流程](safechord.safezone.delivery.workflow.md)的 gate。
+*   **份量**: 票幾乎是永久的，所以只放對日後讀者有追溯價值的內容：問題、決策與理由、範圍、Done When。只為這次任務對齊席位用的 context（推測的機制、調查細節、設計建議、未驗證項目、實作順序）放進 handoff。完成條件只寫合併前驗得了的；部署後才驗得了的，歸[交付流程](safechord.kdd.practice.delivery.md)的 gate。
 *   **完成條件寫意圖，不寫形狀**: 寫結果必須成立的事（「logger 的輸出除了 `worker_id` 之外都不變」、「沒有任何 assertion 或測試輸入被改動」），不寫 diff 或名稱長什麼樣（「欄位名稱不變」、「diff 只動到 import」）。寫成形狀的條件，錯的改動照樣過、對的改動反而不過，而且範圍一允許改名，就跟範圍自相矛盾。
 *   **時效**: 開票之後過了一段時間才動工的票，動工前要對照當下的藍圖與程式碼再核對一次。指向已經改寫的章節的引用、被後來的票改掉的「現況」，先在票上改正。
 *   **分支**: `<type>/issue-<issue_no>-<slug>`，`<type>` 是這次改動的 commit type。`refactor/` 前綴保留給掛著 `mode:refactor` label 的票，這個 label 由人類與維護者在開票時約定：這個前綴會打開 agent 的 refactor mode，在這個模式下結構完整優先於最小 diff，範圍照樣有約束力。沒有掛這個 label 的 `type:refactor` 票，分支用 `chore/`。

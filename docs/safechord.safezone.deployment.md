@@ -28,7 +28,7 @@ This document maps the **architectural intent** behind SafeZone's deployment lay
 
 | Topic | Document | Focus |
 | :--- | :--- | :--- |
-| **GitOps Workflow** | [Unified Delivery Workflow](safechord.safezone.delivery.workflow.md) | Branch promotion, GitHub Actions orchestration, rollback strategy |
+| **GitOps Workflow** | [Unified Delivery Workflow](safechord.kdd.practice.delivery.md) | Branch promotion, GitHub Actions orchestration, rollback strategy |
 | **Environment Strategy** | [Environment Landscape](safechord.environment.md) | Local / Preview / Staging tiers, service discovery, Chorde PaaS integration |
 | **Cluster Constraints** | [K3han Cluster Topology](safechord.chorde.k3han.cluster.md) | Node specs, cross-border latency measurements — the physical reality this layer must respect |
 

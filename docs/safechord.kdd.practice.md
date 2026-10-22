@@ -21,8 +21,8 @@ SafeChord uses agents in several modes, told apart by where the human stands. Th
 | :--- | :--- | :--- | :--- |
 | Discussion | Present throughout, deciding together | One agent in conversation with the human; the outcome is a ticket, a design draft, or a change to `Docs/` | This document, §2 |
 | Development | The last gatekeeper, looking once before merge | Two seats that check each other | [Development](safechord.kdd.practice.development.md) |
-| Release | Present throughout, signing off every gate | One agent working with the human | [Delivery workflow](safechord.safezone.delivery.workflow.md) |
-| Live operations | Not yet defined | Not yet defined | — |
+| Delivery | Present throughout, signing off every gate | One agent working with the human | [Delivery](safechord.kdd.practice.delivery.md) |
+| Operations | Not yet defined | Not yet defined | — |
 
 ---
 
@@ -41,7 +41,7 @@ A ticket is the head of any implementation, and the anchor everything else is tr
 
 *   **Medium**: a GitHub issue in the repository the work lands in.
 *   **Purpose**: the basis for implementation. It is the grain that commits (too fine) and the project docs (end state only) both miss.
-*   **Weight**: a ticket is near-permanent, so it holds only what has trace value for a later reader: the problem, the decisions and their reasons, the scope, and Done When. Context that only aligns the seats for this task (inferred mechanisms, investigation detail, design suggestions, unverified items, implementation order) goes in the handoff. Done When lists only what can be verified before merge; what can be verified only after deployment belongs to a gate in the [delivery workflow](safechord.safezone.delivery.workflow.md).
+*   **Weight**: a ticket is near-permanent, so it holds only what has trace value for a later reader: the problem, the decisions and their reasons, the scope, and Done When. Context that only aligns the seats for this task (inferred mechanisms, investigation detail, design suggestions, unverified items, implementation order) goes in the handoff. Done When lists only what can be verified before merge; what can be verified only after deployment belongs to a gate in the [delivery workflow](safechord.kdd.practice.delivery.md).
 *   **Done When states intent, not shape**: write what must hold of the result ("the logger's output is unchanged except for `worker_id`", "no assertion or test input changes"), not what the diff or the names look like ("field names are unchanged", "the diff touches only imports"). A condition written as a shape is met by the wrong change and broken by the right one, and contradicts the Scope the first time it allows a rename.
 *   **Freshness**: a ticket opened before the work starts is checked again before it does, against the blueprint and the code as they now stand. A reference to a section since rewritten, or a current state that later tickets have changed, is corrected on the ticket first.
 *   **Branch**: `<type>/issue-<issue_no>-<slug>`, `<type>` being the commit type of the change. The `refactor/` prefix is reserved for a ticket labelled `mode:refactor`, which the human and the Settler agree on when the ticket is opened: that prefix switches the agents' refactor mode on, under which structural integrity outranks minimal diff while the Scope still binds. A `type:refactor` ticket without the label is cut as `chore/`.
