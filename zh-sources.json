@@ -63,9 +63,17 @@
     "blob": "09053960b3e6edc4c78aa4272eb033fe99fd2318",
     "body": "62327bd5ae3f28775f79ba9278c1ab2d4fa9a1c824cb442c30f2983afbc55fb2"
   },
+  "safechord.safezone.md": {
+    "blob": "4ab95a9d1f008cd44baa742fdc5f3e6a3100d13b",
+    "body": "0ac1688c84e7e582cc0f146f066f7305cfe28237ffd2856582a8c44b28e8038a"
+  },
   "safechord.safezone.service.analyticsapi.md": {
     "blob": "d5221d61dd1eeb0ae823c1996005dea10b0ba8d6",
     "body": "c7f5a23cd2b720c74193c3acbde8bef12458e2ee7a0ca152eebb3ce4c4d6bc87"
+  },
+  "safechord.safezone.service.dashboard-v2.md": {
+    "blob": "c9000ecd8470cc9077e3d61170209db4c8633b55",
+    "body": "6cc07ddd8815f954fe6577453a91fbfb9647746e56067dc5485f2087915d97d8"
   },
   "safechord.safezone.service.dataingestor.md": {
     "blob": "6614bd47a6da9ed5cbc12d4ca171645d4a3edaa2",
@@ -92,8 +100,8 @@
     "body": "c502e1ab285d9296929ca2603f4b22f76932bec06043186ddeb486a14c6c5cb5"
   },
   "safechord.safezone.toolkit.timeserver.md": {
-    "blob": "124e446fcda7acb01e34914c4f57a76e9f7f7e7d",
-    "body": "bf88db7016061602ed24af06ee8467a9afec34b5dfbdeece0bde46be3155fa9f"
+    "blob": "3c3cee97b701d6313cf35973a31b9cfd82f4ba68",
+    "body": "59b60ec22334062c9b5ab7554ca4787a5e4a56ae32e33d499318c37a0fcd8c8d"
   },
   "safechord.security.md": {
     "blob": "072ccd655bc34c2d7c4266014c082b72239de8b8",

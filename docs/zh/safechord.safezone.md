@@ -40,7 +40,8 @@ graph LR
     %% 讀取路徑
     subgraph ReadPath [讀取管線]
         API(分析 API<br/>聚合器):::process
-        Dash(儀表板<br/>互動式 UI):::view
+        Dash(儀表板 v1<br/>舊版 UI):::view
+        DashV2(儀表板 v2<br/>React SPA):::view
     end
 
     %% 互動關係
@@ -54,7 +55,9 @@ graph LR
     API -->|"6. 查詢"| DB
     API -.->|"快取"| Redis
     Dash -->|"7. 視覺化"| API
+    DashV2 -->|"7. 視覺化"| API
     Time -.->|"時間同步"| Dash
+    Time -.->|"時間同步"| DashV2
 ```
 
 ---
@@ -78,7 +81,8 @@ SafeZone 遵循**關注點分離**原則，將邏輯解耦至各專業微服務�
 | 服務 | 角色 | 關鍵技術 | 文件 |
 | :--- | :--- | :--- | :--- |
 | **分析 API** | **聚合器** | FastAPI, Redis, SQLAlchemy | [藍圖](safechord.safezone.service.analyticsapi.md) |
-| **儀表板** | **視覺化工具** | Plotly Dash, httpx | [藍圖](safechord.safezone.service.dashboard.md) |
+| **儀表板 (v1)** | **視覺化工具** | Plotly Dash, httpx | [藍圖](safechord.safezone.service.dashboard.md) |
+| **儀表板 v2** | **視覺化工具 (SPA)** | React, MapLibre GL, Recharts | [藍圖](safechord.safezone.service.dashboard-v2.md) |
 
 ### 2.3 工具組與協調
 支援性元件，負責維護模擬的狀態與運作。
