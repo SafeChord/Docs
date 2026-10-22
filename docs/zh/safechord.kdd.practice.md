@@ -130,7 +130,7 @@ session 對照上表的描述，自己判斷所在的模式；沒有把票對應
 Context: [票號，或連結至藍圖]
 Impact: [對 API 合約或基礎設施的具體影響]
 Test: [執行的驗證方式] (例如：make test-data-ingestor)
-Agent: [開拓者 / 維護者 / 維護者 (review fix) / 維護者 (requirement test)]
+Agent: [開拓者 / 維護者 / 維護者 (review fix) / 維護者 (requirement test)，沒有席位的模式填模式名稱]
 Legacy: [留待下一個代理處理的待辦事項]
 ```
 
@@ -139,9 +139,9 @@ Legacy: [留待下一個代理處理的待辦事項]
 # 📝 Legacy Note: [Task Name]
 
 > **Date**: YYYY-MM-DD
-> **From**: [Seat] / [Carrier] / [session id]
+> **From**: [Seat, or the mode where it has none] / [Carrier] / [session id]
 > **Resume**: [command that resumes this session in its tool]
-> **To**: [Seat] / [new session, or blank if not yet known]
+> **To**: [Seat, or the mode where it has none] / [new session, or blank if not yet known]
 > **Trigger**: [Reactive: milestone | blocked | human handover] or [Deliberate: context degradation]
 > **Ticket**: [<repo>-<issue_no>，例如 safezone-64；沒有就留空]
 > **Branch**: [Branch Name]

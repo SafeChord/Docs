@@ -139,7 +139,7 @@ Describe the impact on project architecture or long-term decisions.
 Context: [Ticket ID, or link to the Blueprint]
 Impact: [Specific impact on API contracts or infra]
 Test: [Verification executed] (e.g., make test-data-ingestor)
-Agent: [Pioneer / Settler / Settler (review fix) / Settler (requirement test)]
+Agent: [Pioneer / Settler / Settler (review fix) / Settler (requirement test), or the mode where it has no seats]
 Legacy: [Pending issues for the next agent]
 ```
 
@@ -148,9 +148,9 @@ Legacy: [Pending issues for the next agent]
 # 📝 Legacy Note: [Task Name]
 
 > **Date**: YYYY-MM-DD
-> **From**: [Seat] / [Carrier] / [session id]
+> **From**: [Seat, or the mode where it has none] / [Carrier] / [session id]
 > **Resume**: [command that resumes this session in its tool]
-> **To**: [Seat] / [new session, or blank if not yet known]
+> **To**: [Seat, or the mode where it has none] / [new session, or blank if not yet known]
 > **Trigger**: [Reactive: milestone | blocked | human handover] or [Deliberate: context degradation]
 > **Ticket**: [<repo>-<issue_no>, e.g. safezone-64; blank if none]
 > **Branch**: [Branch Name]
