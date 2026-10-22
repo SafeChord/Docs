@@ -82,7 +82,7 @@ Services have hard DAG dependencies. Deployment is orchestrated as sequential ph
 
 SafeZone uses separate umbrella charts per phase rather than a single monolithic chart.
 
-*   **Decision**: Four deployment units (`foundation`, `seed`, `core`, `ui`), each independently deployable and health-gated.
+*   **Decision**: Four deployment units (`foundation`, `ops`, `core`, `ui`), each independently deployable and health-gated.
 *   **Rationale**: A monolithic chart cannot express DAG ordering. Helm has no mechanism to wait for a Job to complete before starting a Deployment within the same release. Separating charts gives GitHub Actions a natural gate point between phases, and isolates failure domains — a seed failure does not roll back the foundation.
 
 ---
