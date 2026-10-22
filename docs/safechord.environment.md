@@ -54,13 +54,13 @@ docker compose --profile infra up -d
 This is the **heart of CI/CD**. To prevent parallel PRs from interfering with each other or polluting Staging with test data, the Preview environment adopts a **"Self-Contained"** isolation strategy, supplemented by shared resource mechanisms where necessary.
 
 ### 1. Downgrade & Isolation Strategy
-Preview environments are installed via GitHub Actions using manifests in the `infras` path, deploying a "lightweight" suite within an independent namespace:
+Preview environments are installed via GitHub Actions using manifests in the `infra` path, deploying a "lightweight" suite within an independent namespace:
 *   **Ephemeral Infra**: Uses CNPG to deploy a single Primary cluster without read-write separation. Valkey is deployed with `emptyDir` for faster restarts.
 *   **Shared Kafka Cluster**: Since Kafka is resource-intensive, Preview environments share a platform-level Kafka cluster but maintain logical isolation via the `preview.` topic prefix.
 *   **Disposable Namespaces**: The entire environment is destroyed immediately after a PR is merged or closed.
 
 ### 2. Configuration Management
-All Preview-specific configurations (e.g., disabling persistence, connecting to shared Kafka) are encapsulated within `SafeZone-Deploy/deploy/preview/infras`. This ensures core logic remains identical to production while significantly reducing operational costs.
+All Preview-specific configurations (e.g., disabling persistence, connecting to shared Kafka) are encapsulated within `SafeZone-Deploy/deploy/preview/infra`. This ensures core logic remains identical to production while significantly reducing operational costs.
 
 ---
 
