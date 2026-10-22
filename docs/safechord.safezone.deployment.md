@@ -89,7 +89,7 @@ SafeZone uses separate umbrella charts per phase rather than a single monolithic
 
 ## `safezone-ops` Multi-Mode Deployment
 
-The same `safezone-ops` chart is deployed three times in each pipeline run, with different values files.
+The same `safezone-ops` chart is deployed three times in each pipeline run, and a fourth time in staging, with different values files.
 
 *   **Phase 2 (schema)**: Runs a one-time DDL migration Job. Must complete before Core starts.
 *   **Phase 3.5 (smoke)**: Runs the `szcli` data-path test through the running pipeline. Must run before Phase 4, whose data its cleanup would remove.
