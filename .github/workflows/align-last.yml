@@ -1,0 +1,24 @@
+name: Move align/last
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: write
+
+jobs:
+  move:
+    if: github.event.pull_request.merged && startsWith(github.event.pull_request.head.ref, 'docs/align-')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Move align/last to the commit the run started from
+        env:
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: .github/scripts/move-align-last.sh "$HEAD_REF"
