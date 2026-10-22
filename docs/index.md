@@ -80,7 +80,7 @@ graph TB
 | | **Golang** | High-throughput data workers, Franz-Go consumer. |
 | **Data** | **Kafka** | Asynchronous event bus for system decoupling. |
 | | **PostgreSQL** | Relational storage for pandemic facts. |
-| | **Redis** | Caching and distributed state control. |
+| | **Valkey** | Caching and distributed state control. |
 | **Platform** | **K3s** | Lightweight Kubernetes distribution for hybrid environments. |
 | | **Tailscale** | Peer-to-peer SDN for multi-cloud node connectivity. |
 | | **Cloudflare** | DNS management, Tunnels, and Zero Trust access control. |

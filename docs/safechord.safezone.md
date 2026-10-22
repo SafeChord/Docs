@@ -42,7 +42,7 @@ graph LR
     %% Persistence
     subgraph DataStore [Persistence Layer]
         DB[(PostgreSQL<br/>Raw Facts)]:::storage
-        Redis[(Redis Cache)]:::storage
+        Valkey[(Valkey Cache)]:::storage
     end
 
     %% Read Path
@@ -61,7 +61,7 @@ graph LR
     Worker -->|"5. Upsert"| DB
     
     API -->|"6. Query"| DB
-    API -.->|"Cache"| Redis
+    API -.->|"Cache"| Valkey
     Dash -->|"7. Visualize"| API
     DashV2 -->|"7. Visualize"| API
     Time -.->|"Sync Time"| Dash
@@ -88,7 +88,7 @@ Responsible for data aggregation and user presentation.
 
 | Service | Role | Key Tech | Documentation |
 | :--- | :--- | :--- | :--- |
-| **Analytics API** | **Aggregator** | FastAPI, Redis, SQLAlchemy | [Blueprint](safechord.safezone.service.analyticsapi.md) |
+| **Analytics API** | **Aggregator** | FastAPI, Valkey, SQLAlchemy | [Blueprint](safechord.safezone.service.analyticsapi.md) |
 | **Dashboard (v1)** | **Visualizer** | Plotly Dash, httpx | [Blueprint](safechord.safezone.service.dashboard.md) |
 | **Dashboard v2** | **Visualizer (SPA)** | React, MapLibre GL, Recharts | [Blueprint](safechord.safezone.service.dashboard-v2.md) |
 

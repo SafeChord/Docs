@@ -40,9 +40,9 @@ All time-aware components in SafeZone must fetch the current date from this serv
 
 | Dependency | Type | Description |
 | :--- | :--- | :--- |
-| **Redis** | Storage | State store for time offsets and acceleration factors. |
+| **Valkey** | Storage | State store for time offsets and acceleration factors. |
 | **szcli** | Controller | The primary recommended tool for operators to adjust system time. |
 | **API Consumers** | Sink | Includes the Dashboard and Pandemic Simulator. |
 
 ---
-> **Agent Directive**: The Time Server is a critical dependency for data consistency. When refactoring the offset logic, ensure that the Redis data structure remains backward-compatible to prevent system-wide temporal drift.
+> **Agent Directive**: The Time Server is a critical dependency for data consistency. When refactoring the offset logic, ensure that the Valkey data structure remains backward-compatible to prevent system-wide temporal drift.

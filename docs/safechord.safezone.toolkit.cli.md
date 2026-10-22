@@ -14,7 +14,7 @@ The SafeZone CLI (`szcli`) is the primary interface for system orchestration. It
 
 ## 1. Responsibility & Positioning
 *   **System Control Plane**: The unified entry point for administrative tasks, including database seeding, simulation triggering, and system state verification.
-*   **Security Gateway (Relay Pattern)**: Shields internal infrastructure (PostgreSQL, Redis) by relaying commands through a trusted internal API, eliminating the need for direct port-forwarding or public DB access.
+*   **Security Gateway (Relay Pattern)**: Shields internal infrastructure (PostgreSQL, Valkey) by relaying commands through a trusted internal API, eliminating the need for direct port-forwarding or public DB access.
 *   **Validation Engine**: Hosts the **Container-Native Smoke Test Engine**, which automates end-to-end dataflow verification using CSV-driven test cases.
 
 ## 2. Architecture: Client-Relay Pattern
@@ -49,7 +49,7 @@ For the comprehensive list of commands, flags, and intent-driven instruction set
 | Dependency | Type | Description |
 | :--- | :--- | :--- |
 | **Google Identity** | Auth | Used for identity verification at the Relay. |
-| **Cluster Resources** | Sink | The Relay requires direct access to PostgreSQL and Redis. |
+| **Cluster Resources** | Sink | The Relay requires direct access to PostgreSQL and Valkey. |
 | **Time Server** | Downstream | The CLI acts as the primary controller for virtual time settings. |
 
 ---
