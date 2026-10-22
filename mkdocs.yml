@@ -36,6 +36,8 @@ plugins:
           name: 繁體中文
           build: true
 
+hooks:
+  - hooks/zh_stale.py
 
 nav:
   - Home: index.md
