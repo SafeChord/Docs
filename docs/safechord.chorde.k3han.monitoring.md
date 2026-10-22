@@ -81,4 +81,4 @@ Alertmanager routes firing alerts to Slack (`#k3han-error-notification`) and app
 
 ---
 
-> **Settler Note**: When adding new nodes, ensure they are labeled with `chorde.io/tier: high` or `medium` for Alloy, or `low` for Fluent-bit, to automatically trigger the appropriate tiered agent deployment.
+> **Settler Note**: When adding new nodes, ensure they are labeled with `chorde.io/tier: medium` for Alloy, or `low` for Fluent-bit, to automatically trigger the appropriate tiered agent deployment.
