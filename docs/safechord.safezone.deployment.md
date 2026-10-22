@@ -20,7 +20,7 @@ This document maps the **architectural intent** behind SafeZone's deployment lay
 
 *   **App Layer (`SafeZone`)**: Produces immutable Docker images.
 *   **Deployment Layer (`SafeZone-Deploy`)**: Declares how those images run across environments — replicas, env vars, resources, secrets. Fully GitOps-driven via ArgoCD.
-*   **`app/` vs `infra/` split**: Within each environment, `app/` contains the SafeZone service manifests; `infra/` contains environment-specific infrastructure bootstrap (namespace, RBAC, secrets, and workloads). The key difference between environments lives here — Preview provisions its own ephemeral DB and Valkey, while Staging delegates those to the Chorde PaaS and only bootstraps Kafka topics and secrets. See [Environment Landscape](safechord.environment.md) for the full tier strategy.
+*   **`app/` vs `infra/` split**: Within each environment, `app/` contains the SafeZone service manifests; `infra/` contains environment-specific infrastructure bootstrap (namespace, RBAC, secrets, and workloads). The key difference between environments lives here — Preview provisions its own ephemeral DB and Valkey, while Staging delegates the database cluster and the Valkey state store to the Chorde PaaS and bootstraps its own database and role on that cluster, Kafka topics, a Valkey cache, a volume and secrets. See [Environment Landscape](safechord.environment.md) for the full tier strategy.
 
 ---
 
@@ -50,7 +50,7 @@ SafeZone-Deploy/
 │   │   └── infra/             # Preview-owned ephemeral infra (CNPG, Valkey, Kafka topic, SealedSecrets)
 │   └── staging/
 │       ├── app/               # ArgoCD Application manifests for SafeZone services
-│       └── infra/             # Staging infra bootstrap (Kafka topic, SealedSecrets only — DB/Kafka delegate to Chorde PaaS)
+│       └── infra/             # Staging infra bootstrap (PV, DB and role, Kafka topic, Valkey cache, SealedSecrets — DB/Kafka clusters delegate to Chorde PaaS)
 ├── scripts/
 │   ├── ops/seal-secrets.sh    # Seals secrets via kubeseal
 │   └── ops/gen-kubeconfig.sh  # Generates namespace-scoped low-privilege kubeconfig
