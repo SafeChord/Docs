@@ -211,7 +211,7 @@ and leave via `flannel.1`.
     *   If the rule ever stops winning:
         `ip rule add not fwmark 0x80000/0xff0000 to 10.42.0.0/16 lookup 52 pref 5000`,
         persisted after tailscaled. This holds only while Tailscale still uses table 52.
-*   **Context.** Stretching one cluster across ~80 ms is not mainstream, because etcd
+*   **Context.** Stretching one cluster across ~35 ms is not mainstream, because etcd
     wants single-digit-millisecond peers. The projects built for it (Kilo, Cilium with
     WireGuard) converge on the same rule: one component owns the transport and its MTU.
     The alternatives above that stack VXLAN on WireGuard break that rule.

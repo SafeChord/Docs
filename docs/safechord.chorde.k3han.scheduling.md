@@ -14,7 +14,7 @@ code_paths:
 
 ## 1. Context & Challenges
 K3han spans three distinct zones with vastly different characteristics:
-*   **Contabo (JP)**: High stability, 24GB RAM, but ~80ms latency to Taiwan.
+*   **Contabo (JP)**: High stability, 24GB RAM, but ~35ms latency to Taiwan.
 *   **GCE (TW)**: Premium peering, but only 1GB RAM and high bandwidth costs.
 *   **Home (TW)**: High IOPS/CPU, Sunk Cost, but subject to consumer-grade ISP volatility.
 
