@@ -113,7 +113,7 @@ Supporting components that maintain the simulation's state and operation.
     *   **Golang**: Utilized for compute-intensive, high-throughput tasks (Worker) to maximize resource efficiency.
 
 3.  **Time Awareness**:
-    *   SafeZone features a "Virtual Timeline." All time-sensitive components (Simulator, Dashboard) reference the `Time Server` rather than the system clock.
+    *   SafeZone features a "Virtual Timeline." The dashboards reference the `Time Server` rather than the system clock; the simulator is given its date by the trigger.
     *   **Value**: Enables "Time Travel" simulation (fast-forwarding or pausing pandemic progression) for debugging and forecasting.
 
 ---
