@@ -6,14 +6,32 @@
 >
 > **本告示還在的期間，不要遞增 `doc_version`。** 文件停在 v0.4.0 直到調整期結束，改動只反映在 `last_updated`。
 
-SafeChord 使用 agent 的方式，依人類所在的位置分成幾種模式。§2 的協定與 §4 的範本所有模式共用；各模式自己的席位與流程，在表中列出的頁面。
+## 模式 {#modes}
 
-| 模式 | 人類的位置 | agent 怎麼運作 | 定義在 |
-| :--- | :--- | :--- | :--- |
-| 討論 | 全程參與，一起做決定 | 單一 agent 與人類對談；產出是票、設計草稿，或對 `Docs/` 的修改 | 本文件 §2 |
-| 開發 | 最後的守門員，合併前看一次 | 兩個席位互相制衡 | [開發](safechord.kdd.practice.development.md) |
-| 交付 | 全程參與，每個 gate 簽核 | 單一 agent 與人類協作 | [交付](safechord.kdd.practice.delivery.md) |
-| 維運 | 未定 | 未定 | — |
+SafeChord 使用 agent 的方式，依工作內容與人類所在的位置分成幾種模式。§2 的協定與 §4 的範本所有模式共用；各模式自己的席位與流程，在表中列出的頁面。
+
+| 模式 | 涵蓋的工作 | 人類的位置 | agent 怎麼運作 | 定義在 |
+| :--- | :--- | :--- | :--- | :--- |
+| 討論 | 還沒有票的工作，以及在 `Docs/` 與 harness 上的工作（這兩處直接 commit 到 `main`） | 全程參與，一起做決定 | 單一 agent 與人類對談；產出是票、設計草稿，或對 `Docs/` 或 harness 的修改 | 本文件 |
+| 開發 | 經由分支、PR 與合併落進 SafeZone、SafeZone-Deploy 或 Chorde 的程式改動，票上掛著 `kdd:forward` 或 `kdd:spike` | 最後的守門員，合併前看一次 | 兩個席位互相制衡 | [開發](safechord.kdd.practice.development.md) |
+| 交付 | 切出、驗證並推進 SafeZone 的 release：交付流程的某個階段或路線 | 全程參與，每個 gate 簽核 | 單一 agent 與人類協作 | [交付](safechord.kdd.practice.delivery.md) |
+| 維運 | 未定 | 未定 | 未定 | — |
+
+### 確認自己的模式 {#finding-your-mode}
+
+session 對照上表的描述，自己判斷所在的模式；沒有把票對應到模式的規則。
+
+- **動手前先說出來**：「這是<模式>，因為<理由>」。理由要點出是什麼決定的：票與它的 label、工作落在哪個 repo 以及那個 repo 怎麼收改動、人類要求了什麼。把模式說出來，人類才抓得到判錯的時候。
+- **手上沒有票時，就是討論模式。**
+- **沒有模式符合，或不只一個符合時，先問人類**再動手。不符合任何模式的工作，不硬塞進最接近的那個。
+- **模式跟著工作變。** 開票或接手一張票，通常就是模式改變的時候；那時說出新的模式。
+- **由 script 啟動的 session**（`pioneer-dispatch`、CI job）從啟動它的 prompt 取得模式與席位，不自己判斷。
+
+### session 與席位 {#sessions-and-seats}
+
+- 有席位的模式在自己的頁面定義席位，以及一個 session 持有席位多久。session 進入這種模式時，取得它在那裡的工作需要的席位。
+- 透過其他途徑向啟動它的 session 回報的執行者，例如 subagent 或工具 run，算在那個 session 的模式與席位底下，自己不持席位。
+- 範本要求填席位時，處在沒有席位的模式的 session 改填模式（`Agent: Discussion`）。
 
 ---
 

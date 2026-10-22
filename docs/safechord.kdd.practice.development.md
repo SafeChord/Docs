@@ -34,7 +34,7 @@ This page holds what belongs to the development mode alone. The protocols and te
 
 **Seats are session-scoped.** One seat per session, held for its lifetime. Changing seat means a new session; carry the context across with a handoff. Code review therefore never shares a session with the implementation it reviews — the session that wrote the code holds Pioneer, and review is the Settler's.
 
-**A Settler session may start a Pioneer session.** The Pioneer session starts from an empty context and is given only the ticket and the handoffs; what passes between the two is still only what the [handoff protocol](safechord.kdd.practice.md#the-handoff-protocol) lists for each direction. Anything that reports back to the session that started it by another route, such as a subagent, works under that session's seat and holds none of its own.
+**A Settler session may start a Pioneer session.** The Pioneer session starts from an empty context and is given only the ticket and the handoffs; what passes between the two is still only what the [handoff protocol](safechord.kdd.practice.md#the-handoff-protocol) lists for each direction. What reports back to a session by another route follows [Sessions and seats](safechord.kdd.practice.md#sessions-and-seats).
 
 **Exception: the Settler may carry a task in a single session.** After discussing it, the human and the Settler may have the Settler alone execute a task; the ticket then carries the label `exec:settler`. See [§3.3](#33-choosing-the-executor).
 

@@ -25,7 +25,7 @@ SafeChord 的開發跑在 **「雙引擎」** 模型上：開拓者席負責實�
 
 **席位綁定在 session 上。** 一個 session 持一個席位，持到結束。換席位就是換 session，用交接把 context 帶過去。因此程式碼審查不會跟它所審查的實作共用 session——寫程式碼的那個 session 持開拓者，而審查是維護者的事。
 
-**維護者 session 可以啟動開拓者 session。** 開拓者 session 從空的 context 開始，只拿到票與 handoff；兩者之間的溝通仍然只有[交接協定](safechord.kdd.practice.md#the-handoff-protocol)為各個方向列出的那些。透過其他途徑向啟動它的 session 回報的執行者，例如 subagent，算在那個 session 的席位底下，自己不持席位。
+**維護者 session 可以啟動開拓者 session。** 開拓者 session 從空的 context 開始，只拿到票與 handoff；兩者之間的溝通仍然只有[交接協定](safechord.kdd.practice.md#the-handoff-protocol)為各個方向列出的那些。透過其他途徑向 session 回報的執行者，依 [session 與席位](safechord.kdd.practice.md#sessions-and-seats)。
 
 **例外：維護者能單 session 完成任務。** 人類與維護者討論後，可以讓該輪任務只由維護者執行，票掛上 `exec:settler` label。詳細說明見 [§3.3](#33-choosing-the-executor)。
 

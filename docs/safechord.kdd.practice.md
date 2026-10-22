@@ -15,14 +15,32 @@ code_paths: []
 >
 > **Do not bump `doc_version` while this notice stands.** The document holds at v0.4.0 until the adjustment period closes. Edits land under `last_updated` alone.
 
-SafeChord uses agents in several modes, told apart by where the human stands. The protocols in §2 and the templates in §4 are shared by every mode; a mode's own seats and flow are on the page the table names.
+## Modes {#modes}
 
-| Mode | Where the human stands | How the agents work | Defined in |
-| :--- | :--- | :--- | :--- |
-| Discussion | Present throughout, deciding together | One agent in conversation with the human; the outcome is a ticket, a design draft, or a change to `Docs/` | This document, §2 |
-| Development | The last gatekeeper, looking once before merge | Two seats that check each other | [Development](safechord.kdd.practice.development.md) |
-| Delivery | Present throughout, signing off every gate | One agent working with the human | [Delivery](safechord.kdd.practice.delivery.md) |
-| Operations | Not yet defined | Not yet defined | — |
+SafeChord uses agents in several modes, told apart by what the work is and where the human stands. The protocols in §2 and the templates in §4 are shared by every mode; a mode's own seats and flow are on the page the table names.
+
+| Mode | What it covers | Where the human stands | How the agents work | Defined in |
+| :--- | :--- | :--- | :--- | :--- |
+| Discussion | Work with no ticket yet, and work on `Docs/` and the harness, which commit straight to `main` | Present throughout, deciding together | One agent in conversation with the human; the outcome is a ticket, a design draft, or a change to `Docs/` or the harness | This document |
+| Development | A code change that lands in SafeZone, SafeZone-Deploy or Chorde through a branch, a PR and a merge, on a ticket labelled `kdd:forward` or `kdd:spike` | The last gatekeeper, looking once before merge | Two seats that check each other | [Development](safechord.kdd.practice.development.md) |
+| Delivery | Cutting, validating and promoting a SafeZone release: a phase or route of the delivery workflow | Present throughout, signing off every gate | One agent working with the human | [Delivery](safechord.kdd.practice.delivery.md) |
+| Operations | Not yet defined | Not yet defined | Not yet defined | — |
+
+### Finding your mode {#finding-your-mode}
+
+A session judges its own mode against the descriptions above; no rule maps a ticket to a mode.
+
+- **State it before acting**: "this is <mode>, because <reason>". The reason names what decided it: the ticket and its labels, the repository the work lands in and how that repository takes changes, what the human asked. The stated mode is what lets the human catch a wrong call.
+- **With no ticket in hand, the mode is Discussion.**
+- **When no mode fits, or more than one does, ask the human** before acting. Work that fits no mode is not bent into the nearest one.
+- **The mode changes with the work.** Opening or picking up a ticket is where it usually changes; state the new mode then.
+- **A session started by a script** (`pioneer-dispatch`, a CI job) takes its mode and seat from the prompt that started it, and does not judge.
+
+### Sessions and seats {#sessions-and-seats}
+
+- A mode that has seats defines them on its page, with how long a session holds one. A session that enters such a mode takes the seat its work there needs.
+- Whatever reports back to the session that started it, such as a subagent or a tool run, works under that session's mode and seat and holds none of its own.
+- Where a template asks for a seat, a session in a mode without seats gives its mode instead (`Agent: Discussion`).
 
 ---
 
