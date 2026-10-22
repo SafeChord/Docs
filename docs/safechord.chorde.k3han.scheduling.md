@@ -42,7 +42,7 @@ Standard K8s scheduling is insufficient as it ignores "Bill risk" and "Home-lab 
 
 | Label Key | Value | Purpose |
 | :--- | :--- | :--- |
-| `topology.kubernetes.io/region` | `jp` / `tw` | Geographic cost & latency calculation. |
+| `chorde.io/region` | `jp` / `tw` | Geographic cost & latency calculation. |
 | `chorde.io/provider` | `contabo` / `gce` / `local` | Hardware reliability grouping. |
 | `chorde.io/tier` | `low` / `medium` / `high` | Resource capacity ranking. |
 | `node.safechord.io/capability` | `high-iops` | Pins DBs/Kafka to local SSDs. |
