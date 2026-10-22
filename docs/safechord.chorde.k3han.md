@@ -14,7 +14,7 @@ code_paths:
 
 ### 🏷️ Etymology
 **K3han** = **K3s** + **Khan** (可汗).
-Inspired by the vast and Coordination-heavy empires of history. In its initial architecture, K3han penetrated the network barriers between Japan (Contabo) and Taiwan (GCE/Home) using Tailscale, establishing a cross-border, lightweight operational territory.
+Inspired by the vast and Coordination-heavy empires of history. In its initial architecture, K3han penetrated the network barriers between Singapore (Hetzner) and Taiwan (GCP) using Tailscale, establishing a cross-border, lightweight operational territory.
 
 ---
 
