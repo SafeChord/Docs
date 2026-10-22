@@ -34,7 +34,7 @@ Standard K8s scheduling is insufficient as it ignores "Bill risk" and "Home-lab 
 | Taint Key | Effect | Target | Rationale |
 | :--- | :--- | :--- | :--- |
 | `node-role.kubernetes.io/control-plane` | `NoSchedule` | `ct-serv-jp` | **Master Protection**: Prevents business load from impacting ArgoCD/Operators. |
-| `chorde.io/purpose=proxy-only` | `NoSchedule` | `gce-agent-tw` | **Ingress Protection**: Preserves 1GB RAM for Nginx-Ingress only. |
+| `chorde.io/purpose=proxy-only` | `NoSchedule` | `gce-agent-tw` | **Ingress Protection**: Preserves 1GB RAM for the public gateway (NGF data plane) only. |
 | `chorde.io/provider=local` | `PreferNoSchedule`| `acer-agent` | **Availability Filter**: Prevents non-fault-tolerant pods from landing on home hardware. |
 
 ### 3.2 Label Schema (v0.3.x Snapshot)

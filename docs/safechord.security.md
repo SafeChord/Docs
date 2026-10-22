@@ -41,7 +41,7 @@ We strictly follow the **Principle of Least Privilege (PoLP)**, implemented thro
 SafeChord utilizes a **Triple-Lock Defense** strategy to achieve physical and logical isolation at the network layer. For detailed configuration, refer to the [K3han Ingress Guide](safechord.chorde.k3han.ingress.md).
 
 ### 3.1 Infrastructure Hardening
-*   **Origin Hardening (GCP Firewall)**: GCP VPC firewall rules are configured to restrict ingress traffic to the `ingress-public` nodes, allowing ONLY requests originating from **Cloudflare IP ranges**.
+*   **Origin Hardening (GCP Firewall)**: GCP VPC firewall rules are configured to restrict ingress traffic to the public edge node (`gce-agent-tw`), allowing ONLY requests originating from **Cloudflare IP ranges**.
 *   **Impact**: Prevents attackers from bypassing Cloudflare's WAF and DDoS protection by connecting directly to the origin's public IP.
 
 ### 3.2 Transport Layer Security (TLS)
@@ -49,8 +49,8 @@ SafeChord utilizes a **Triple-Lock Defense** strategy to achieve physical and lo
 *   **Origin CA Certificates**: Cloudflare-issued Origin CA certificates are deployed within the K3s cluster, ensuring the integrity of the connection between the proxy and the origin.
 
 ### 3.3 Perimeter Policy
-*   **Public Zone**: Traffic must transit through the Cloudflare Proxy. Implementation: `IngressClass: nginx-public`.
-*   **Private Zone**: Access is restricted to the **Tailscale Overlay VPN**. Implementation: `IngressClass: nginx-private`.
+*   **Public Zone**: Traffic must transit through the Cloudflare Proxy. Implementation: the `public-gateway` data plane, with routes bound to it as Gateway API `HTTPRoute`s.
+*   **Private Zone**: Access goes through an in-cluster Cloudflare Tunnel behind Cloudflare Access; the Tailscale mesh is the break-glass path only. Implementation: the `private-gateway` data plane, a `ClusterIP` Service.
 
 ---
 

@@ -76,7 +76,7 @@ Alertmanager routes firing alerts to Slack (`#k3han-error-notification`) and app
 ---
 
 ## 5. Security & Access Control
-*   **Zero-Trust**: Grafana is restricted to the Tailscale mesh via `ingressClassName: nginx-private`.
+*   **Zero-Trust**: Grafana is reached only through the private gateway, behind an in-cluster Cloudflare Tunnel and Cloudflare Access ([Ingress Policy](safechord.chorde.k3han.ingress.md), §2.2).
 *   **Safe Credentials**: S3 keys and Slack webhook are managed exclusively via `SealedSecrets`.
 
 ---
