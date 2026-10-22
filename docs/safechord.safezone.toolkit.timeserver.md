@@ -42,7 +42,7 @@ All time-aware components in SafeZone must fetch the current date from this serv
 *   **Dashboard**: Uses `system_date` to set the default window for trend charts and maps.
 
 ### 3.2 Traceability
-*   **Standard Compliance**: Adheres to the Universal Service Standards (Traceability & Health Checks) defined in the Python Scaffold.
+*   **Standard Compliance**: Follows the [service standards](safechord.safezone.service.standards.md): STD-R1 (traceability) and STD-R2 (health).
 *   **Requirement**: Every request to `/now` or `/set` must handle and propagate `X-Trace-ID` to ensure that time-related state changes are traceable back to the originating CLI or UI command.
 
 ## 4. Dependencies & Control
