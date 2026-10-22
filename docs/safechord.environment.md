@@ -26,8 +26,6 @@ This document defines three environment tiers and their interactions with the Ch
 
 > **Note**: The first segment of the Config Source represents the repository name (e.g., `SafeZone`).
 > **Deployment Workflow**: Preview and Staging deployments are orchestrated via GitHub Actions. Specifically, Actions workflows (referencing `SafeZone-Deploy/.github/workflows/init-deploy.yml`) are manually triggered to execute `kubectl apply` on ArgoCD Application manifests. ArgoCD then reconciles these manifests to synchronize the underlying Helm charts with the cluster.
->
-> **Architectural Choice**: We use **GitHub Actions** for orchestration instead of **ArgoCD Sync Waves** to enforce strict sequential dependency control. This prevents race conditions during initialization by ensuring complex Jobs (e.g., DB provisioning) are fully completed before subsequent phases begin—a level of execution locking that native Waves/Hooks cannot reliably guarantee.
 
 ---
 
