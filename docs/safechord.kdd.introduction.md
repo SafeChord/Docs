@@ -77,6 +77,6 @@ This is not a compromise on KDD principles; it is the "breathing" of the systemâ
 
 The above represents the "Tao" of KDD. 
 
-To see how SafeChord practically implements these concepts in 2026 using AI tools (Gemini CLI, Claude Code) and standardized protocols (Git Commit standards, Handoffs):
+To see how SafeChord practically implements these concepts in 2026 using AI coding agents and standardized protocols (Git Commit standards, Handoffs):
 
 ðŸ‘‰ See: **[KDD Practice: Dual-Track CLI & Headless Collaboration](safechord.kdd.practice.md)**

@@ -41,7 +41,7 @@ We adopt a **"Centralized Control, Distributed Collection"** pattern based on no
 ### 3.1 Metrics Path (Pull Model across Mesh)
 Prometheus scrapes metrics across the international border.
 *   **Relabeling**: Maps local node IPs to **Tailscale IPs (100.64.x.x)** via `relabel_configs` to bypass cross-border NAT restrictions. Applies to `/metrics`, `/metrics/cadvisor`, and `/metrics/probes` endpoints.
-*   **Retention**: 7 days / 10Gi (Local Buffer) to minimize local disk IOPS contention.
+*   **Retention**: a short local buffer, to minimize local disk IOPS contention. Its window and size are manifest values, under `code_paths`.
 
 ### 3.2 Logs Path (Offloading to S3)
 To ensure durability against Home Lab volatility, logs are treated as transient on-node and persistent in the cloud.
@@ -55,28 +55,28 @@ Alertmanager routes firing alerts to Slack (`#k3han-error-notification`) and app
 
 ---
 
-## 4. Key Architectural Decisions (ADR)
+## 4. Key Architectural Decisions
 
-### ADR-001: Minimal Monitoring on Gateway Nodes
+### Minimal Monitoring on Gateway Nodes
 *   **Decision**: Strictly use Fluent-bit on `chorde.io/tier: low` nodes.
 *   **Rationale**: Protecting the Ingress path is the highest priority. Alloy's resource footprint is too high for this specific tier.
 
-### ADR-002: S3-Backed Log Persistence
+### S3-Backed Log Persistence
 *   **Decision**: Abandon local PVs for logs in favor of Cloud Object Storage.
 *   **Rationale**: Decouples log availability from Home Lab uptime and prevents "Disk Full" scenarios from crashing edge nodes.
 
-### ADR-003: Slack Alert Silence Policy
+### Slack Alert Silence Policy
 *   **Decision**: Mute K3s internal service alerts (`KubeProxy*`, `TargetDown` in control namespaces).
 *   **Rationale**: Reduces alert noise caused by K3s's unique binary structure, focusing on actual application failures.
 
-### ADR-004: Alloy Drop-Old Gate
+### Alloy Drop-Old Gate
 *   **Decision**: Drop log entries older than 7 days in Alloy's processing pipeline before forwarding to Loki.
 *   **Rationale**: `acer-agent` may go offline for extended periods (power/ISP). On restart, without this gate, Alloy would replay all buffered logs and overwhelm Loki ingest.
 
 ---
 
 ## 5. Security & Access Control
-*   **Zero-Trust**: Grafana is restricted to the Tailscale mesh via `ingressClassName: nginx-private`.
+*   **Zero-Trust**: Grafana is reached only through the private gateway, behind an in-cluster Cloudflare Tunnel and Cloudflare Access ([Ingress Policy](safechord.chorde.k3han.ingress.md), §2.2).
 *   **Safe Credentials**: S3 keys and Slack webhook are managed exclusively via `SealedSecrets`.
 
 ---

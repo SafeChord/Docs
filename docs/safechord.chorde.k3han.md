@@ -30,7 +30,7 @@ Select a specialized node for deep-dive specifications:
 | **Orchestration** | [**Scheduling Logic**](safechord.chorde.k3han.scheduling.md) | **Resource Placement**. Explains data locality decisions (DB placement) and control-plane isolation (Taints). | `Brain` |
 | **Storage** | [**Persistent Storage**](safechord.chorde.k3han.storage.md) | **Volumes & Durability**. Where stateful workloads keep their data, what each volume must survive, and why volumes are node-local. | `Brain` |
 | **Observability** | [**Monitoring Stack**](safechord.chorde.k3han.monitoring.md) | **Telemetry**. Defines the Prometheus/Loki stack and multi-dimensional log collection patterns. | `Brain` |
-| **History** | [**Changelog**](safechord.chorde.k3han.changelog.md) | **Evolution**. Records the architectural shifts of K3han from v0.1.0 to v0.3.x. | `Timeline` |
+| **History** | [**Changelog**](safechord.chorde.k3han.changelog.md) | **Evolution**. Records the architectural shifts of K3han from v0.1.0 to v0.3.x. | `Changelog` |
 
 ---
 

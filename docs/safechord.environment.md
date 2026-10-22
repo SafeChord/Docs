@@ -19,9 +19,9 @@ This document defines three environment tiers and their interactions with the Ch
 | **Positioning** | **Developer Experience (DX)** | **Isolation & Validation** | **Stability & Delivery** |
 | **Primary Goal** | Rapid iteration, hot-reloading, and debugging. | Independent PR sandboxing without data pollution. | **Soak Testing** and technical showcases. |
 | **Infra Source** | **SafeZone** (Ad-hoc) | **SafeZone-Deploy** (Degraded infra) | **Chorde PaaS** (Shared SaaS) |
-| **Config Source** | `SafeZone/docker-compose/` | `SafeZone-Deploy/deploy/preview/` | `Chorde/gitops/` |
+| **Config Source** | `SafeZone/docker-compose/` | `SafeZone-Deploy/deploy/preview/` | `SafeZone-Deploy/deploy/staging/` |
 | **Config Type** | Docker Compose | ArgoCD Application (with Helm Chart) | ArgoCD Application (with Helm Chart) |
-| **Persistence** | Bind Mounts (Resettable) | **Ephemeral** (EmptyDir/Temporary) | **Persistent** (PVC / Cloud Volumes / AWS S3) |
+| **Persistence** | Bind Mounts (Resettable) | **Ephemeral** (EmptyDir/Temporary) | **Persistent** (node-local PVs; AWS S3 for logs) |
 | **Deployment** | `docker compose up` | GitHub Actions (via kubectl) | GitHub Actions (via kubectl) |
 
 > **Note**: The first segment of the Config Source represents the repository name (e.g., `SafeZone`).
@@ -54,13 +54,13 @@ docker compose --profile infra up -d
 This is the **heart of CI/CD**. To prevent parallel PRs from interfering with each other or polluting Staging with test data, the Preview environment adopts a **"Self-Contained"** isolation strategy, supplemented by shared resource mechanisms where necessary.
 
 ### 1. Downgrade & Isolation Strategy
-Preview environments are installed via GitHub Actions using manifests in the `infras` path, deploying a "lightweight" suite within an independent namespace:
+Preview environments are installed via GitHub Actions using manifests in the `infra` path, deploying a "lightweight" suite within an independent namespace:
 *   **Ephemeral Infra**: Uses CNPG to deploy a single Primary cluster without read-write separation. Valkey is deployed with `emptyDir` for faster restarts.
 *   **Shared Kafka Cluster**: Since Kafka is resource-intensive, Preview environments share a platform-level Kafka cluster but maintain logical isolation via the `preview.` topic prefix.
 *   **Disposable Namespaces**: The entire environment is destroyed immediately after a PR is merged or closed.
 
 ### 2. Configuration Management
-All Preview-specific configurations (e.g., disabling persistence, connecting to shared Kafka) are encapsulated within `SafeZone-Deploy/deploy/preview/infras`. This ensures core logic remains identical to production while significantly reducing operational costs.
+All Preview-specific configurations (e.g., disabling persistence, connecting to shared Kafka) are encapsulated within `SafeZone-Deploy/deploy/preview/infra`. This ensures core logic remains identical to production while significantly reducing operational costs.
 
 ---
 
@@ -76,7 +76,7 @@ The strategic purpose of Staging is:
 
 ### 2. Chorde SaaS Integration
 In Staging, SafeZone no longer manages its own foundational infra. Instead, it connects to platform-grade services managed by the **Chorde** operations team via `ExternalName` or connection strings:
-*   **PostgreSQL**: Connects to a physically separated, monitored DB cluster with full backup policies.
+*   **PostgreSQL**: Connects to a physically separated, monitored DB cluster.
 *   **Kafka**: Plugs into the shared message bus managed by the Strimzi Operator.
 *   **Valkey**: Utilizes platform-level state storage and app-managed caching.
 
@@ -87,8 +87,8 @@ In Staging, SafeZone no longer manages its own foundational infra. Instead, it c
 To ensure system stability during environment transitions, we follow the principle: **"Intent in Docs, Values in Code."** Concrete service discovery DNS addresses, connection strings, and topic names are treated as highly volatile implementation details and should be retrieved directly from the source code of the respective environment:
 
 *   **Local (Compose)**: Consult `.yml` and `.env` files in `SafeZone/docker-compose/`.
-*   **Preview (CI)**: Consult Kustomize patches and manifests in `SafeZone-Deploy/deploy/preview/`.
-*   **Staging (Platform)**: Consult Helm values and ArgoCD configs in `Chorde/gitops/`.
+*   **Preview (CI)**: Consult the Helm values and ArgoCD Applications in `SafeZone-Deploy/deploy/preview/`.
+*   **Staging (Platform)**: Consult the Helm values and ArgoCD Applications in `SafeZone-Deploy/deploy/staging/`; the platform services it plugs into are in `Chorde/gitops/`.
 
 ### Service Discovery Mechanism
 *   **Internal Communication**: Prioritize K8s internal Service Names (`<svc-name>`) for inter-service calls.

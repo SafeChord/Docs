@@ -128,7 +128,7 @@ Geographic dispersion makes **Latency** the primary design constraint for all sc
 | Source | Target | Measured Latency | Constraint Validated |
 | :--- | :--- | :--- | :--- |
 | **GCE (Ingress)** | **Acer (Worker)** | **~6ms** | Same-region forwarding ✅ |
-| **Contabo (Master)** | **Acer (Worker)** | **~80ms** | Cross-border < 100ms ✅ |
+| **Contabo (Master)** | **Acer (Worker)** | **~35ms** (2026-10-05) | Cross-border < 100ms ✅ |
 | **Local Nodes** | **Local Nodes** | **< 1ms** | Sub-ms local access ✅ |
 
 ### Architectural Decisions Derived from Constraints

@@ -321,7 +321,7 @@ Used by test agents to start from a clean slate, travel to a target time, ingest
 3. **Verify Empty State**:
    ```bash
    szcli -o json dataflow verify 2000-01-01
-   # Assert .response.success == true AND .response.data.aggregated_cases == null
+   # Assert .response.success == true AND .response.data.aggregated_cases == 0
    ```
 4. **Trigger Generation**:
    ```bash

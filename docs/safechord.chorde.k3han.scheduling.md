@@ -14,7 +14,7 @@ code_paths:
 
 ## 1. Context & Challenges
 K3han spans three distinct zones with vastly different characteristics:
-*   **Contabo (JP)**: High stability, 12GB RAM, but ~80ms latency to Taiwan.
+*   **Contabo (JP)**: High stability, 24GB RAM, but ~35ms latency to Taiwan.
 *   **GCE (TW)**: Premium peering, but only 1GB RAM and high bandwidth costs.
 *   **Home (TW)**: High IOPS/CPU, Sunk Cost, but subject to consumer-grade ISP volatility.
 
@@ -22,7 +22,7 @@ Standard K8s scheduling is insufficient as it ignores "Bill risk" and "Home-lab 
 
 ## 2. Core Principles
 1.  **Control Plane Locality**: Operators (CNPG, Strimzi, KEDA) must stay on Cloud nodes (<1ms API latency).
-2.  **Data Locality**: Replicas and high-throughput brokers (Kafka/Redis) stay on Local nodes to save egress costs.
+2.  **Data Locality**: Replicas and high-throughput brokers (Kafka/Valkey) stay on Local nodes to save egress costs.
 3.  **Edge Isolation**: The GCE node is restricted to traffic forwarding ONLY.
 4.  **Reliability Tiering**: Use Taints to soft-reject critical production pods from landing on home-lab hardware unless tolerated.
 
@@ -34,7 +34,7 @@ Standard K8s scheduling is insufficient as it ignores "Bill risk" and "Home-lab 
 | Taint Key | Effect | Target | Rationale |
 | :--- | :--- | :--- | :--- |
 | `node-role.kubernetes.io/control-plane` | `NoSchedule` | `ct-serv-jp` | **Master Protection**: Prevents business load from impacting ArgoCD/Operators. |
-| `chorde.io/purpose=proxy-only` | `NoSchedule` | `gce-agent-tw` | **Ingress Protection**: Preserves 1GB RAM for Nginx-Ingress only. |
+| `chorde.io/purpose=proxy-only` | `NoSchedule` | `gce-agent-tw` | **Ingress Protection**: Preserves 1GB RAM for the public gateway (NGF data plane) only. |
 | `chorde.io/provider=local` | `PreferNoSchedule`| `acer-agent` | **Availability Filter**: Prevents non-fault-tolerant pods from landing on home hardware. |
 
 ### 3.2 Label Schema (v0.3.x Snapshot)
@@ -42,7 +42,7 @@ Standard K8s scheduling is insufficient as it ignores "Bill risk" and "Home-lab 
 
 | Label Key | Value | Purpose |
 | :--- | :--- | :--- |
-| `topology.kubernetes.io/region` | `jp` / `tw` | Geographic cost & latency calculation. |
+| `chorde.io/region` | `jp` / `tw` | Geographic cost & latency calculation. |
 | `chorde.io/provider` | `contabo` / `gce` / `local` | Hardware reliability grouping. |
 | `chorde.io/tier` | `low` / `medium` / `high` | Resource capacity ranking. |
 | `node.safechord.io/capability` | `high-iops` | Pins DBs/Kafka to local SSDs. |

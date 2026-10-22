@@ -42,7 +42,7 @@ graph LR
     %% Persistence
     subgraph DataStore [Persistence Layer]
         DB[(PostgreSQL<br/>Raw Facts)]:::storage
-        Redis[(Redis Cache)]:::storage
+        Valkey[(Valkey Cache)]:::storage
     end
 
     %% Read Path
@@ -61,7 +61,7 @@ graph LR
     Worker -->|"5. Upsert"| DB
     
     API -->|"6. Query"| DB
-    API -.->|"Cache"| Redis
+    API -.->|"Cache"| Valkey
     Dash -->|"7. Visualize"| API
     DashV2 -->|"7. Visualize"| API
     Time -.->|"Sync Time"| Dash
@@ -88,7 +88,7 @@ Responsible for data aggregation and user presentation.
 
 | Service | Role | Key Tech | Documentation |
 | :--- | :--- | :--- | :--- |
-| **Analytics API** | **Aggregator** | FastAPI, Redis, SQLAlchemy | [Blueprint](safechord.safezone.service.analyticsapi.md) |
+| **Analytics API** | **Aggregator** | FastAPI, Valkey, SQLAlchemy | [Blueprint](safechord.safezone.service.analyticsapi.md) |
 | **Dashboard (v1)** | **Visualizer** | Plotly Dash, httpx | [Blueprint](safechord.safezone.service.dashboard.md) |
 | **Dashboard v2** | **Visualizer (SPA)** | React, MapLibre GL, Recharts | [Blueprint](safechord.safezone.service.dashboard-v2.md) |
 
@@ -113,7 +113,7 @@ Supporting components that maintain the simulation's state and operation.
     *   **Golang**: Utilized for compute-intensive, high-throughput tasks (Worker) to maximize resource efficiency.
 
 3.  **Time Awareness**:
-    *   SafeZone features a "Virtual Timeline." All time-sensitive components (Simulator, Dashboard) reference the `Time Server` rather than the system clock.
+    *   SafeZone features a "Virtual Timeline." The dashboards reference the `Time Server` rather than the system clock; the simulator is given its date by the trigger.
     *   **Value**: Enables "Time Travel" simulation (fast-forwarding or pausing pandemic progression) for debugging and forecasting.
 
 ---

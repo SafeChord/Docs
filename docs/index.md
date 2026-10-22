@@ -80,7 +80,7 @@ graph TB
 | | **Golang** | High-throughput data workers, Franz-Go consumer. |
 | **Data** | **Kafka** | Asynchronous event bus for system decoupling. |
 | | **PostgreSQL** | Relational storage for pandemic facts. |
-| | **Redis** | Caching and distributed state control. |
+| | **Valkey** | Caching and distributed state control. |
 | **Platform** | **K3s** | Lightweight Kubernetes distribution for hybrid environments. |
 | | **Tailscale** | Peer-to-peer SDN for multi-cloud node connectivity. |
 | | **Cloudflare** | DNS management, Tunnels, and Zero Trust access control. |
@@ -114,7 +114,7 @@ SafeChord evolves through disciplined phases, moving from a stable foundation to
 | Phase | Theme | Objective |
 | :--- | :--- | :--- |
 | **v0.3.x** | **Stabilization** | ✅ **Completed**. Unified microservice scaffolds and backfilled unit tests. |
-| **v0.3.5** | **Modernization** | **Current**. Migrating to English-first documentation and React SPA frontend. |
+| **v0.3.5** | **Modernization** | ✅ **Completed**. Migrated to English-first documentation and a React SPA frontend. |
 | **v0.4.x** | **Stress Testing & Reliability** | Integrating load testing tools and defining Service Level Objectives (SLOs) to establish architectural baselines. |
 | **v0.5.x** | **Scaling** | Surgically optimizing throughput bottlenecks based on collected metrics. |
 
