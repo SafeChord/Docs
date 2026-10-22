@@ -41,7 +41,7 @@ SafeZone-Deploy/
 ├── helm-charts/
 │   ├── safezone-common/       # Shared Helm template library
 │   ├── safezone-foundation/   # Phase 1: Infrastructure prerequisites
-│   ├── safezone-seed/         # Phase 2, 4 & 6: Schema migration, data injection, recurring scheduler (same chart, different values)
+│   ├── safezone-ops/          # Phase 2, 3.5, 4 & 6: Schema migration, smoke test, data injection, recurring scheduler (same chart, different values)
 │   ├── safezone-core/         # Phase 3: Business services
 │   └── safezone-ui/           # Phase 5: Dashboard
 ├── deploy/
@@ -67,12 +67,12 @@ Services have hard DAG dependencies. Deployment is orchestrated as sequential ph
 | Phase | Chart | Wait Condition | Why This Order |
 | :--- | :--- | :--- | :--- |
 | **1. Foundation** | `safezone-foundation` | `cli-relay` + `time-server` healthy | All services depend on connection strings and synchronized time state. `time-server` is the system-wide time SSOT — it controls the clock all services read from, and can simulate arbitrary dates for testing. |
-| **2. Seed Schema** | `safezone-seed` (schema values) | Job completion | Core services will CrashLoop on missing DB schema. DDL migration must complete first. |
+| **2. Seed Schema** | `safezone-ops` (schema values) | Job completion | Core services will CrashLoop on missing DB schema. DDL migration must complete first. |
 | **3. Core** | `safezone-core` | `analytics-api` + `ingestor` + `pandemic-simulator` healthy | The full write + read pipeline must be established before data can flow through it. `safezone-worker` is also part of this phase but is not health-gated. |
 | **3.5 Smoke Test** | `safezone-ops` (smoke values) | Job completion (hard gate) | Runs the `szcli` data-path test through the full pipeline once it is up. Its cleanup truncates `covid_cases`, so it runs before the case data lands. |
-| **4. Seed Cases** | `safezone-seed` (cases values) | Job completion | Historical case data is injected through the live ingestor pipeline; the pipeline must already be running. |
+| **4. Seed Cases** | `safezone-ops` (cases values) | Job completion | Historical case data is injected through the live ingestor pipeline; the pipeline must already be running. |
 | **5. UI** | `safezone-ui` | `dashboard` healthy | User-facing layer starts only when the backend data pipeline is ready. |
-| **6. Scheduler** *(staging only)* | `safezone-seed` (cronjob values) | — | Production-cadence data scheduling is not needed in preview environments. |
+| **6. Scheduler** *(staging only)* | `safezone-ops` (cronjob values) | — | Production-cadence data scheduling is not needed in preview environments. |
 
 > **Operational note**: The `skip_seeding` flag on `init-deploy.yml` bypasses Phases 2, 3.5 and 4. Use this for re-deploys where the schema and dataset are already in place.
 
@@ -87,15 +87,16 @@ SafeZone uses separate umbrella charts per phase rather than a single monolithic
 
 ---
 
-## `safezone-seed` Multi-Mode Deployment
+## `safezone-ops` Multi-Mode Deployment
 
-The same `safezone-seed` chart is deployed twice in each pipeline run, with different values files.
+The same `safezone-ops` chart is deployed three times in each pipeline run, with different values files.
 
 *   **Phase 2 (schema)**: Runs a one-time DDL migration Job. Must complete before Core starts.
+*   **Phase 3.5 (smoke)**: Runs the `szcli` data-path test through the running pipeline. Must run before Phase 4, whose data its cleanup would remove.
 *   **Phase 4 (cases)**: Injects historical case data through the live ingestor pipeline. Must run after Core, because data flows through the running services.
 *   **Phase 6 (cronjob, staging only)**: The same chart rendered as a CronJob for production-cadence scheduling. Preview environments skip this entirely.
-*   **Rationale**: Merging both seed phases into one would require either running schema migration after core (unsafe) or blocking data injection until before core (impossible — the pipeline isn't running yet). The split is the only topologically valid ordering. Reusing the same chart for all three modes keeps the deployment surface minimal.
-*   **Why one chart covers all three**: `safezone-seed` handles every data lifecycle task by wrapping [`szcli`](safechord.safezone.toolkit.cli.md) commands as K8s Jobs or CronJobs. Because `szcli` is the system's unified control plane for all operational actions (db init, simulation, scheduling), the chart needs no custom logic of its own — changing the values file changes which `szcli` command runs and in what workload type.
+*   **Rationale**: Merging both seed phases into one would require either running schema migration after core (unsafe) or blocking data injection until before core (impossible — the pipeline isn't running yet). The split is the only topologically valid ordering. Reusing the same chart for all four modes keeps the deployment surface minimal.
+*   **Why one chart covers all four**: `safezone-ops` handles every data lifecycle task by wrapping [`szcli`](safechord.safezone.toolkit.cli.md) commands as K8s Jobs or CronJobs. Because `szcli` is the system's unified control plane for all operational actions (db init, simulation, scheduling), the chart needs no custom logic of its own — changing the values file changes which `szcli` command runs and in what workload type.
 
 ---
 
