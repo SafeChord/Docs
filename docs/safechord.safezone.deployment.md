@@ -77,7 +77,7 @@ Services have hard DAG dependencies. Deployment is orchestrated as sequential ph
 
 ---
 
-## ADR: Tiered Umbrella Chart Strategy
+## Tiered Umbrella Chart Strategy
 
 SafeZone uses separate umbrella charts per phase rather than a single monolithic chart.
 
@@ -86,7 +86,7 @@ SafeZone uses separate umbrella charts per phase rather than a single monolithic
 
 ---
 
-## ADR: `safezone-seed` Multi-Mode Deployment
+## `safezone-seed` Multi-Mode Deployment
 
 The same `safezone-seed` chart is deployed twice in each pipeline run, with different values files.
 
@@ -98,7 +98,7 @@ The same `safezone-seed` chart is deployed twice in each pipeline run, with diff
 
 ---
 
-## ADR: KEDA as Cross-Border Write Buffer
+## KEDA as Cross-Border Write Buffer
 
 The `safezone-worker` service uses KEDA to auto-scale based on Kafka consumer lag.
 
