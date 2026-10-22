@@ -17,7 +17,7 @@ This document defines three environment tiers and their interactions with the Ch
 | Feature | 🟢 Level 1: Local | 🟡 Level 2: Preview | 🔴 Level 3: Staging |
 | :--- | :--- | :--- | :--- |
 | **Positioning** | **Developer Experience (DX)** | **Isolation & Validation** | **Stability & Delivery** |
-| **Primary Goal** | Rapid iteration, hot-reloading, and debugging. | Independent PR sandboxing without data pollution. | **Soak Testing** and technical showcases. |
+| **Primary Goal** | Rapid iteration, hot-reloading, and debugging. | In-cluster validation of a release candidate without data pollution. | **Soak Testing** and technical showcases. |
 | **Infra Source** | **SafeZone** (Ad-hoc) | **SafeZone-Deploy** (Degraded infra) | **Chorde PaaS** (Shared SaaS) |
 | **Config Source** | `SafeZone/docker-compose/` | `SafeZone-Deploy/deploy/preview/` | `SafeZone-Deploy/deploy/staging/` |
 | **Config Type** | Docker Compose | ArgoCD Application (with Helm Chart) | ArgoCD Application (with Helm Chart) |
@@ -26,8 +26,6 @@ This document defines three environment tiers and their interactions with the Ch
 
 > **Note**: The first segment of the Config Source represents the repository name (e.g., `SafeZone`).
 > **Deployment Workflow**: Preview and Staging deployments are orchestrated via GitHub Actions. Specifically, Actions workflows (referencing `SafeZone-Deploy/.github/workflows/init-deploy.yml`) are manually triggered to execute `kubectl apply` on ArgoCD Application manifests. ArgoCD then reconciles these manifests to synchronize the underlying Helm charts with the cluster.
->
-> **Architectural Choice**: We use **GitHub Actions** for orchestration instead of **ArgoCD Sync Waves** to enforce strict sequential dependency control. This prevents race conditions during initialization by ensuring complex Jobs (e.g., DB provisioning) are fully completed before subsequent phases begin—a level of execution locking that native Waves/Hooks cannot reliably guarantee.
 
 ---
 
@@ -51,13 +49,13 @@ docker compose --profile infra up -d
 ## 🟡 Level 2: Preview Sandbox (The Isolated Buffer)
 > *"A temporary isolation zone built for testing."*
 
-This is the **heart of CI/CD**. To prevent parallel PRs from interfering with each other or polluting Staging with test data, the Preview environment adopts a **"Self-Contained"** isolation strategy, supplemented by shared resource mechanisms where necessary.
+This is the **heart of CI/CD**. To keep a release candidate's validation from polluting Staging with test data, the Preview environment adopts a **"Self-Contained"** isolation strategy, supplemented by shared resource mechanisms where necessary.
 
 ### 1. Downgrade & Isolation Strategy
 Preview environments are installed via GitHub Actions using manifests in the `infra` path, deploying a "lightweight" suite within an independent namespace:
 *   **Ephemeral Infra**: Uses CNPG to deploy a single Primary cluster without read-write separation. Valkey is deployed with `emptyDir` for faster restarts.
 *   **Shared Kafka Cluster**: Since Kafka is resource-intensive, Preview environments share a platform-level Kafka cluster but maintain logical isolation via the `preview.` topic prefix.
-*   **Disposable Namespaces**: The entire environment is destroyed immediately after a PR is merged or closed.
+*   **Disposable Namespaces**: The entire environment is torn down once its candidate is validated ([Delivery](safechord.kdd.practice.delivery.md) B8).
 
 ### 2. Configuration Management
 All Preview-specific configurations (e.g., disabling persistence, connecting to shared Kafka) are encapsulated within `SafeZone-Deploy/deploy/preview/infra`. This ensures core logic remains identical to production while significantly reducing operational costs.

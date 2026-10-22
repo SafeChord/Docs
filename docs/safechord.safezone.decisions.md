@@ -24,7 +24,9 @@ code_paths: []
 *   **Pointing at requirements.** `Affects` lists the requirement IDs the decision shapes.
     Blueprints do not point back.
 *   **Imported entries.** ADR-001 to ADR-021 were moved here from the service blueprints on
-    2026-10-07 with their original wording and version labels.
+    2026-10-07 with their original wording and version labels. Their version labels are the
+    blueprints' and were not checked against the release: ADR-014's migration shipped in
+    v0.2.1.
 
 ---
 

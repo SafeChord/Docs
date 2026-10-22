@@ -70,7 +70,7 @@ This document provides a semantic version navigation for the SafeZone applicatio
 
 ### 🚀 Optimization
 *   **Franz-Go Migration**: Switched Kafka client from `segmentio/kafka-go` to `twmb/franz-go` for KRaft support and better performance.
-*   **Manual Offset Management**: Disabled auto-commits in the Go Worker to ensure "At-least-once" delivery semantics.
+*   **Manual Offset Management**: Disabled auto-commits in the Go Worker.
 *   **Partitioning Logic**: Implemented "Natural Key" partitioning (city-region) to guarantee regional data ordering.
 
 ---

@@ -64,7 +64,7 @@ SafeChord utilizes a **Decoupled 4-Layer** architecture. Choose your reading pat
 
     *   🟨 **Deployment Layer (Repo: SafeZone-Deploy)**
         *   *Focus: Configuration, Helm, GitOps CD*
-        *   [📄 safechord.safezone.deployment.md](safechord.safezone.deployment.md) ⭐ (Deployment Architecture & Global ADRs)
+        *   [📄 safechord.safezone.deployment.md](safechord.safezone.deployment.md) ⭐ (Deployment Architecture)
 
     *   🟥 **Infrastructure Layer (Repo: Chorde)**
         *   *Focus: Kubernetes, Platform Operators, Scheduling*
