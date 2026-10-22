@@ -19,19 +19,10 @@ The Time Server is the "Source of Truth" for temporal state within the SafeZone 
 
 ## 2. Core Logic: The Offset Algorithm
 
-System time is not stored as a static value. Instead, the Time Server calculates it dynamically on every request to ensure continuous progression even between manual updates.
+System time is not stored as a static value. Instead, the Time Server calculates it dynamically on every request to ensure continuous progression even between manual updates. It advances from the date an operator last set, at the set acceleration (1 by default).
 
-### 2.1 The Calculation Formula
-The current system time is derived from the following relationship stored in Redis:
-
-$$ SystemDate = MockDate + (CurrentTime - MockUpdateTime) \times Acceleration $$
-
-*   **MockDate**: The user-defined starting point.
-*   **MockUpdateTime**: The physical timestamp when the mock date was last set.
-*   **Acceleration**: The multiplier for time progression (Default is 1).
-
-### 2.2 Persistence & Midnight Sync
-*   **State Store**: Uses Redis to ensure that time settings survive Pod restarts.
+### 2.1 Persistence & Midnight Sync
+*   **Persistence**: Time settings survive Pod restarts.
 *   **Midnight Alignment**: To prevent conflicts with daily maintenance tasks, the baseline offset is designed to align with physical midnight rollovers when appropriate, ensuring virtual dates transition naturally alongside physical days.
 
 ## 3. System Integration & Observability

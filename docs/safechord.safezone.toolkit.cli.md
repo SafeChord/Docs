@@ -21,19 +21,17 @@ The SafeZone CLI (`szcli`) is the primary interface for system orchestration. It
 
 Unlike standard microservices, `szcli` is divided into three functional layers:
 
-### 2.1 The Client (`command/`)
-*   **Tech**: Typer + Rich.
+### 2.1 The Client
 *   **Role**: Handles user input, command-line arguments, and terminal rendering.
 *   **Auth**: Manages **Headless Google OAuth**. It automatically handles Token Refresh logic to obtain valid ID Tokens for the Relay.
 *   **Traceability**: Acts as the **Trace ID Genesis**. Every single `szcli` execution generates a new `uuid4` as the `trace_id`, which is injected into all logs and forwarded to the Relay via `X-Trace-ID` headers.
 
-### 2.2 The Relay (`relay/`)
-*   **Tech**: FastAPI.
+### 2.2 The Relay
 *   **Role**: A trusted proxy running inside the Kubernetes cluster.
 *   **Security**: Verifies the Client's Google ID Token and enforces a whitelist-based RBAC.
 *   **Execution**: Translates authorized HTTP requests into direct operations on internal databases and services.
 
-### 2.3 The Smoke Test Engine (`ops/`)
+### 2.3 The Smoke Test Engine
 *   **Logic**: Replaces complex Bash/JQ scripts with a Python-based execution engine.
 *   **Mechanism**: Performs sequential assertions with smart polling to handle eventual consistency. For the detailed list of test case paradigms, refer to the [CLI Command Reference](safechord.safezone.toolkit.cli.reference.md).
 
