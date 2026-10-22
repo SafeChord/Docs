@@ -33,7 +33,8 @@ SafeChord 採用**解耦四層**架構。請根據您的角色與目標選擇閱
     *   ⬜ **知識層（Repo: Docs）**
         *   *焦點：KDD 方法論、標準、SSOT*
         *   [📄 safechord.kdd.introduction.md](safechord.kdd.introduction.md)（KDD 哲學介紹）
-        *   [📄 safechord.kdd.practice.md](safechord.kdd.practice.md) ⭐（實務：三引擎模型與 Headless 協定）
+        *   [📄 safechord.kdd.practice.md](safechord.kdd.practice.md) ⭐（實務：模式、共用協定與範本）
+            *   [📄 safechord.kdd.practice.development.md](safechord.kdd.practice.development.md)（開發：雙引擎模型、雙軌流程與審查）
 
     *   🟦 **應用層（Repo: SafeZone）**
         *   *焦點：原始碼、業務邏輯、AsyncIO 資料流*

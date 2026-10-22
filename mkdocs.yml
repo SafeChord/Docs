@@ -75,7 +75,9 @@ nav:
   - Security: safechord.security.md
   - Methodology (KDD):
       - Introduction: safechord.kdd.introduction.md
-      - Practice: safechord.kdd.practice.md
+      - Practice:
+          - Overview: safechord.kdd.practice.md
+          - Development: safechord.kdd.practice.development.md
       - ChangeLog: safechord.kdd.changelog.md
 
 markdown_extensions:

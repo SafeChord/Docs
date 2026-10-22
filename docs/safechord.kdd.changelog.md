@@ -27,7 +27,7 @@ files, two repositories, and a conversation that produced neither.
 **On the version settling, not on the change.** While a version carries an adjustment
 notice it is amended a few lines at a time, and an entry per amendment would turn this file
 into a churn log. Until the notice comes down, the reasoning lives in the drafts under
-`.ai-session-drafts/` and in `git log -- docs/safechord.kdd.practice.md`.
+`.ai-session-drafts/` and in `git log -- 'docs/safechord.kdd.practice*.md'`.
 
 ---
 

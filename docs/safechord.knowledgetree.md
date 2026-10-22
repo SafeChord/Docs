@@ -39,7 +39,8 @@ SafeChord utilizes a **Decoupled 4-Layer** architecture. Choose your reading pat
     *   ⬜ **Knowledge Layer (Repo: Docs)**
         *   *Focus: KDD Methodology, Standards, SSOT*
         *   [📄 safechord.kdd.introduction.md](safechord.kdd.introduction.md) (Introduction to KDD philosophy)
-        *   [📄 safechord.kdd.practice.md](safechord.kdd.practice.md) ⭐ (Practice: The Two-Engine Model, Seats & Protocols)
+        *   [📄 safechord.kdd.practice.md](safechord.kdd.practice.md) ⭐ (Practice: Modes, Shared Protocols & Templates)
+            *   [📄 safechord.kdd.practice.development.md](safechord.kdd.practice.development.md) (Development: The Two-Engine Model, Dual-Track Flow & Review)
         *   [📄 safechord.kdd.changelog.md](safechord.kdd.changelog.md) (🔄 Collaboration Model History & Superseded Designs)
 
     *   🟦 **Application Layer (Repo: SafeZone)**

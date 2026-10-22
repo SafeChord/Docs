@@ -14,7 +14,7 @@ diff 摘要不屬於這裡。git 已經按 commit 持有改動與其理由；ent
 
 ## 什麼時候寫 entry
 
-**在版本收斂時寫，不是在改動時寫。** 一個版本還掛著調整期告示的期間，它是一次幾行地被修補，每次修補都寫一則等於把這份文件變成 churn log。告示撤掉之前，理由留在 `.ai-session-drafts/` 底下的草稿，以及 `git log -- docs/safechord.kdd.practice.md` 裡。
+**在版本收斂時寫，不是在改動時寫。** 一個版本還掛著調整期告示的期間，它是一次幾行地被修補，每次修補都寫一則等於把這份文件變成 churn log。告示撤掉之前，理由留在 `.ai-session-drafts/` 底下的草稿，以及 `git log -- 'docs/safechord.kdd.practice*.md'` 裡。
 
 ---
 
