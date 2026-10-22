@@ -55,21 +55,21 @@ Alertmanager routes firing alerts to Slack (`#k3han-error-notification`) and app
 
 ---
 
-## 4. Key Architectural Decisions (ADR)
+## 4. Key Architectural Decisions
 
-### ADR-001: Minimal Monitoring on Gateway Nodes
+### Minimal Monitoring on Gateway Nodes
 *   **Decision**: Strictly use Fluent-bit on `chorde.io/tier: low` nodes.
 *   **Rationale**: Protecting the Ingress path is the highest priority. Alloy's resource footprint is too high for this specific tier.
 
-### ADR-002: S3-Backed Log Persistence
+### S3-Backed Log Persistence
 *   **Decision**: Abandon local PVs for logs in favor of Cloud Object Storage.
 *   **Rationale**: Decouples log availability from Home Lab uptime and prevents "Disk Full" scenarios from crashing edge nodes.
 
-### ADR-003: Slack Alert Silence Policy
+### Slack Alert Silence Policy
 *   **Decision**: Mute K3s internal service alerts (`KubeProxy*`, `TargetDown` in control namespaces).
 *   **Rationale**: Reduces alert noise caused by K3s's unique binary structure, focusing on actual application failures.
 
-### ADR-004: Alloy Drop-Old Gate
+### Alloy Drop-Old Gate
 *   **Decision**: Drop log entries older than 7 days in Alloy's processing pipeline before forwarding to Loki.
 *   **Rationale**: `acer-agent` may go offline for extended periods (power/ISP). On restart, without this gate, Alloy would replay all buffered logs and overwhelm Loki ingest.
 
