@@ -4,7 +4,7 @@
 #   move-align-last.sh <head branch>
 #
 # The incremental alignment skill names a default-range run's branch docs/align-<S>, S being the
-# commit the run started from; a run over a range given by hand is docs/align-range-<S> and moves
+# commit the run started from; a run over a range given by hand is docs/align-range-<S>-<end> and moves
 # nothing. The tag goes to S, not to the merge commit: commits that reached main while the PR was
 # open have not been checked. A tag already at or past S stays where it is.
 # Run in a full clone (fetch-depth: 0) whose origin it can push to.
