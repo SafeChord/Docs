@@ -12,7 +12,7 @@ code_paths:
 > **Status**: canonical (formal). Reconciled into `Docs/` as the single source of truth.
 > **Scope**: end-to-end delivery across `SafeZone` (App) + `SafeZone-Deploy` (Deploy).
 > **Run-tested**: `v0.3.6` shipped + promoted to staging (soaking since 2026-06-15) under the **prior 4-phase, in-place** model.
-> **Decision owner**: bradyhau (Architect) · **Author**: Claude Code (Pioneer). Flow + responses reviewed by Gemini (Settler).
+> **Decision owner**: bradyhau (Architect).
 
 ```mermaid
 graph TD
