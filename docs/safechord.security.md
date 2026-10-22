@@ -19,7 +19,7 @@ We employ a **GitOps-native** secret management strategy, addressing the challen
 ### Core Technology: SealedSecrets
 We use Bitnami **SealedSecrets** to implement asymmetric encryption, ensuring that secrets are only decryptable within the target Kubernetes cluster:
 *   **Workflow**: Developers encrypt secrets locally; ArgoCD synchronizes the encrypted `SealedSecret` manifests; the cluster-side controller decrypts them into standard Kubernetes `Secrets` at runtime.
-*   **Dependency Management**: We use `argocd.argoproj.io/sync-wave: "-1"` to ensure all secrets are ready before the application starts.
+*   **Dependency Management**: Each sealed secret carries `argocd.argoproj.io/sync-wave: "-1"`, a resource's wave inside its Application, so the secrets are ready before the workloads beside them start.
 
 ---
 
