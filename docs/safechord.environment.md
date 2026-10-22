@@ -19,7 +19,7 @@ This document defines three environment tiers and their interactions with the Ch
 | **Positioning** | **Developer Experience (DX)** | **Isolation & Validation** | **Stability & Delivery** |
 | **Primary Goal** | Rapid iteration, hot-reloading, and debugging. | Independent PR sandboxing without data pollution. | **Soak Testing** and technical showcases. |
 | **Infra Source** | **SafeZone** (Ad-hoc) | **SafeZone-Deploy** (Degraded infra) | **Chorde PaaS** (Shared SaaS) |
-| **Config Source** | `SafeZone/docker-compose/` | `SafeZone-Deploy/deploy/preview/` | `Chorde/gitops/` |
+| **Config Source** | `SafeZone/docker-compose/` | `SafeZone-Deploy/deploy/preview/` | `SafeZone-Deploy/deploy/staging/` |
 | **Config Type** | Docker Compose | ArgoCD Application (with Helm Chart) | ArgoCD Application (with Helm Chart) |
 | **Persistence** | Bind Mounts (Resettable) | **Ephemeral** (EmptyDir/Temporary) | **Persistent** (PVC / Cloud Volumes / AWS S3) |
 | **Deployment** | `docker compose up` | GitHub Actions (via kubectl) | GitHub Actions (via kubectl) |
@@ -88,7 +88,7 @@ To ensure system stability during environment transitions, we follow the princip
 
 *   **Local (Compose)**: Consult `.yml` and `.env` files in `SafeZone/docker-compose/`.
 *   **Preview (CI)**: Consult Kustomize patches and manifests in `SafeZone-Deploy/deploy/preview/`.
-*   **Staging (Platform)**: Consult Helm values and ArgoCD configs in `Chorde/gitops/`.
+*   **Staging (Platform)**: Consult the Helm values and ArgoCD Applications in `SafeZone-Deploy/deploy/staging/`; the platform services it plugs into are in `Chorde/gitops/`.
 
 ### Service Discovery Mechanism
 *   **Internal Communication**: Prioritize K8s internal Service Names (`<svc-name>`) for inter-service calls.
