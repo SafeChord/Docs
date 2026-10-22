@@ -68,7 +68,7 @@ Services have hard DAG dependencies. Deployment is orchestrated as sequential ph
 | :--- | :--- | :--- | :--- |
 | **1. Foundation** | `safezone-foundation` | `cli-relay` + `time-server` healthy | All services depend on connection strings and synchronized time state. `time-server` is the system-wide time SSOT — it controls the clock all services read from, and can simulate arbitrary dates for testing. |
 | **2. Seed Schema** | `safezone-seed` (schema values) | Job completion | Core services will CrashLoop on missing DB schema. DDL migration must complete first. |
-| **3. Core** | `safezone-core` | `analytics-api` + `ingestor` + `pandemic-simulator` healthy | The full write + read pipeline must be established before data can flow through it. `safezone-worker` is also part of this phase but is not health-gated — it is a pure Kafka-to-DB writer (no API interface, no health endpoint to probe against). |
+| **3. Core** | `safezone-core` | `analytics-api` + `ingestor` + `pandemic-simulator` healthy | The full write + read pipeline must be established before data can flow through it. `safezone-worker` is also part of this phase but is not health-gated. |
 | **4. Seed Cases** | `safezone-seed` (cases values) | Job completion | Historical case data is injected through the live ingestor pipeline; the pipeline must already be running. |
 | **5. UI** | `safezone-ui` | `dashboard` healthy | User-facing layer starts only when the backend data pipeline is ready. |
 | **6. Scheduler** *(staging only)* | `safezone-seed` (cronjob values) | — | Production-cadence data scheduling is not needed in preview environments. |
