@@ -21,7 +21,7 @@ This document defines three environment tiers and their interactions with the Ch
 | **Infra Source** | **SafeZone** (Ad-hoc) | **SafeZone-Deploy** (Degraded infra) | **Chorde PaaS** (Shared SaaS) |
 | **Config Source** | `SafeZone/docker-compose/` | `SafeZone-Deploy/deploy/preview/` | `SafeZone-Deploy/deploy/staging/` |
 | **Config Type** | Docker Compose | ArgoCD Application (with Helm Chart) | ArgoCD Application (with Helm Chart) |
-| **Persistence** | Bind Mounts (Resettable) | **Ephemeral** (EmptyDir/Temporary) | **Persistent** (PVC / Cloud Volumes / AWS S3) |
+| **Persistence** | Bind Mounts (Resettable) | **Ephemeral** (EmptyDir/Temporary) | **Persistent** (node-local PVs; AWS S3 for logs) |
 | **Deployment** | `docker compose up` | GitHub Actions (via kubectl) | GitHub Actions (via kubectl) |
 
 > **Note**: The first segment of the Config Source represents the repository name (e.g., `SafeZone`).
@@ -76,7 +76,7 @@ The strategic purpose of Staging is:
 
 ### 2. Chorde SaaS Integration
 In Staging, SafeZone no longer manages its own foundational infra. Instead, it connects to platform-grade services managed by the **Chorde** operations team via `ExternalName` or connection strings:
-*   **PostgreSQL**: Connects to a physically separated, monitored DB cluster with full backup policies.
+*   **PostgreSQL**: Connects to a physically separated, monitored DB cluster.
 *   **Kafka**: Plugs into the shared message bus managed by the Strimzi Operator.
 *   **Valkey**: Utilizes platform-level state storage and app-managed caching.
 
