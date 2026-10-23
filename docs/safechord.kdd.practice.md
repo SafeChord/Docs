@@ -1,6 +1,6 @@
 ---
 title: 'KDD 2.0: Practice'
-last_updated: '2026-10-22'
+last_updated: '2026-10-23'
 status: active
 doc_version: 0.4.0
 archetype: script
@@ -8,6 +8,10 @@ code_paths: []
 ---
 
 # KDD 2.0 Practice
+
+> **Type**: Script (the interface every mode page implements)
+> **Focus**: Which mode a session is in, what holds in every mode, what each mode page must declare, and the protocols and templates the modes share.
+> **Constraint**: No mode's own flow: it is on that mode's page. No standing task's own rules: they are on its page. How a step is carried out lives in the skill or script that runs it (§1.2). The reasons the model took its shape are in the [KDD changelog](safechord.kdd.changelog.md).
 
 > **⚙️ This document is in an adjustment period.** The two-engine seating, the ticket lifecycle, and the templates in §4 were all introduced in v0.4.0 and have not yet been through a full cycle. Expect rough edges.
 >
@@ -17,14 +21,14 @@ code_paths: []
 
 ## Modes {#modes}
 
-SafeChord uses agents in several modes, told apart by what the work is and where the human stands. The protocols in §2 and the templates in §4 are shared by every mode; a mode's own seats and flow are on the page the table names.
+SafeChord uses agents in several modes, told apart by what the work is and where the human stands. Each mode has a page of its own, which declares what §2 requires and inherits the rest of this page.
 
-| Mode | What it covers | Where the human stands | How the agents work | Defined in |
-| :--- | :--- | :--- | :--- | :--- |
-| Discussion | Work with no ticket yet, and work on `Docs/` and the harness, which commit straight to `main` (an [alignment](#internal-alignment) run is the exception: it lands through a PR) | Present throughout, deciding together | One agent in conversation with the human; the outcome is a ticket, a design draft, or a change to `Docs/` or the harness | This document |
-| Development | A code change that lands in SafeZone, SafeZone-Deploy or Chorde through a branch, a PR and a merge, on a ticket labelled `kdd:forward` or `kdd:spike` | The last gatekeeper, looking once before merge | Two seats that check each other | [Development](safechord.kdd.practice.development.md) |
-| Delivery | Cutting, validating and promoting a SafeZone release: a phase or route of the delivery workflow | Present throughout, signing off every gate | One agent working with the human | [Delivery](safechord.kdd.practice.delivery.md) |
-| Operations | Not yet defined | Not yet defined | Not yet defined | — |
+| Mode | What it covers | Where the human stands | Page |
+| :--- | :--- | :--- | :--- |
+| Discussion | Work with no ticket yet, and work that lands in `Docs/` or the harness | Present throughout, deciding together | [Discussion](safechord.kdd.practice.discussion.md) |
+| Development | A code change that lands in SafeZone, SafeZone-Deploy or Chorde through a branch, a PR and a merge, on a ticket labelled `kdd:forward` or `kdd:spike` | The last gatekeeper, looking once before merge | [Development](safechord.kdd.practice.development.md) |
+| Delivery | Cutting, validating and promoting a SafeZone release: a phase or route of the delivery workflow | Present throughout, signing off every gate | [Delivery](safechord.kdd.practice.delivery.md) |
+| Operations | Running the deployed system: SRE work on the live platform | Not yet defined | — |
 
 ### Finding your mode {#finding-your-mode}
 
@@ -36,48 +40,82 @@ A session judges its own mode against the descriptions above; no rule maps a tic
 - **The mode changes with the work.** Opening or picking up a ticket is where it usually changes; state the new mode then.
 - **A session started by a script** (`pioneer-dispatch`, a CI job) takes its mode and seat from the prompt that started it, and does not judge.
 
-### Sessions and seats {#sessions-and-seats}
+### Standing tasks {#standing-tasks}
+
+A standing task is work that no ticket and no mode owns. It runs under the mode and seat of the session that starts it ([Sessions and seats](#sessions-and-seats)). Its page states why it exists, what it covers, what it takes as right, and how its changes land.
+
+| Task | What it keeps | Page |
+| :--- | :--- | :--- |
+| Internal alignment | `Docs/` consistent with itself | [Internal Alignment](safechord.kdd.alignment.md) |
+
+---
+
+## 1. What Holds in Every Mode {#1-what-holds-in-every-mode}
+
+A mode page may add to this section, never contradict it. A rule that some mode has to contradict does not belong here: it moves down to the pages where it holds.
+
+### 1.1 Sessions and seats {#sessions-and-seats}
 
 - A mode that has seats defines them on its page, with how long a session holds one. A session that enters such a mode takes the seat its work there needs.
 - Whatever reports back to the session that started it, such as a subagent or a tool run, works under that session's mode and seat and holds none of its own.
 - Where a template asks for a seat, a session in a mode without seats gives its mode instead (`Agent: Discussion`).
 
-### Internal alignment {#internal-alignment}
+### 1.2 Layers {#layers}
 
-Keeping `Docs/` consistent with itself is a standing task, outside any ticket: a ticket's reconciliation updates the pages that ticket touches, and nothing else looks for the other pages that restate a fact it changed.
+Four kinds of file carry the practice. Each holds one kind of fact, so that a fact has one home.
 
-- **Page against page only.** Alignment compares en pages with each other and with the rules in `Docs/.ai-rules.md`, and reads the code only to settle a conflict between pages. Drift between Docs and the code makes no Docs commit, so alignment cannot find it; it stays with a ticket's reconciliation ([Development](safechord.kdd.practice.development.md)) and the release ([Delivery](safechord.kdd.practice.delivery.md)). zh pages trail en and are brought up to date on their own (`Docs/.ai-rules.md` §2.3).
-- **Two skills**, in the harness `.claude/skills/`, told apart by what they take as right:
-  - `align-incremental` covers the Docs commits since `align/last`. The diff is taken as correct, since a ticket or a decision stands behind it, and is propagated to every en page that restates what it changed. When the diff contradicts the decision log or a requirement, the run stops and asks. It runs as a background subagent of the session that starts it, under that session's mode and seat.
-  - `align-full` covers every en page, when the human asks. A newer page is not therefore right. It settles a conflict by Docs first (a decision still accepted, a requirement, a rule, a changelog entry recording the change), then, for a fact the code owns, by the code as it stands, and fixes what either settles; it lists every other conflict in its PR, for the human to tick.
-- **`align/last`** is a tag on the Docs repo: the commit up to which Docs has been aligned. An incremental run moves it to the commit the run started from, not to the merge commit, since commits that reached `main` while its PR was open have not been checked: the Docs workflow moves it when the run's PR merges, and a run with nothing to propagate moves it itself. A run over a range given by hand moves nothing.
-- **When a run is due**: a hook in the harness (`scripts/align-trigger.sh`, registered in `.claude/settings.json`) runs after every Bash call of a Claude Code session. When the call pushed Docs `main` and the commits `align-incremental` takes as input number N (10) or more since `align/last`, it has that session start the skill. A push made elsewhere is taken up at the next push from a session, since the count runs from `align/last`.
-- **Landing**: an attended change goes straight to `main`; an alignment run lands through a PR, and the human's merge is the sign-off (`Docs/.ai-rules.md` §2.1).
+| Layer | Holds | Read by |
+| :--- | :--- | :--- |
+| KDD pages (`docs/safechord.kdd.*`) | What must hold, who decides, and why | The human and agents |
+| A repository's `.ai-rules.md` | How that repository applies the KDD pages: its commands, paths and page rules | Agents working in that repository |
+| Skills (`.claude/skills/` in the workspace harness) | How a step is carried out now: commands, file names, order, parameters | The agent that runs the skill |
+| Hooks, scripts, workflows and code | What runs whether or not an agent remembers it, and what the system actually does | — |
 
----
-
-## 1. The Two-Engine Model {#1-the-two-engine-model}
-
-Moved to [Development §1](safechord.kdd.practice.development.md#1-the-two-engine-model).
+- **What goes on a KDD page**: a sentence whose change would change a human's or another seat's judgment or action. Anything else belongs to the skill or script that carries it out.
+- **A repository's `.ai-rules.md` applies the KDD pages; it does not restate them.** It maps what a page requires onto that repository, and points at the page for the flow itself.
+- **The move is gradual.** A step that no skill carries yet is written on its mode page. Once a skill carries it, the page keeps only what the step must achieve. A rule that becomes checkable moves on into a hook or a script.
+- **In a conflict, the fact's home holds** and the restatement is fixed: the KDD page for what must hold and who decides, the repository's `.ai-rules.md` for how that repository applies it, the skill for how a step runs, the code for what the system does. A requirement test answers to its blueprint the same way ([Development §3.2](safechord.kdd.practice.development.md#32-handling-review-findings)). When the home itself looks wrong, stop and ask the human.
 
 ---
 
-## 2. Communication Interface & Protocols
+## 2. What a Mode Page Declares {#2-what-a-mode-page-declares}
+
+Every mode page opens with a **Mode Contract** that gives each member below, in this order. A page that leaves one out has not implemented its mode; an unknown is written as one (`Open decision`, `Not established`).
+
+| Member | What it says |
+| :--- | :--- |
+| **Work** | What work the mode covers, and what moves a session into it or out of it |
+| **Human** | Where the human stands, and which of the human's acts is the sign-off |
+| **Seats** | The seats, what each holds and how long a session holds one; or that the mode has none |
+| **Ends** | What ends a task in the mode. The handoffs the task produced are deleted then ([the handoff protocol](#the-handoff-protocol)) |
+| **Landing** | How the mode's changes reach `main`, and who may write to `Docs/` |
+| **Protocols** | Which protocols of §3 the mode uses, what it changes in each, and any protocol of its own |
+| **Carried by** | The skills and scripts that carry its steps, and the steps still written only on the page (§1.2) |
+
+**Changing a protocol.** A protocol the mode page does not mention applies as §3 writes it. A change is marked as one of two kinds:
+
+- **Extends** *protocol*: adds to it; everything §3 writes still holds.
+- **Overrides** *protocol*: replaces the part it names.
+
+Neither may contradict §1.
+
+---
+
+## 3. Shared Protocols {#3-shared-protocols}
 
 Standardized protocols carry information between agents and across sessions.
 
-### 🎫 The Ticket
+### 🎫 The Ticket {#the-ticket}
 A ticket is the head of any implementation, and the anchor everything else is traced back to.
 
 *   **Medium**: a GitHub issue in the repository the work lands in.
 *   **Purpose**: the basis for implementation. It is the grain that commits (too fine) and the project docs (end state only) both miss.
-*   **Weight**: a ticket is near-permanent, so it holds only what has trace value for a later reader: the problem, the decisions and their reasons, the scope, and Done When. Context that only aligns the seats for this task (inferred mechanisms, investigation detail, design suggestions, unverified items, implementation order) goes in the handoff. Done When lists only what can be verified before merge; what can be verified only after deployment belongs to a gate in the [delivery workflow](safechord.kdd.practice.delivery.md).
+*   **Weight**: a ticket is near-permanent, so it holds only what has trace value for a later reader: the problem, the decisions and their reasons, the scope, and Done When. Context that only aligns the seats for this task (inferred mechanisms, investigation detail, design suggestions, unverified items, implementation order) goes in the handoff. Done When lists only what can be verified before the work lands; a check that can run only after deployment belongs to a gate in the [delivery workflow](safechord.kdd.practice.delivery.md).
 *   **Done When states intent, not shape**: write what must hold of the result ("the logger's output is unchanged except for `worker_id`", "no assertion or test input changes"), not what the diff or the names look like ("field names are unchanged", "the diff touches only imports"). A condition written as a shape is met by the wrong change and broken by the right one, and contradicts the Scope the first time it allows a rename.
-*   **Freshness**: a ticket opened before the work starts is checked again before it does, against the blueprint and the code as they now stand. A reference to a section since rewritten, or a current state that later tickets have changed, is corrected on the ticket first.
-*   **Branch**: `<type>/issue-<issue_no>-<slug>`, `<type>` being the commit type of the change. The `refactor/` prefix is reserved for a ticket labelled `mode:refactor`, which the human and the Settler agree on when the ticket is opened: that prefix switches the agents' refactor mode on, under which structural integrity outranks minimal diff while the Scope still binds. A `type:refactor` ticket without the label is cut as `chore/`.
+*   **Freshness**: a ticket opened before the work starts is checked again before it does, against the pages and the code as they now stand. A reference to a section since rewritten, or a current state that later tickets have changed, is corrected on the ticket first.
 *   **Required Content**: [see template](#github-issue-template)
 
-### 🟢 Basic Communication: Git Commit Protocol
+### 🟢 Basic Communication: Git Commit Protocol {#the-commit}
 *   **Medium**: git
 *   **Purpose**: the fine-grained carrier during implementation.
 *   **Format**: strict [Conventional Commits](https://www.conventionalcommits.org/).
@@ -86,21 +124,14 @@ A ticket is the head of any implementation, and the anchor everything else is tr
 ### 🔴 The Handoff Protocol {#the-handoff-protocol}
 *   **Medium**: Markdown files stored in `.ai-session-handoffs/`.
 *   **Purpose**: the carrier across AI tool sessions. The counterparty may be the next session or another agent.
-*   **Example triggers**:
-    - Pioneer completes a spike or phase of development.
-    - An agent hits errors outside its operational scope.
-    - Human intervention calls for a handover (usually once context has grown long enough to degrade).
-*   **Between the seats**: development's three files are in [Development §2](safechord.kdd.practice.development.md#handoffs-between-the-seats).
-*   **Lifecycle**: a handoff lives with its task. Delete it once the PR is merged, the ticket is closed, and reconciliation has landed in `Docs/`; the harness git history keeps it recoverable.
+*   **Triggers**: reactive (a milestone is reached, the work is blocked, or the human asks for a handover) and deliberate (the context has grown long enough to degrade, and the session is ended on purpose so a fresh one can continue).
+*   **Lifecycle**: a handoff lives with its task. Delete it when the task ends, as the mode page defines the end (§2, **Ends**); the harness git history keeps it recoverable.
 *   **Linking**: the handoff points at the ticket, never the reverse. Anyone who can read a handoff can reach the ticket, but a ticket reader may not see the handoff, and a link on a permanent ticket would dangle once the handoff is deleted.
 *   **Naming**: when a ticket exists, the filename carries `<repo>-<issue_no>` in lowercase (e.g. `2026-09-19-safezone-64-worker-offset-commit.md`).
-*   **Resuming**: a session handed off on a reactive trigger can be resumed with the note's `Resume:` command, for example to fix review findings. A session handed off for context degradation is retired and not resumed.
+*   **Resuming**: a session handed off on a reactive trigger can be resumed with the note's `Resume:` command. A session handed off for context degradation is retired and not resumed.
 *   **Required Content**: [see template](#handoff-template)
 
-### 🟣 The Pull Request {#the-pull-request}
-Moved to [Development §2](safechord.kdd.practice.development.md#the-pull-request).
-
-### ⚪ Design Drafts
+### ⚪ Design Drafts {#design-drafts}
 *   **Medium**: Markdown files stored in `.ai-session-drafts/<domain>/`.
 *   **Purpose**: continuity for forward-looking discussion that does not touch the codebase directly. Usually precedes opening a ticket.
 *   **Domains**:
@@ -109,12 +140,6 @@ Moved to [Development §2](safechord.kdd.practice.development.md#the-pull-reques
     - `platform/` (networking, ingress, security, observability)
     - `app/` (SafeZone code: debugging and improvement)
 *   **Required Content**: [see template](#draft-template)
-
----
-
-## 3. Dual-Track Workflow: The KDD Balance {#3-dual-track-workflow}
-
-Moved to [Development §3](safechord.kdd.practice.development.md#3-dual-track-workflow), with its subsection numbers and ids unchanged.
 
 ---
 
@@ -132,13 +157,13 @@ Moved to [Development §3](safechord.kdd.practice.development.md#3-dual-track-wo
 ## Done When
 - [ ] [verifiable condition 1]
 - [ ] [verifiable condition 2]
-- [ ] Reconciliation complete (`kdd:spike`: or confirmed with the human that none is needed)
+- [ ] Reconciliation complete (or confirmed with the human that none is needed)
 
 ## References
-- Blueprint: [`kdd:forward` only — link to the Docs/ page]
+- [the pages, drafts or tickets this one builds on]
 ```
 
-The reconciliation item is the one Done When ticked after merge: it is the last step of the flow, not a condition the PR can show.
+The reconciliation item is the one Done When ticked after the work lands: it is the last step of the flow, not a condition the change itself can show.
 
 ### 🟢 Git Commit Template {#git-commit-template}
 ```text
@@ -151,7 +176,7 @@ Describe the impact on project architecture or long-term decisions.
 Context: [Ticket ID, or link to the Blueprint]
 Impact: [Specific impact on API contracts or infra]
 Test: [Verification executed] (e.g., make test-data-ingestor)
-Agent: [Pioneer / Settler / Settler (review fix) / Settler (requirement test), or the mode where it has no seats]
+Agent: [the seat, with a qualifier where its mode page defines one, or the mode where it has no seats]
 Legacy: [Pending issues for the next agent]
 ```
 
@@ -188,8 +213,6 @@ Legacy: [Pending issues for the next agent]
 1. [Specific Instruction 1]
 2. [Specific Instruction 2]
 ```
-
-Development's templates, for the handoffs between the seats and for the pull request, are in [Development §4](safechord.kdd.practice.development.md#4-development-templates).
 
 ### ⚪ Draft Template {#draft-template}
 ```markdown

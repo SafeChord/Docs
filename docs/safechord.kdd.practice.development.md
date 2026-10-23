@@ -1,6 +1,6 @@
 ---
 title: 'KDD 2.0: Development'
-last_updated: '2026-10-22'
+last_updated: '2026-10-23'
 status: active
 doc_version: 0.4.0
 archetype: script
@@ -9,7 +9,9 @@ code_paths: []
 
 # KDD 2.0 Practice: Two-Engine Development
 
-SafeChord development runs on a **"Two-Engine"** model: a Pioneer seat for implementation and a Settler seat for review and solidification.
+> **Type**: Script (a mode page: implements the [practice](safechord.kdd.practice.md) §2)
+> **Focus**: How a code change gets from a ticket to a merge on the **"Two-Engine"** model: a Pioneer seat for implementation and a Settler seat for review and solidification.
+> **Constraint**: Nothing every mode shares: it is in the practice. How to dispatch and review is in the `pioneer-dispatch` skill, and how to write the PR body in the `pr-body` skill (`.claude/skills/` in the workspace harness).
 
 > **⚙️ This document is in an adjustment period.** The two-engine seating, the ticket lifecycle, and the templates in §4 were all introduced in v0.4.0 and have not yet been through a full cycle. Expect rough edges.
 >
@@ -17,7 +19,15 @@ SafeChord development runs on a **"Two-Engine"** model: a Pioneer seat for imple
 >
 > **Do not bump `doc_version` while this notice stands.** The document holds at v0.4.0 until the adjustment period closes. Edits land under `last_updated` alone.
 
-This page holds what belongs to the development mode alone. The protocols and templates every mode shares (the ticket, the commit, the handoff, the draft) are in the [practice](safechord.kdd.practice.md). The seats in §1 and the flow in §3 end at merge and ticket close.
+## Mode Contract {#mode-contract}
+
+- **Work**: a code change that lands in SafeZone, SafeZone-Deploy or Chorde through a branch, a PR and a merge, on a ticket labelled `kdd:forward` or `kdd:spike`. A session moves into this mode when it picks up such a ticket.
+- **Human**: the last gatekeeper, looking once before merge; the merge is the sign-off. Under `exec:settler` the human is also the only reviewer (§3.3).
+- **Seats**: the Pioneer and the Settler, each held for a session's lifetime (§1).
+- **Ends**: when the ticket closes, after merge and reconciliation (§3.1, Solidification).
+- **Landing**: through the ticket's branch, a PR and the human's merge. `Docs/` belongs to the Settler; the Pioneer is read-only there (§1).
+- **Protocols**: **extends** the ticket, the commit and the handoff (§2). Its own: the pull request (§2).
+- **Carried by**: `pioneer-dispatch` (dispatch and review, §3.1 step 3) and `pr-body` (the PR). Written only on this page: the requirement tests (§3.1), Solidification (§3.1), review findings (§3.2) and `exec:settler` (§3.3).
 
 ---
 
@@ -42,8 +52,17 @@ This page holds what belongs to the development mode alone. The protocols and te
 
 ## 2. Development Protocols {#2-development-protocols}
 
+### 🎫 The Ticket {#the-ticket}
+**Extends** [the ticket](safechord.kdd.practice.md#the-ticket):
+
+*   **Branch**: `<type>/issue-<issue_no>-<slug>`, `<type>` being the commit type of the change. The `refactor/` prefix is reserved for a ticket labelled `mode:refactor`, which the human and the Settler agree on when the ticket is opened: that prefix switches the agents' refactor mode on, under which structural integrity outranks minimal diff while the Scope still binds. A `type:refactor` ticket without the label is cut as `chore/`.
+*   **Reconciliation**: only a `kdd:spike` ticket may have its reconciliation item confirmed as not needed. A `kdd:forward` ticket's References link its blueprint (`- Blueprint: [link to the Docs/ page]`).
+
+### 🟢 The Commit {#the-commit}
+**Extends** [the commit](safechord.kdd.practice.md#the-commit): `Agent:` is `Pioneer`, `Settler`, `Settler (review fix)` ([§3.2](#32-handling-review-findings)) or `Settler (requirement test)` ([§3.1](#writing-the-requirement-tests), [§3.2](#32-handling-review-findings)).
+
 ### 🔴 Handoffs Between the Seats {#handoffs-between-the-seats}
-The [handoff protocol](safechord.kdd.practice.md#the-handoff-protocol) applies to every handoff. Between the seats it adds:
+**Extends** [the handoff protocol](safechord.kdd.practice.md#the-handoff-protocol). Between the seats it adds:
 
 *   **Between the seats**: one ticket's back-and-forth uses at most three files, each with a single author.
     - `kickoff` (Settler → Pioneer, at the start): the ticket is the basis for starting; the Settler writes this only when it judges the ticket alone leaves the Pioneer short of context, and writes it once. It names the Done When items the Settler has already completed, so that the Pioneer neither redoes them nor raises them again.

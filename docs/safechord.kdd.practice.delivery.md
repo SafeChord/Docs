@@ -9,10 +9,19 @@ code_paths:
 
 # SafeChord Unified Delivery Workflow (App + Deploy)
 
-> **Status**: canonical (formal). Reconciled into `Docs/` as the single source of truth.
-> **Scope**: end-to-end delivery across `SafeZone` (App) + `SafeZone-Deploy` (Deploy).
-> **Run-tested**: `v0.3.6` shipped + promoted to staging (soaking since 2026-06-15) under the **prior 4-phase, in-place** model.
-> **Decision owner**: bradyhau (Architect).
+> **Type**: Script (a mode page: implements the [practice](safechord.kdd.practice.md) §2)
+> **Focus**: How a SafeZone release is cut, validated in preview, promoted to staging, soaked and archived, across `SafeZone` (App) and `SafeZone-Deploy` (Deploy), and why it is shaped that way.
+> **Constraint**: Nothing every mode shares: it is in the practice. What a check runs is in its `validate-*` skill (`.claude/skills/` in the workspace harness); what a pipeline does is in its workflow file.
+
+## Mode Contract {#mode-contract}
+
+- **Work**: cutting, validating and promoting a SafeZone release: a phase of §2, or a route of §3. A session moves into this mode when it starts one.
+- **Human**: present throughout, signing off every gate: the freight evidence comment and its `validated` label (B6–B7), the staging check (D7), the soak and the archive (Phase E). bradyhau (Architect) owns the workflow's decisions.
+- **Seats**: none yet. Whether a release run needs one is an open decision.
+- **Ends**: when the `release: v0.X.Y` issue closes (E4), or the release is superseded by a patch (Route A1-post).
+- **Landing**: as each phase states: the release branch's PR and tag in `SafeZone`, the preview and staging branches in `SafeZone-Deploy` (§1–§3). Open decision: who brings `Docs/` in line with a release once it ships, the SafeZone changelog among it.
+- **Protocols**: the commit and the handoff, as the practice writes them. Its own: the `freight` and `release` issues (§5), which take a ticket's place for a release.
+- **Carried by**: `validate-freight` (B5), `validate-release` (D6) and `validate-soak` (E1, Route B); the `publish-candidate`, `init-deploy.yml` and `release.yml` workflows. Written only on this page: every other step of §2–§3.
 
 ```mermaid
 graph TD

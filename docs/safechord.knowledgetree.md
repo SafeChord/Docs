@@ -39,9 +39,11 @@ SafeChord utilizes a **Decoupled 4-Layer** architecture. Choose your reading pat
     *   ⬜ **Knowledge Layer (Repo: Docs)**
         *   *Focus: KDD Methodology, Standards, SSOT*
         *   [📄 safechord.kdd.introduction.md](safechord.kdd.introduction.md) (Introduction to KDD philosophy)
-        *   [📄 safechord.kdd.practice.md](safechord.kdd.practice.md) ⭐ (Practice: Modes, Shared Protocols & Templates)
+        *   [📄 safechord.kdd.practice.md](safechord.kdd.practice.md) ⭐ (Practice: Modes, What Every Mode Declares, Shared Protocols & Templates)
+            *   [📄 safechord.kdd.practice.discussion.md](safechord.kdd.practice.discussion.md) (Discussion: Work Decided in Conversation, Docs & Harness Changes)
             *   [📄 safechord.kdd.practice.development.md](safechord.kdd.practice.development.md) (Development: The Two-Engine Model, Dual-Track Flow & Review)
             *   [📄 safechord.kdd.practice.delivery.md](safechord.kdd.practice.delivery.md) ⭐ (Delivery: SafeZone's Unified Delivery Workflow)
+        *   [📄 safechord.kdd.alignment.md](safechord.kdd.alignment.md) (Standing Task: Internal Alignment of Docs/)
         *   [📄 safechord.kdd.changelog.md](safechord.kdd.changelog.md) (🔄 Collaboration Model History & Superseded Designs)
 
     *   🟦 **Application Layer (Repo: SafeZone)**

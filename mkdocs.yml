@@ -77,8 +77,10 @@ nav:
       - Introduction: safechord.kdd.introduction.md
       - Practice:
           - Overview: safechord.kdd.practice.md
+          - Discussion: safechord.kdd.practice.discussion.md
           - Development: safechord.kdd.practice.development.md
           - Delivery: safechord.kdd.practice.delivery.md
+      - Internal Alignment: safechord.kdd.alignment.md
       - ChangeLog: safechord.kdd.changelog.md
 
 markdown_extensions:
