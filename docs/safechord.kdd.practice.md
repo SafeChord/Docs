@@ -13,7 +13,7 @@ code_paths: []
 > **Focus**: Which mode a session is in, what holds in every mode, what each mode page must declare, and the protocols and templates the modes share.
 > **Constraint**: No mode's own flow: it is on that mode's page. No standing task's own rules: they are on its page. How a step is carried out lives in the skill or script that runs it (§1.2). The reasons the model took its shape are in the [KDD changelog](safechord.kdd.changelog.md).
 
-> **⚙️ This document is in an adjustment period.** The two-engine seating, the ticket lifecycle, and the templates in §4 were all introduced in v0.4.0 and have not yet been through a full cycle. Expect rough edges.
+> **⚙️ This document is in an adjustment period.** The Mode Contract in §2, the ticket lifecycle, and the templates in §4 were all introduced in v0.4.0 and have not yet been through a full cycle. Expect rough edges.
 >
 > **If a template or a step does not fit the work in front of you, say so rather than working around it silently.** A mismatch between this document and what actually happens is a defect in the document until it has been argued otherwise — raise it with the human, and it gets fixed here.
 >
