@@ -52,7 +52,7 @@ SafeChord utilizes a **Decoupled 4-Layer** architecture. Choose your reading pat
             *   [📄 safechord.safezone.md](safechord.safezone.md) ⭐ (App Map: Async Dataflow & Event-Driven Design)
             *   [📄 safechord.safezone.service.standards.md](safechord.safezone.service.standards.md) ⭐ (Blueprint: Cross-Service Standards & Contracts)
             *   [📄 safechord.safezone.decisions.md](safechord.safezone.decisions.md) ⭐ (Brain: Decision Log, Append-Only)
-            *   [📄 safechord.safezone.changelog.md](safechord.safezone.changelog.md) (🔄 Application Version History)
+            *   [📄 SafeZone `CHANGELOG.md`](https://github.com/SafeChord/SafeZone/blob/main/CHANGELOG.md) (🔄 Application Version History, kept in the SafeZone repository)
         *   **Microservices**
             *   [📄 safechord.safezone.service.pandemicsimulator.md](safechord.safezone.service.pandemicsimulator.md) (Simulator: AsyncIO Data Source)
             *   [📄 safechord.safezone.service.dataingestor.md](safechord.safezone.service.dataingestor.md) (Ingestor: Kafka Producer Gateway)

@@ -2,7 +2,7 @@
 
 > **類型**：藍圖（服務）
 > **焦點**：這個服務對系統其他部分的承諾，以及它依賴什麼。
-> **限制**：只寫現況。不寫檔案結構、函式庫或實作（看程式碼庫）。不寫欄位層級的形狀（看合約檔）。不寫理由（看[決策日誌](safechord.safezone.decisions.md)）。不寫沿革（看 [changelog](safechord.safezone.changelog.md)）。
+> **限制**：只寫現況。不寫檔案結構、函式庫或實作（看程式碼庫）。不寫欄位層級的形狀（看合約檔）。不寫理由（看[決策日誌](safechord.safezone.decisions.md)）。不寫沿革（看 [changelog](https://github.com/SafeChord/SafeZone/blob/main/CHANGELOG.md)）。
 
 ## 1. 職責
 

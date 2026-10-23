@@ -17,7 +17,7 @@ code_paths:
 > **Constraint**: Current state only, and only promises that bind more than one service.
 > No coding conventions (`SafeZone/.ai-rules.md`). No field-level shape (contract files).
 > No reasons ([decision log](safechord.safezone.decisions.md)). No history
-> ([changelog](safechord.safezone.changelog.md)).
+> ([changelog](https://github.com/SafeChord/SafeZone/blob/main/CHANGELOG.md)).
 
 ## 1. Requirements
 

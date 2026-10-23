@@ -55,10 +55,6 @@
     "blob": "afaa32c4ab4f6f10d7a1cac4f7a2571d65f49e9f",
     "body": "125f4bd33a9198d8da739a48fc919fcdc3e0332c47e9c932cf6a61cb38f3c854"
   },
-  "safechord.safezone.changelog.md": {
-    "blob": "06d4ec34643cc60b4760c6224475b575411bd2e8",
-    "body": "ed5f2d97820fa65d38b63ee9355ccc52243e78d565764b9a483dd4c8909b3a14"
-  },
   "safechord.safezone.decisions.md": {
     "blob": "09053960b3e6edc4c78aa4272eb033fe99fd2318",
     "body": "62327bd5ae3f28775f79ba9278c1ab2d4fa9a1c824cb442c30f2983afbc55fb2"
@@ -68,28 +64,28 @@
     "body": "0ac1688c84e7e582cc0f146f066f7305cfe28237ffd2856582a8c44b28e8038a"
   },
   "safechord.safezone.service.analyticsapi.md": {
-    "blob": "d5221d61dd1eeb0ae823c1996005dea10b0ba8d6",
-    "body": "c7f5a23cd2b720c74193c3acbde8bef12458e2ee7a0ca152eebb3ce4c4d6bc87"
+    "blob": "2045d315aa8be67b95728db0b9a5e64ab7e06288",
+    "body": "68d8d4039be239100901e4565af3f58fda454c1ff684a0db83c82feedff54f88"
   },
   "safechord.safezone.service.dashboard-v2.md": {
-    "blob": "c9000ecd8470cc9077e3d61170209db4c8633b55",
-    "body": "6cc07ddd8815f954fe6577453a91fbfb9647746e56067dc5485f2087915d97d8"
+    "blob": "a60fe713d21d7b299db1a744a730c8e65ac12772",
+    "body": "794523056e6ac0e8b3e4d6b503ed4d4729e72681b5e1a7f042a075f0aa2194b9"
   },
   "safechord.safezone.service.dataingestor.md": {
-    "blob": "6614bd47a6da9ed5cbc12d4ca171645d4a3edaa2",
-    "body": "ff35fd39b424ce71c5370003b630cd628c445a7d9938849c3d76a6b9fcf10f97"
+    "blob": "21dc946e9193600705349592fcaf1bdd01506db5",
+    "body": "a511de1ebc7ce35fff2f79047f526ad033151081188c6a094e026f943c2a73de"
   },
   "safechord.safezone.service.pandemicsimulator.md": {
-    "blob": "8d1d59623ecaae2dbdc81b9c811fe75a6cf7adcd",
-    "body": "b82ea228d5f15e5b43f680e27bbce2a2d9581953daeff68ee7694d6ae8768552"
+    "blob": "fc845f130f30e510d19398b9fed8c0d6a8b5cecc",
+    "body": "d02a931dbba05802f58537da28185a4e83f5b0e00f36563dd07fecdd4a24b960"
   },
   "safechord.safezone.service.standards.md": {
-    "blob": "3366f5e26b58bddfcbdaa5bcb99797052ca478f0",
-    "body": "067be2f1c8541d81f0016151e60a4ed2296b5da365a5db352613b380152ec139"
+    "blob": "bc601cda8e69947412676c706b7b4c7ea7291d0e",
+    "body": "1139d71f2d293979f08c3202d40b0a89825daf2449ca431f9bc3f4c270329e46"
   },
   "safechord.safezone.service.worker.md": {
-    "blob": "ded752397cd7c0112474847513c80ef7858f663d",
-    "body": "1ed5e097c87deaa5c4ef35f046c121fcef005b9b7e613ca55ef391bf5b5fb6c8"
+    "blob": "7a68df99c7dd180d92dd51e26625edf00eff9b6f",
+    "body": "1ca936cd8ccbcb0968e1789deb07524735768245ab66c62019f43f99fff6b2cd"
   },
   "safechord.safezone.toolkit.cli.md": {
     "blob": "f200d216a5b2fa783389e8ec916a20c1d855f851",

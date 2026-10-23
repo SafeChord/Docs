@@ -2,7 +2,7 @@
 
 > **類型**：藍圖（跨服務）
 > **焦點**：每個 SafeZone 服務對系統其他部分的共同承諾。
-> **限制**：只寫現況，而且只寫約束一個以上服務的承諾。不寫程式撰寫慣例（看 `SafeZone/.ai-rules.md`）。不寫欄位層級的形狀（看合約檔）。不寫理由（看[決策日誌](safechord.safezone.decisions.md)）。不寫沿革（看 [changelog](safechord.safezone.changelog.md)）。
+> **限制**：只寫現況，而且只寫約束一個以上服務的承諾。不寫程式撰寫慣例（看 `SafeZone/.ai-rules.md`）。不寫欄位層級的形狀（看合約檔）。不寫理由（看[決策日誌](safechord.safezone.decisions.md)）。不寫沿革（看 [changelog](https://github.com/SafeChord/SafeZone/blob/main/CHANGELOG.md)）。
 
 ## 1. 需求
 

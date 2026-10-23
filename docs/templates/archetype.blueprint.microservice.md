@@ -15,7 +15,7 @@ doc_version: [Document Version — bump on every edit]
 > **Constraint**: Current state only. No file structure, libraries, or implementation
 > (codebase). No field-level shape (contract files). No reasons
 > ([decision log](../safechord.safezone.decisions.md)). No history
-> ([changelog](../safechord.safezone.changelog.md)).
+> ([changelog](https://github.com/SafeChord/SafeZone/blob/main/CHANGELOG.md)).
 
 > [!IMPORTANT]
 > **Template Cleanup**: Delete every helper instruction and `*(Required)*` marker once

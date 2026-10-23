@@ -43,7 +43,7 @@ SafeChord 採用**解耦四層**架構。請根據您的角色與目標選擇閱
             *   [📄 safechord.safezone.md](safechord.safezone.md) ⭐（應用地圖：非同步資料流與事件驅動設計）
             *   [📄 safechord.safezone.service.standards.md](safechord.safezone.service.standards.md) ⭐（藍圖：跨服務標準與合約）
             *   [📄 safechord.safezone.decisions.md](safechord.safezone.decisions.md) ⭐（大腦：決策日誌，只增不改）
-            *   [📄 safechord.safezone.changelog.md](safechord.safezone.changelog.md)（🔄 應用版本歷史）
+            *   [📄 SafeZone `CHANGELOG.md`](https://github.com/SafeChord/SafeZone/blob/main/CHANGELOG.md)（🔄 應用版本歷史，放在 SafeZone 倉）
         *   **微服務**
             *   [📄 safechord.safezone.service.pandemicsimulator.md](safechord.safezone.service.pandemicsimulator.md)（模擬器：AsyncIO 資料來源）
             *   [📄 safechord.safezone.service.dataingestor.md](safechord.safezone.service.dataingestor.md)（資料攝取器：Kafka Producer 閘道器）

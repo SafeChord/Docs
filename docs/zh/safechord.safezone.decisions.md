@@ -2,7 +2,7 @@
 
 > **類型**：大腦（決策日誌）
 > **焦點**：每個決定為什麼這樣做，以及它放棄了什麼。
-> **限制**：只寫理由。服務現在必須做到什麼，寫在它的藍圖。某個版本改了什麼，寫在 [changelog](safechord.safezone.changelog.md)。
+> **限制**：只寫理由。服務現在必須做到什麼，寫在它的藍圖。某個版本改了什麼，寫在 [changelog](https://github.com/SafeChord/SafeZone/blob/main/CHANGELOG.md)。
 
 ## 這份日誌怎麼運作
 

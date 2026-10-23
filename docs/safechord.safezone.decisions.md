@@ -10,7 +10,7 @@ code_paths: []
 > **Type**: Brain (Decision Log)
 > **Focus**: Why each decision was made, and what it traded away.
 > **Constraint**: Reasons only. What a service must do today lives in its blueprint.
-> What changed in a release lives in the [changelog](safechord.safezone.changelog.md).
+> What changed in a release lives in the [changelog](https://github.com/SafeChord/SafeZone/blob/main/CHANGELOG.md).
 
 ## How this log works
 

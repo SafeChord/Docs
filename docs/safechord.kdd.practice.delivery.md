@@ -19,7 +19,7 @@ code_paths:
 - **Human**: present throughout, signing off every gate: the freight evidence comment and its `validated` label (B6–B7), the staging check (D7), the soak and the archive (Phase E). bradyhau (Architect) owns the workflow's decisions.
 - **Seats**: none yet. Whether a release run needs one is an open decision.
 - **Ends**: when the `release: v0.X.Y` issue closes (E4), or the release is superseded by a patch (Route A1-post).
-- **Landing**: as each phase states: the release branch's PR and tag in `SafeZone`, the preview and staging branches in `SafeZone-Deploy` (§1–§3). Open decision: who brings `Docs/` in line with a release once it ships, the SafeZone changelog among it.
+- **Landing**: as each phase states: the release branch's PR and tag in `SafeZone`, the preview and staging branches in `SafeZone-Deploy` (§1–§3). Nothing in this mode writes to `Docs/`: a release's record is SafeZone's `CHANGELOG.md`, and what a shipped ticket changed was reconciled by that ticket ([Development](safechord.kdd.practice.development.md)).
 - **Protocols**: the commit and the handoff, as the practice writes them. Its own: the `freight` and `release` issues (§5), which take a ticket's place for a release.
 - **Carried by**: `validate-freight` (B5), `validate-release` (D6) and `validate-soak` (E1, Route B); the `publish-candidate`, `init-deploy.yml` and `release.yml` workflows. Written only on this page: every other step of §2–§3.
 

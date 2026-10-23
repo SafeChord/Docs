@@ -5,7 +5,7 @@
 > **限制**：僅描述現狀。不含檔案結構、函式庫或實作
 > （程式碼）。不含欄位層級定義（合約檔案）。不含理由
 > （[決策紀錄](safechord.safezone.decisions.md)）。不含歷史
-> （[變更紀錄](safechord.safezone.changelog.md)）。
+> （[變更紀錄](https://github.com/SafeChord/SafeZone/blob/main/CHANGELOG.md)）。
 
 ## 1. 責任
 

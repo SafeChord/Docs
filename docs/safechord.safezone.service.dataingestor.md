@@ -15,7 +15,7 @@ app_version: 0.3.8
 > **Constraint**: Current state only. No file structure, libraries, or implementation
 > (codebase). No field-level shape (contract files). No reasons
 > ([decision log](safechord.safezone.decisions.md)). No history
-> ([changelog](safechord.safezone.changelog.md)).
+> ([changelog](https://github.com/SafeChord/SafeZone/blob/main/CHANGELOG.md)).
 
 ## 1. Responsibility
 
