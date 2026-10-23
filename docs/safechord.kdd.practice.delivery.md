@@ -87,11 +87,11 @@ graph TD
 
 ### Phase A — App integration (`SafeZone`)
 - **A1.** Assert that `main` is an ancestor of `dev` (`git merge-base --is-ancestor origin/main origin/dev`) to prevent starting a new release before the prior version is back-merged. Cut the release branch: `git checkout -b release/0.X.Y` from `dev`, bump the App `VERSION` file to the target version directly on the release branch, and commit the change (e.g., `chore(release): open v0.X.Y`).
-- **A2.** Push `release/0.X.Y` to remote. This push triggers `publish-candidate (GitHub Action)` to build and push the OCI images (see [ADR-1](#adr-1) for binary promotion rationale) and automatically opens the `freight: 0.X.Y-<sha>` issue.
+- **A2.** Push `release/0.X.Y` to remote. This push triggers `publish-candidate (GitHub Action)` to build and push the OCI images and automatically opens the `freight: 0.X.Y-<sha>` issue.
 
 ### Phase B — Preview validation (`SafeZone-Deploy`)
 - **B1.** Pick up the `freight: 0.X.Y-<sha>` issue.
-- **B2.** Author configurations on the preview branch. Update target image tags and env values for both `preview` and `staging` charts (see [ADR-2](#adr-2) for atomic promotion rationale) ➡️ **push the branch**.
+- **B2.** Author configurations on the preview branch. Update target image tags and env values for both `preview` and `staging` charts ➡️ **push the branch**. Staging's values are set here, not when staging comes up, so that they are tested with the release and promoted in the same merge (D2).
 - **B3.** Bring up the preview infrastructure.
 - **B4.** Trigger the `init-deploy.yml` action (env=preview).
 - **B5.** Run preview validation probes.
@@ -102,12 +102,12 @@ graph TD
 ### Phase C — Cut the release (`SafeZone`, only after `validated`)
 - **C1.** Confirm the freight issue carries `validated`.
 - **C2.** Merge the PR from `release/0.X.Y` to `main` (merge commit only, no squash) and cut the tag `v0.X.Y`.
-- **C3.** Tagging triggers the release pipeline (GitHub Action) to `crane copy` the verified preview OCI images (tagged as `0.X.Y-<sha>`) to the production release tags (tagged as `0.X.Y`) (see [ADR-1](#adr-1)) and open the production `release: v0.X.Y` issue.
+- **C3.** Tagging triggers the release pipeline (GitHub Action) to `crane copy` the verified preview OCI images (tagged as `0.X.Y-<sha>`) to the production release tags (tagged as `0.X.Y`) and open the production `release: v0.X.Y` issue. Copying the digest instead of rebuilding ships exactly what preview validated; a rebuild can pick up a floating base tag or a newer upstream package.
 - **C4.** Back-merge `main` back to `dev` to propagate release-stage bug fixes. The release pipeline (`release.yml`) automatically opens a "back-merge v0.X.Y -> dev" PR after tagging to ensure compliance. *Invariant*: Before cutting the next `release/*` branch, `dev` must receive all outstanding release fixes (no orphaned fixes). Any fix identified after tagging (especially during soak/showcase) must be treated as a post-GA patch (Route A1-post) with its own back-merge, and must never reopen the frozen `release/*` branch.
 
 ### Phase D — Staging deploy + soak (`SafeZone-Deploy`)
-- **D1.** Teardown the existing staging environment (leave external / platform services) (see [ADR-3](#adr-3) for teardown-and-rebuild rationale).
-- **D2.** Plain-merge `preview/0.X.Y` directly into `staging` (no PR, no staging promotion branch) (see [ADR-4](#adr-4) for plain-merge rationale).
+- **D1.** Teardown the existing staging environment (leave external / platform services). A rebuild holds while schemas and platform networking still break between releases: backward-compatible migrations and a rolling update for every release would cost more than a clean rebuild, which recovers in under 10 minutes. Revisit it once migrations stay backward compatible.
+- **D2.** Plain-merge `preview/0.X.Y` directly into `staging` (no PR, no staging promotion branch). No PR holds while the project has one developer: GATE 2 has already validated the config in the cluster, a PR would add a step with no second reviewer, and the merge commit and the release issue keep the audit trail.
 - **D3.** Adjust staging environment deltas (env deltas) on the `staging` branch ➡️ **push the branch**.
 - **D4.** Bring up the staging infrastructure.
 - **D5.** Trigger the `init-deploy.yml` action (env=staging).
@@ -171,7 +171,7 @@ graph TD
 - **ArgoCD owns steady-state reconcile.** Each `deploy/<env>/app/*.yaml` is an auto-sync `Application` (`targetRevision` = the env branch; `path` = `helm-charts/safezone-<layer>` + `values-<env>.yaml`). Helm renders **inside ArgoCD**, not as a CI pre-step.
 - **Ordering, by layer** — ArgoCD's health-driven sync-waves don't span Applications or reliably gate Jobs:
   - **Infra** → ArgoCD-native **sync-waves** (`ApplicationSet`: foundation `-2` → security `1` → workloads `2` → init `3`).
-  - **App** → **`init-deploy.yml`** applies the Application CRs in order and gates between phases on rollout/Job health (foundation → seed-schema → core → smoke-test → seed-cases → ui → scheduler[staging]). A phased *bootstrapper + gate*, not an imperative deployer — once a CR exists, ArgoCD reconciles it. (See [ADR-5](#adr-5) for hybrid deployment rationale.)
+  - **App** → **`init-deploy.yml`** applies the Application CRs in order and gates between phases on rollout/Job health (foundation → seed-schema → core → smoke-test → seed-cases → ui → scheduler[staging]). A phased *bootstrapper + gate*, not an imperative deployer — once a CR exists, ArgoCD reconciles it. A pure ArgoCD path, with sync waves and Job hooks, was tried first: waves and hooks were seen to move on before the Jobs had finished, so schema seeding and smoke tests went ungated. Why ArgoCD took the Jobs as done is not established.
 
 
 ## 5. The IssueOps spine — freight → release lifecycle
@@ -191,7 +191,7 @@ graph TD
     - *Opened By*: Automatically created by the release pipeline when the official `v0.X.Y` tag is cut on the App Repo.
     - *Verification*: Tracks the checklists for post-deployment checks via `/validate-release (AI Skill)` and the 3–5 days soak validation.
     - *Closed By*: Manually closed by the operator after the `staging` branch is tagged (`v0.X.Y-staging`) and merged into `main` (archive).
-  - **Audit Policy**: Since staging promotion bypasses pre-merge Pull Requests (see [ADR-4](#adr-4)), this issue—coupled with the git merge commit—acts as the single source of audit verification. For deploy-only configuration hotfixes during soak, changes are logged directly in the comments of this open release issue (or a spontaneous configuration issue if during Showcase) to avoid issue clutter.
+  - **Audit Policy**: Since staging promotion bypasses pre-merge Pull Requests (D2), this issue—coupled with the git merge commit—acts as the single source of audit verification. For deploy-only configuration hotfixes during soak, changes are logged directly in the comments of this open release issue (or a spontaneous configuration issue if during Showcase) to avoid issue clutter.
 
 ## 6. Versioning — Decoupled Evolution Strategy
 App and Deploy version numbers drift independently to reflect their respective release units:
@@ -208,34 +208,3 @@ App and Deploy version numbers drift independently to reflect their respective r
 ## 7. Rollback & recovery {#7-rollback-recovery}
 *   **Forward-fix only**: The project does not support automated rollback; issues are addressed by shipping forward fixes.
 *   **Staging Rescue**: In case of staging environment failure, the ArgoCD `targetRevision` may be temporarily pinned to a known good release tag (`v0.X.Y-staging`) to restore showcasing functionality while a forward-fix is prepared.
-
----
-
-**APPENDIX**
-
-## A. Architectural Decision Records (Key Rationales)
-
-### ADR-1
-**Binary Promotion via Crane Copy**
-* **Decision**: Release artifacts are promoted directly using `crane copy` (digest-identical preservation) rather than rebuilding from source code during the release phase.
-* **Rationale**: Rebuilding from source code during release can introduce subtle environmental or dependency drift (e.g., floating base tags, updated upstream packages), resulting in binaries that are not identical to what was verified in Preview. Replicating the exact verified container image digest via `crane copy` (copying the image digest from the preview `0.X.Y-<sha>` tag directly to the official `0.X.Y` release tag) guarantees that "what was tested is exactly what is shipped."
-
-### ADR-2
-**Atomic Configuration Promotion**
-* **Decision**: Feature-specific configurations for all environments (both `preview` and `staging` values) are declared and modified together on the `preview/0.X.Y` branch, then promoted as an atomic commit block.
-* **Rationale**: In a multi-branch GitOps workflow, updating environment-specific values (like `values-staging.yaml`) only when switching to that environment's branch increases the likelihood of human error (e.g., forgetting to add a new environment variable required by the new release). Defining all configurations upfront on the pre-release branch (preview) ensures that configuration dependencies are atomic, tested together, and automatically promoted during the merge, significantly reducing post-merge drift and deployment failures.
-
-### ADR-3
-**Teardown-and-Rebuild Promotion for Staging**
-* **Decision**: Staging deployments perform a full infrastructure teardown before rebuilding, rather than an in-place rolling update.
-* **Rationale**: In the `v0.x` stage, breaking changes to database schemas and platform networking are frequent. Writing backward-compatible database migrations and rolling deployment scripts for every single release introduces high maintenance overhead. A deterministic teardown-and-rebuild provides a clean slate, eliminates configuration drift, recovers in under 10 minutes, and offers the highest reliability for showcase demo stability.
-
-### ADR-4
-**Plain-Merge Promotion to Staging**
-* **Decision**: Merging `preview/0.X.Y` config into the `staging` branch is done via plain-merge without opening a Pull Request (PR) for code review.
-* **Rationale**: The preview configurations are already thoroughly validated in cluster during GATE 2 (including human connectivity and automation checklists). At our current solo-developer scale, requiring a formal GitHub PR for every environment promotion creates unnecessary process friction. The audit trail is fully preserved via the merge commit history and the IssueOps release ticket.
-
-### ADR-5
-**Hybrid Deployment (Phased Bootstrapper via init-deploy)**
-* **Decision**: We employ a hybrid deployment model: declarative convergence (ArgoCD) for steady-state infrastructure and application deployments, combined with an imperative workflow runner (`init-deploy.yml`) to orchestrate phased deployments and gate release stages based on Job health.
-* **Rationale**: A pure ArgoCD path using sync-waves and Job hooks was previously attempted and failed. ArgoCD's wave progression and hook completion rely on its internal Job health evaluation, which often reports success and proceeds before the Jobs actually complete execution. The hybrid runner separates declarative state convergence from imperative execution gating, providing a reliable orchestration gate for database schema seeding and smoke tests.

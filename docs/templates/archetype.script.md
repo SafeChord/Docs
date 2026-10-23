@@ -10,7 +10,7 @@ code_paths:
 
 > **Type**: Script (Standard Operating Procedure / Dynamic Workflow)
 > **Focus**: Step-by-step execution, actors, order of operations, and verification.
-> **Constraint**: Commands and scripts live in the codebase; a step names them. Reasons live in the decision log.
+> **Constraint**: Commands and scripts live in the codebase; a step names them. A reason sits beside the step it explains (`.ai-rules.md` §3.2).
 
 ---
 
