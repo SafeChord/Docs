@@ -3,13 +3,13 @@ title: 'KDD 2.0: Practice'
 last_updated: '2026-10-23'
 status: active
 doc_version: 0.4.0
-archetype: script
+archetype: interface
 code_paths: []
 ---
 
 # KDD 2.0 Practice
 
-> **Type**: Script (the interface every mode page implements)
+> **Type**: Interface (implemented by every mode page)
 > **Focus**: Which mode a session is in, what holds in every mode, what each mode page must declare, and the protocols and templates the modes share.
 > **Constraint**: No mode's own flow: it is on that mode's page. No standing task's own rules: they are on its page. How a step is carried out lives in the skill or script that runs it (§1.2). The reasons the model took its shape are in the [KDD changelog](safechord.kdd.changelog.md).
 
