@@ -161,6 +161,11 @@ Policy survives this for two structural reasons:
 | `node-routing-test.sh` | `Chorde/scripts/test/pod-path/` | The same gate on the live cluster, plus `bridge-nf-call-iptables` and `flannel.1` RX = 0. Read-only; first thing to run when cross-node traffic looks wrong |
 | `netpol-matrix-test.sh` | `Chorde/scripts/test/pod-path/` | 27 probes across all node pairs: policy verdicts and real source IPs. Creates and deletes a namespace |
 
+**Untested**: how long a policy takes to hold once applied, and whether traffic flows again once
+it is removed. The matrix checks verdicts at steady state only. The data path before Chorde#16
+showed both problems (slow to take effect, still blocking after removal); this one has not been
+tried. Test both before NetworkPolicy is first relied on, for instance to cut a dependency in a drill.
+
 Watch `flannel.1` **RX**, never TX. TX is nonzero everywhere: tailscaled's disco probes to
 peers' `10.42.x.0/.1` addresses carry the bypass fwmark, fall through to the main table
 and leave via `flannel.1`.
