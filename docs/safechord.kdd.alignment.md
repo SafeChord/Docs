@@ -28,7 +28,7 @@ The two runs are told apart by what they take as right.
 | **Covers** | The Docs commits since the last aligned commit, and every en page that restates what they changed | Every en page |
 | **Takes as right** | The diff, since a ticket or a decision stands behind it | Nothing by default: a newer page is not therefore right |
 | **Settles a conflict** | By propagating the diff. A diff that contradicts the decision log or a requirement stops the run, which asks the human. A diff that changes a rule covers every page the rule applies to | By Docs first (a decision still accepted, a requirement, a rule, a changelog entry recording the change), then, for a fact the code owns, by the code as it stands. Every other conflict goes to the human |
-| **Runs** | Once enough Docs commits have accumulated since the last aligned commit: counted, not timed. The session that pushed is asked to start it, and it runs in the background | When the human asks: the first time, and whenever incremental runs were skipped or have not run for long |
+| **Runs** | When the human starts it. Once enough Docs commits have accumulated since the last aligned commit (counted, not timed), the session that pushed reminds the human that a run is due, and starts nothing itself: Docs is not always in a state to align, and a page edited ahead of a rewrite still to come would have a state about to change spread to every page that restates it. It runs in the background | When the human asks: the first time, and whenever incremental runs were skipped or have not run for long |
 
 The last aligned commit is the tag `align/last` on the Docs repository.
 
