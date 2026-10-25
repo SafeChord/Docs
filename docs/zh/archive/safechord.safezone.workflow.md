@@ -68,4 +68,4 @@ CI 扮演品質守門員的角色。我們使用 GitHub Actions（`smoke-test.ym
     *   **標準化佈局**：所有 Python 服務遵循 Scaffold 標準，測試分為 `test/unit/`（邏輯）與 `test/integration/`（API）。
 *   **全域驗證**：`make test-all`（執行所有服務測試）。
 *   **本地整合**：`make dev-up`（啟動完整 Docker Compose 環境）。
-    *   請參閱[環境演進](safechord.environment.md)了解如何利用 **Profiles**（`infra`/`core`）加快本地開發循環。
+    *   請參閱[環境演進](../safechord.environment.md)了解如何利用 **Profiles**（`infra`/`core`）加快本地開發循環。

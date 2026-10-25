@@ -20,7 +20,7 @@ app_version: 0.2.0
 # [Archived] SafeZone 部署與 GitOps 流程 v1
 
 !!! failure "Deprecated"
-    本文件已過時並移至歸檔區。請參考最新的 [SafeZone Deployment Workflow](../safechord.safezone.deployment.workflow.md) 以獲取目前實作中的分支模型與部署流程。
+    本文件已過時並移至歸檔區。請參考最新的 [SafeZone Deployment Workflow](../../safechord.safezone.deployment.workflow.md) 以獲取目前實作中的分支模型與部署流程。
 
 ## 歸檔原因 (Reasons for Archiving)
 在 v0.2.1 實作過程中，我們發現 v1 流程存在以下痛點：

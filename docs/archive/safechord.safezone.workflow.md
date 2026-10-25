@@ -94,4 +94,4 @@ Before submitting a PR, developers MUST verify logic locally. Following the v0.3
     *   **Standardized Layout**: All Python services follow the Scaffold standard, with tests split into `test/unit/` (logic) and `test/integration/` (API).
 *   **Global Validation**: `make test-all` (runs all service tests).
 *   **Local Integration**: `make dev-up` (starts the full Docker Compose environment).
-    *   Consult [Environment Evolution](safechord.environment.md) to learn how to use **Profiles** (`infra`/`core`) for faster local loops.
+    *   Consult [Environment Evolution](../safechord.environment.md) to learn how to use **Profiles** (`infra`/`core`) for faster local loops.
