@@ -38,6 +38,11 @@ plugins:
 
 hooks:
   - hooks/zh_stale.py
+  - hooks/zh_anchors.py
+
+validation:
+  links:
+    anchors: warn
 
 nav:
   - Home: index.md

@@ -12,9 +12,9 @@ image:
 dev: image
 	docker run --rm -it -p $(PORT):$(PORT) -v $(shell pwd):/docs $(IMAGE_NAME)
 
-# build the static site (at ./site/)
+# build the static site (at ./site/); strict: any warning, such as a broken link, fails it
 build: image
-	docker run --rm -v $(shell pwd):/docs -u $(shell id -u):$(shell id -g) $(IMAGE_NAME) build
+	docker run --rm -v $(shell pwd):/docs -u $(shell id -u):$(shell id -g) $(IMAGE_NAME) build --strict
 
 # clean compiled files
 clean:
