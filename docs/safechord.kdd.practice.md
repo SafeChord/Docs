@@ -26,7 +26,7 @@ SafeChord uses agents in several modes, told apart by what the work is and where
 | Mode | What it covers | Where the human stands | Page |
 | :--- | :--- | :--- | :--- |
 | Discussion | Work with no ticket yet, and work that lands in `Docs/` or the harness | Present throughout, deciding together | [Discussion](safechord.kdd.practice.discussion.md) |
-| Development | A code change that lands in SafeZone, SafeZone-Deploy or Chorde through a branch, a PR and a merge, on a ticket labelled `kdd:forward` or `kdd:spike` | The last gatekeeper, looking once before merge | [Development](safechord.kdd.practice.development.md) |
+| Development | A code change that lands in a code repository through a branch, a PR and a merge, on a ticket labelled `kdd:forward` or `kdd:spike` | The last gatekeeper, looking once before merge | [Development](safechord.kdd.practice.development.md) |
 | Delivery | Cutting, validating and promoting a SafeZone release: a phase or route of the delivery workflow | Present throughout, signing off every gate | [Delivery](safechord.kdd.practice.delivery.md) |
 | Operations | Running the deployed system: SRE work on the live platform | Not yet defined | — |
 
@@ -62,19 +62,28 @@ A mode page may add to this section, never contradict it. A rule that some mode 
 
 ### 1.2 Layers {#layers}
 
-Four kinds of file carry the practice. Each holds one kind of fact, so that a fact has one home.
+Each kind of fact has one home. Two tests sort a sentence into its home: would it still hold with another carrier, and would it still hold in another project. What holds in another project belongs to the framework; what does not belongs to the project.
 
-| Layer | Holds | Read by |
+| Home | Holds | Read by |
 | :--- | :--- | :--- |
-| KDD pages (`docs/safechord.kdd.*`) | What must hold, who decides, and why | The human and agents |
-| A repository's `.ai-rules.md` | How that repository applies the KDD pages: its commands, paths and page rules | Agents working in that repository |
-| Skills (`.claude/skills/` in the workspace harness) | How a step is carried out now: commands, file names, order, parameters | The agent that runs the skill |
-| Hooks, scripts, workflows and code | What runs whether or not an agent remembers it, and what the system actually does | — |
+| Framework docs (the [introduction](safechord.kdd.introduction.md), the [changelog](safechord.kdd.changelog.md)) | Concepts, reasons, what a run looks like | The human and agents |
+| Framework contract (this page, the shared mode pages, their templates) | What must hold, who decides, and what each template field means | The human and agents |
+| Framework skills and scripts (`.claude/skills/` in the workspace harness) | How a step is carried out now: commands, order, parameters | The agent that runs the skill |
+| Project implementation pages | A project page that inherits a shared mode page: the project's own flow, its artifacts and the reasons for its choices, with the skills that carry it | The human and agents in that mode |
+| Project config (a `config.json` beside the skill that reads it, for now) | Values skills and scripts read: carriers, models, base branches, limits | Skills and scripts |
+| A repository's `.ai-rules.md` | How that repository applies the KDD pages: its conventions, commands and paths | Agents working in that repository |
+| The context file (`AGENTS.md` in the workspace) | Activation, red lines, workspace facts, the mandatory triggers | Every session |
+
+Below them all, hooks, workflows and code are what runs whether or not an agent remembers it, and what the system actually does.
 
 - **What goes on a KDD page**: a sentence whose change would change a human's or another seat's judgment or action. Anything else belongs to the skill or script that carries it out.
-- **A repository's `.ai-rules.md` applies the KDD pages; it does not restate them.** It maps what a page requires onto that repository, and points at the page for the flow itself.
+- **A project implementation page inherits.** It states what it takes from its shared mode page as it is, what it **Extends** and what it **Overrides** (§2). A shared mode page holds only what is general now; more moves up to it when a second implementation shows it is general.
+- **A skill stays abstract.** It reaches the project through three hooks: a deterministic step calls a named entry point the project implements (a make target or a script, the Makefile doubling as its manual); a value comes from config; a judgment names its question and where its criteria live (a repository's `.ai-rules.md` under a section named for it, the project implementation page, or a Docs page that is SSOT for it).
+- **A repository's `.ai-rules.md` applies the KDD pages; it does not restate them.** It maps what a page requires onto that repository, and points at the page for the flow itself. What a command does and when to use it is its own; a skill says at which step it runs the command and what to do with the result.
+- **The labels the KDD pages define** (`kdd:forward`, `kdd:spike`, `exec:settler`, `mode:refactor`, `review:human`) are framework vocabulary. A project's own labels are defined on the implementation page that uses them. Config holds no label.
+- **A project file points at `~/.ai-agent/kdd.md`; it does not restate it.**
 - **The move is gradual.** A step that no skill carries yet is written on its mode page. Once a skill carries it, the page keeps only what the step must achieve. A rule that becomes checkable moves on into a hook or a script.
-- **In a conflict, the fact's home holds** and the restatement is fixed: the KDD page for what must hold and who decides, the repository's `.ai-rules.md` for how that repository applies it, the skill for how a step runs, the code for what the system does. A requirement test answers to its blueprint the same way ([Development §3.2](safechord.kdd.practice.development.md#32-handling-review-findings)). When the home itself looks wrong, stop and ask the human.
+- **In a conflict, the fact's home holds** and the restatement is fixed: the KDD page for what must hold and who decides, the implementation page for the project's flow, the repository's `.ai-rules.md` for how that repository applies it, the skill for how a step runs, config for a value, the code for what the system does. A requirement test answers to its blueprint the same way ([Development §3.2](safechord.kdd.practice.development.md#32-handling-review-findings)). When the home itself looks wrong, stop and ask the human.
 
 ---
 
@@ -110,7 +119,7 @@ A ticket is the head of any implementation, and the anchor everything else is tr
 
 *   **Medium**: a GitHub issue in the repository the work lands in.
 *   **Purpose**: the basis for implementation. It is the grain that commits (too fine) and the project docs (end state only) both miss.
-*   **Weight**: a ticket is near-permanent, so it holds only what has trace value for a later reader: the problem, the decisions and their reasons, the scope, and Done When. Context that only aligns the seats for this task (inferred mechanisms, investigation detail, design suggestions, unverified items, implementation order) goes in the handoff. Done When lists only what can be verified before the work lands; a check that can run only after deployment belongs to a gate in the [delivery workflow](safechord.kdd.practice.delivery.md).
+*   **Weight**: a ticket is near-permanent, so it holds only what has trace value for a later reader: the problem, the decisions and their reasons, the scope, and Done When. Context that only aligns the seats for this task (inferred mechanisms, investigation detail, design suggestions, unverified items, implementation order) goes in the handoff. Done When lists only what can be verified before the work lands; a check that can run only after deployment belongs to a gate of the [delivery mode](safechord.kdd.practice.delivery.md).
 *   **Done When states intent, not shape**: write what must hold of the result ("the logger's output is unchanged except for `worker_id`", "no assertion or test input changes"), not what the diff or the names look like ("field names are unchanged", "the diff touches only imports"). A condition written as a shape is met by the wrong change and broken by the right one, and contradicts the Scope the first time it allows a rename.
 *   **Freshness**: a ticket opened before the work starts is checked again before it does, against the pages and the code as they now stand. A reference to a section since rewritten, or a current state that later tickets have changed, is corrected on the ticket first.
 *   **Required Content**: [see template](#github-issue-template)
@@ -122,9 +131,9 @@ A ticket is the head of any implementation, and the anchor everything else is tr
 *   **Required Content**: [see template](#git-commit-template)
 
 ### 🔴 The Handoff Protocol {#the-handoff-protocol}
-*   **Medium**: Markdown files stored in `.ai-session-handoffs/`.
+*   **Medium**: Markdown files in the project's handoff directory, which the context file names.
 *   **Purpose**: the carrier across AI tool sessions. The counterparty may be the next session or another agent.
-*   **Triggers**: reactive (a milestone is reached, the work is blocked, or the human asks for a handover) and deliberate (the context has grown long enough to degrade, and the session is ended on purpose so a fresh one can continue).
+*   **Triggers**: reactive or deliberate, as `~/.ai-agent/kdd.md` §2 defines them.
 *   **Lifecycle**: a handoff lives with its task. Delete it when the task ends, as the mode page defines the end (§2, **Ends**); the harness git history keeps it recoverable.
 *   **Linking**: the handoff points at the ticket, never the reverse. Anyone who can read a handoff can reach the ticket, but a ticket reader may not see the handoff, and a link on a permanent ticket would dangle once the handoff is deleted.
 *   **Naming**: when a ticket exists, the filename carries `<repo>-<issue_no>` in lowercase (e.g. `2026-09-19-safezone-64-worker-offset-commit.md`).
@@ -132,13 +141,8 @@ A ticket is the head of any implementation, and the anchor everything else is tr
 *   **Required Content**: [see template](#handoff-template)
 
 ### ⚪ Design Drafts {#design-drafts}
-*   **Medium**: Markdown files stored in `.ai-session-drafts/<domain>/`.
+*   **Medium**: Markdown files in the project's draft directory, one subdirectory per domain; the context file names both.
 *   **Purpose**: continuity for forward-looking discussion that does not touch the codebase directly. Usually precedes opening a ticket.
-*   **Domains**:
-    - `kdd/` (practice, seats, review flow)
-    - `delivery/` (release workflow, gates, soak)
-    - `platform/` (networking, ingress, security, observability)
-    - `app/` (SafeZone code: debugging and improvement)
 *   **Required Content**: [see template](#draft-template)
 
 ---
@@ -175,7 +179,7 @@ Describe the impact on project architecture or long-term decisions.
 
 Context: [Ticket ID, or link to the Blueprint]
 Impact: [Specific impact on API contracts or infra]
-Test: [Verification executed] (e.g., make test-data-ingestor)
+Test: [Verification executed: the command and its result]
 Agent: [the seat, with a qualifier where its mode page defines one, or the mode where it has no seats]
 Legacy: [Pending issues for the next agent]
 ```
@@ -218,13 +222,13 @@ Legacy: [Pending issues for the next agent]
 ```markdown
 ---
 title: 'Design Draft: [Topic]'
-doc_id: safechord.draft.[slug]
+doc_id: [project id].draft.[slug]
 last_updated: 'YYYY-MM-DD'
 status: draft
-authors: [bradyhau, <agent>]
+authors: [<the human>, <agent>]
 context_scope: [Methodology | Infrastructure | ...]
 summary: [one paragraph on what this draft decides]
-logical_path: SafeChord.Draft.[Name]
+logical_path: [Project].Draft.[Name]
 related_docs: []
 archetype: script
 doc_version: 0.1.0

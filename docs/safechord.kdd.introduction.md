@@ -10,7 +10,7 @@ archetype: brain
 > **Focus**: Why SafeChord develops from knowledge, and how documents, tests and agents divide the work.
 > **Constraint**: No procedure (the [practice](safechord.kdd.practice.md)). No rules for writing a page (`Docs/.ai-rules.md`).
 
-SafeChord is more than a software project; it is an architectural experiment on **"How to build software in the AI era."** The core methodology we employ is called **KDD (Knowledge-Driven Development)**.
+**KDD (Knowledge-Driven Development)** is a way to build software in the AI era, worked out on SafeChord.
 
 ---
 
@@ -58,7 +58,7 @@ While Vector DBs for RAG are popular, KDD insists on using Markdown files and a 
 *   **Deterministic vs. Probabilistic**: Vector DBs chunk knowledge and rely on probabilistic "semantic similarity." This often leads to AI "rediscovering" knowledge or mixing unrelated modules, causing "Retrieval Loss." In contrast, KDD uses the [**Knowledge Tree (`knowledgetree.md`)**](safechord.knowledgetree.md) as a global router. Parent-child relationships and module dependencies are **absolute**.
 *   **Compound Knowledge**: The KDD Knowledge Tree is not static; it is a persistent artifact that gains value over time. Every PR and architectural adjustment leaves a trace of cross-references and versioned logic.
 *   **Eliminating Bookkeeping Drudgery**: Humans historically struggled to maintain large Wikis due to the labor of linking and state updates. In KDD, humans make high-level decisions (Architects), while the labor-intensive maintenance and reconciliation of the Markdown tree are handled by tireless AI agents (Settlers).
-*   **Tool-Agnostic Adaptability**: AI tools evolve rapidly. SafeChord has moved from Web Chat interfaces to API calls and now to dual-track CLI agents. This transition was seamless because **Markdown files are the ultimate tool abstraction layer**.
+*   **Tool-Agnostic Adaptability**: AI tools evolve rapidly, and **Markdown files are the ultimate tool abstraction layer**: a change of tool leaves the knowledge as it was.
 
 ---
 
@@ -73,10 +73,10 @@ This is not a compromise on KDD principles; it is the "breathing" of the system�
 
 ---
 
-## 6. Toward Practice: Dual-Track & Headless Collaboration
+## 6. Toward Practice
 
 The above represents the "Tao" of KDD. 
 
-To see how SafeChord practically implements these concepts in 2026 using AI coding agents and standardized protocols (Git Commit standards, Handoffs):
+How these concepts are put into practice, through modes, seats and the protocols they share:
 
-👉 See: **[KDD Practice: Dual-Track CLI & Headless Collaboration](safechord.kdd.practice.md)**
+👉 See: **[KDD Practice](safechord.kdd.practice.md)**

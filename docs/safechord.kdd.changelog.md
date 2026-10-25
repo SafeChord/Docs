@@ -6,7 +6,7 @@ archetype: changelog
 
 # KDD Collaboration Model Changelog
 
-`practice.md` is an `archetype: script` and states only the procedure in force. This file
+`practice.md` is an interface and, with its mode pages, states only the shape in force. This file
 holds what that document structurally cannot: the shape the model used to have, and why it
 stopped having it.
 

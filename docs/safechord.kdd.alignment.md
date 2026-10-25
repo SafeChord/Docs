@@ -34,4 +34,4 @@ The last aligned commit is the tag `align/last` on the Docs repository.
 
 ## Landing {#landing}
 
-A run edits pages that no human looks at one by one, and `main` is what every session reads and what the site deploys. A run therefore lands through a PR from its own branch, and the human's merge is the sign-off (`Docs/.ai-rules.md` §2.1). What the run could not settle is listed in the PR for the human to decide.
+A run edits pages that no human looks at one by one, and `main` is what every session reads and what the site deploys. A run therefore lands through a PR from its own branch, and the human's merge is the sign-off. What the run could not settle is listed in the PR for the human to decide.
