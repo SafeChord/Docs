@@ -13,32 +13,28 @@ code_paths: []
 > **Focus**: How a code change gets from a ticket to a merge on the **"Two-Engine"** model: a Pioneer seat for implementation and a Settler seat for review and solidification.
 > **Constraint**: Nothing every mode shares: it is in the practice. How to dispatch and review is in the `pioneer-dispatch` skill, and how to write the PR body in the `pr-body` skill (`.claude/skills/` in the workspace harness).
 
-> **⚙️ This document is in an adjustment period.** The two-engine seating, the ticket lifecycle, and the templates in §4 were all introduced in v0.4.0 and have not yet been through a full cycle. Expect rough edges.
->
-> **If a template or a step does not fit the work in front of you, say so rather than working around it silently.** A mismatch between this document and what actually happens is a defect in the document until it has been argued otherwise — raise it with the human, and it gets fixed here.
->
-> **Do not bump `doc_version` while this notice stands.** The document holds at v0.4.0 until the adjustment period closes. Edits land under `last_updated` alone.
+> **⚙️ This page shares the practice's [adjustment period](safechord.kdd.practice.md)**: the two-engine seating, the ticket lifecycle and the templates in §4 have not yet been through a full cycle, and its `doc_version` holds at v0.4.0 while the notice stands.
 
 ## Mode Contract {#mode-contract}
 
-- **Work**: a code change that lands in SafeZone, SafeZone-Deploy or Chorde through a branch, a PR and a merge, on a ticket labelled `kdd:forward` or `kdd:spike`. A session moves into this mode when it picks up such a ticket.
+- **Work**: a code change that lands in a code repository through a branch, a PR and a merge, on a ticket labelled `kdd:forward` or `kdd:spike`. A session moves into this mode when it picks up such a ticket.
 - **Human**: the last gatekeeper, looking once before merge; the merge is the sign-off. Under `exec:settler` the human is also the only reviewer (§3.3).
 - **Seats**: the Pioneer and the Settler, each held for a session's lifetime (§1).
 - **Ends**: when the ticket closes, after merge and reconciliation (§3.1, Solidification).
 - **Landing**: through the ticket's branch, a PR and the human's merge. `Docs/` belongs to the Settler; the Pioneer is read-only there (§1).
 - **Protocols**: **extends** the ticket, the commit and the handoff (§2). Its own: the pull request (§2).
-- **Carried by**: `pioneer-dispatch` (dispatch and review, §3.1 step 3) and `pr-body` (the PR). Written only on this page: the requirement tests (§3.1), Solidification (§3.1), review findings (§3.2) and `exec:settler` (§3.3).
+- **Carried by**: `pioneer-dispatch` (dispatch, review and the round cap, §3.1 and §3.2) and `pr-body` (the PR). Written only on this page: the requirement tests (§3.1), Solidification (§3.1), review findings (§3.2) and `exec:settler` (§3.3).
 
 ---
 
 ## 1. The Two-Engine Model {#1-the-two-engine-model}
 
-| Role | Capability Required | Current Carrier | Core Responsibility |
-| :--- | :--- | :--- | :--- |
-| **🛡️ Pioneer** | Adequate implementation ability, good value for its cost, fast turnaround; failures are caught by tests | opencode (headless), through OpenRouter · **GPT-6 Luna / high effort** | **Implementation & Problem Solving**: code, first-pass debugging. |
-| **🧠 Settler** | Full comprehension, long-horizon work, strong review; the human answers for its mistakes | Claude Code · **Opus 5.5 / medium (or high) effort** | **Document stewardship & task review**. Before the ticket: discuss the design with the human, amend the blueprint, open the ticket. After it: code review, test planning, documentation reconciliation. |
+| Role | Capability Required | Core Responsibility |
+| :--- | :--- | :--- |
+| **🛡️ Pioneer** | Adequate implementation ability, good value for its cost, fast turnaround; failures are caught by tests | **Implementation & Problem Solving**: code, first-pass debugging. |
+| **🧠 Settler** | Full comprehension, long-horizon work, strong review; the human answers for its mistakes | **Document stewardship & task review**. Before the ticket: discuss the design with the human, amend the blueprint, open the ticket. After it: code review, test planning, documentation reconciliation. |
 
-**Capability Required is the contract; Current Carrier is an implementation detail.** Swap a carrier without touching the seat.
+**Capability Required is the contract.** Which carrier and model hold a seat is configuration: the Pioneer's is in `pioneer-dispatch`'s `config.json`, and the Settler is the attended session the human starts. Swap a carrier without touching the seat.
 
 **`Docs/` belongs to the Settler.** The Pioneer writes only to its ticket's branch and its delivery handoff: every other repository, `Docs/` included, and the tickets and PRs are read-only to it. A deviation found during implementation is finished in code first, then written up with its reason for the Settler to review.
 
@@ -81,7 +77,7 @@ code_paths: []
     - harm, and it cannot be checked before merge: stated under **Merge Danger**. A check that can run only once the release is cut or deployed also goes on the release's record of held checks ([Delivery §3](safechord.kdd.practice.delivery.md#what-development-hands-over)), with a link back to this ticket
     - no danger at merge, but worth doing: a follow-up ticket; see [§3.2](#32-handling-review-findings)
 
-    Whether an item can harm often depends on context the Settler lacks, such as what the platform already handles or how much real traffic there is. The Settler then asks whether merge is when the harm would land; if not, the item becomes a ticket or is dropped. When unsure, it opens the ticket and says in its Background that the premise is unverified. The PR carries no list of what was not checked.
+    An item whose harm would not land at merge becomes a ticket or is dropped. The PR carries no list of what was not checked.
 *   **Required Content**: [see template](#pull-request-template)
 
 ---
@@ -111,30 +107,18 @@ The Settler opens and labels the ticket; the human adjusts it where needed.
 Applied to optimizations of existing modules and known architecture extensions.
 **Rule**: "Docs before Code"—no implementation without an updated blueprint.
 
-1.  **Strategic Design** (Settler):
-    1. Discuss and define the "Why/What" with the human
-    2. Update the blueprint's Requirements (the section listing the promises tests must hold), and set its `app_version` to the ticket's milestone
-    3. Discuss with the human whether the decision belongs in the decision log; if it does, append the decision and its reasons
-    4. **Open the ticket and label it `kdd:forward`**
-    5. Cut the ticket's branch from `dev` and commit on it the tests that enforce the changed requirements, each carrying its requirement ID, with the trailer `Agent: Settler (requirement test)`. How to write them is [below](#writing-the-requirement-tests)
-    6. Write a kickoff handoff if one is needed
-2.  **Implementation** (Pioneer): once the Settler has committed the requirement tests and handed over
-    1. Read the ticket, the blueprint, and the handoff if there is one
-    2. On the same branch, implement code that passes those tests
-    3. Add its own tests as the work needs, so that development follows TDD
-    4. When implementation is done, push the branch, open no PR, and write the handoff
-3.  **Review** (Settler): once the Pioneer has delivered
-    1. Read the Pioneer's handoff and review the code against the blueprint. How to dispatch and review, and when to stop, is in the `pioneer-dispatch` skill (`.claude/skills/pioneer-dispatch/SKILL.md`)
-    2. Send any findings back to implementation; see [§3.2](#32-handling-review-findings)
-    3. Once review passes, write the PR
-    4. If the CI the PR triggers fails, go back to review; once it passes, wait for the human to review and merge
-4.  **Solidification** (Settler): once the human has merged the PR
-    1. Where the code diverged from the blueprint and the divergence was reviewed, bring the blueprint in line. If the PR's SSOT feedback box is ticked, write its entries into `Docs/` as well
-    2. Delete the handoffs the task produced
-    3. Switch the repo's checkout back to `dev` and update it, then delete the ticket's local branch and its run directory (`.ai-runs/<repo>-<issue_no>/`, where one exists). The remote branch is deleted on merge
-    4. Close the ticket
+**Strategic Design** (Settler):
 
-**A ticket that changes no requirement** (documentation, or a refactor that keeps behavior) skips sub-steps 2 and 5 of step 1, and its reconciliation checks that the blueprint's wording still matches. If the change forces a requirement test to change all the same, such as a rename the move causes, that change is a commit of its own under the rules of [§3.2](#32-handling-review-findings), and its assertions and inputs stay as they were.
+1. Discuss and define the "Why/What" with the human
+2. Update the blueprint's Requirements (the section listing the promises tests must hold), and set its `app_version` to the ticket's milestone
+3. Discuss with the human whether the decision belongs in the decision log; if it does, append the decision and its reasons
+4. **Open the ticket and label it `kdd:forward`**
+5. Cut the ticket's branch from the repository's integration branch and commit on it the tests that enforce the changed requirements, each carrying its requirement ID, with the trailer `Agent: Settler (requirement test)`. How to write them is [below](#writing-the-requirement-tests)
+6. Write a kickoff handoff if one is needed
+
+The flow goes on as [both paths](#both-paths) share it.
+
+**A ticket that changes no requirement** (documentation, or a refactor that keeps behavior) skips steps 2 and 5 of its Strategic Design, apart from cutting the branch, and its reconciliation checks that the blueprint's wording still matches. If the change forces a requirement test to change all the same, such as a rename the move causes, that change is a commit of its own under the rules of [§3.2](#32-handling-review-findings), and its assertions and inputs stay as they were.
 
 #### Writing the requirement tests {#writing-the-requirement-tests}
 
@@ -154,23 +138,27 @@ The Settler writes them before anyone has chosen a mechanism, so a test can only
 Applied to new tech integrations, unknown bug fixes, or performance stress tests.
 **Rule**: "Code before Docs"—prototyping is privileged over documentation.
 
-1.  **Strategic Design** (Settler):
-    1. Discuss and define the "Why/What" with the human
-    2. **Open the ticket and label it `kdd:spike`**, and write a kickoff handoff if one is needed
-    3. Cut the ticket's branch from `dev`
-2.  **Spike** (Pioneer): once the Settler has cut the branch and handed over
-    1. Read the ticket, and the handoff if there is one
-    2. Develop the code following TDD. The exception is a ticket whose Scope states that it adds no test code, because nothing a test could hold is at stake; its Done When then names the commands that verify it. The human and the Settler agree on this when the ticket is opened
+**Strategic Design** (Settler):
+
+1. Discuss and define the "Why/What" with the human
+2. **Open the ticket and label it `kdd:spike`**, and write a kickoff handoff if one is needed
+3. Cut the ticket's branch from the repository's integration branch
+
+### Both paths {#both-paths}
+
+1.  **Implementation** (Pioneer): once the Settler has cut the branch, committed the requirement tests on `kdd:forward`, and handed over
+    1. Read the ticket, and the handoff if there is one. On `kdd:forward`, read the blueprint and implement to it, passing the requirement tests on the same branch
+    2. Develop the code following TDD, adding tests as the work needs. On `kdd:spike`, a ticket whose Scope states that it adds no test code, because nothing a test could hold is at stake, is the exception: its Done When then names the commands that verify it. The human and the Settler agree on this when the ticket is opened
     3. When implementation is done, push the branch, open no PR, and write the handoff
-3.  **Review** (Settler): once the Pioneer has delivered
-    1. Read the Pioneer's handoff and review the code against the ticket's scope and Done When. How to dispatch and review, and when to stop, is in the `pioneer-dispatch` skill (`.claude/skills/pioneer-dispatch/SKILL.md`)
-    2. Send any findings back to implementation; see [§3.2](#32-handling-review-findings)
+2.  **Review** (Settler): once the Pioneer has delivered
+    1. Read the Pioneer's handoff and review the code: against the blueprint on `kdd:forward`, against the ticket's scope and Done When on `kdd:spike`. How to dispatch and review is in the `pioneer-dispatch` skill (`.claude/skills/pioneer-dispatch/SKILL.md`)
+    2. Send any findings back to implementation, up to the round cap; see [§3.2](#32-handling-review-findings)
     3. Once review passes, write the PR
-    4. If the CI the PR triggers fails, go back to review. If CI does not cover the component this task built, discuss with the human whether it should; if so, open a new ticket for it and carry on. Once CI passes, wait for the human to review and merge
-4.  **Solidification** (Settler): once the human has merged the PR
-    1. Discuss with the human whether the result needs settling into a document; if it does, write the document of the type that fits the work. If the PR's SSOT feedback box is ticked, write its entries into `Docs/` as well
+    4. If the CI the PR triggers fails, go back to review. On `kdd:spike`, if CI does not cover the component this task built, discuss with the human whether it should; if so, open a new ticket for it and carry on. Once CI passes, wait for the human to review and merge
+3.  **Solidification** (Settler): once the human has merged the PR
+    1. On `kdd:forward`, where the code diverged from the blueprint and the divergence was reviewed, bring the blueprint in line. On `kdd:spike`, discuss with the human whether the result needs settling into a document; if it does, write the document of the type that fits the work. On either path, if the PR's SSOT feedback box is ticked, write its entries into `Docs/` as well
     2. Delete the handoffs the task produced
-    3. Switch the repo's checkout back to `dev` and update it, then delete the ticket's local branch and its run directory (`.ai-runs/<repo>-<issue_no>/`, where one exists). The remote branch is deleted on merge
+    3. Switch the repo's checkout back to its integration branch and update it, then delete the ticket's local branch and its run directory (`.ai-runs/<repo>-<issue_no>/`, where one exists). The remote branch is deleted on merge
     4. Close the ticket
 
 ### 3.2 Handling review findings {#32-handling-review-findings}
@@ -178,6 +166,8 @@ Applied to new tech integrations, unknown bug fixes, or performance stress tests
 Review reads the test diff separately from the code diff. A test changed so that it passes is the first thing to question.
 
 **Findings go back to the Pioneer in a handoff** (see the [handoff protocol](safechord.kdd.practice.md#the-handoff-protocol)).
+
+**Review has a round cap**, set in `pioneer-dispatch`'s `config.json`. A review whose last round at the cap ends Returned stops there: the Settler reports to the human the rounds so far and the Blocking findings still open, with their causes, and does nothing more on the ticket. What follows is the human's decision.
 
 **A requirement test that does not match the blueprint's requirement.** There are two cases:
 
@@ -252,6 +242,10 @@ A `kickoff` between the seats uses the [handoff template](safechord.kdd.practice
 - [An objection to a requirement test]
 ```
 
+- **Round** is the review round this delivery answers, and **Head** the commit it describes; a delivery whose Head is not the branch head is stale.
+- **Response to Review** answers each finding still open. A disagreement there is an objection the Settler settles in the next round, not a fix.
+- **Raised for the Settler** holds what the Pioneer could not settle inside the ticket; the Settler decides each item ([§3.2](#32-handling-review-findings)). `None` means the Pioneer found nothing to raise.
+
 **`review`** (Settler, appended every round):
 
 ```markdown
@@ -291,13 +285,18 @@ A `kickoff` between the seats uses the [handoff template](safechord.kdd.practice
 - [...]
 ```
 
+- **Verdict** is `Passed` when no Blocking finding is open, and `Returned` otherwise. A Minor finding left open at `Passed` is a decision made in review, and goes to the PR.
+- **Blocking** must be resolved before the review can pass; **Minor** need not.
+- **Earlier findings** settles every finding still open from before as `Resolved` or `Open`, so the latest round alone says what is open.
+- **Coverage** says what the round ran, probed and left unchecked: a round with few findings and a short Coverage looked at little.
+
 Every Blocking finding carries its cause, and may carry more than one:
 
 | Cause | Meaning |
 | :--- | :--- |
 | `impl` | An error inside the boundary: the ticket, the blueprint or the requirement tests already said what was right, and the implementation did not do it |
 | `boundary` | The boundary moved: nobody had anticipated this case before the work began |
-| `kickoff` | Traced to what the Settler handed over: the ticket, the kickoff, or a requirement test |
+| `kickoff` | Traced to what the Settler handed over: the ticket, the kickoff, or a requirement test. Marked whenever it applies, also when the implementation is at fault as well |
 
 The cause records where a round came from, so that tickets can be compared by cause and not only by how many rounds they took.
 
@@ -331,6 +330,11 @@ Deferred to release: [the check] → #[release record ticket]
 ```
 
 The ticket line, Summary, Evidence and Merge Danger are in every PR. The other sections appear only when they have content, and the "Deferred to release" line only when there is such a check. The ticket line uses no closing keyword: the ticket closes after reconciliation, not on merge. Under `exec:settler`, "Decisions made in review" is headed "Decisions made during implementation".
+
+- **Summary** and **Evidence** are the change's shape and the proof that it does what it says: the human reads them to know what merging changes.
+- **Deferred to release** is a check moved to the release's record of held checks ([Delivery §3](safechord.kdd.practice.delivery.md#what-development-hands-over)).
+- **Decisions made in review** are what was decided without the human, Minor findings left open included; the human can overturn each before merging.
+- **Follow-up tickets** are work found outside this ticket; merging does not wait for them.
 
 **Merge Danger** is graded by what it costs if the change is wrong:
 
