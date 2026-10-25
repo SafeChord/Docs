@@ -40,7 +40,7 @@ code_paths: []
 
 **Capability Required is the contract; Current Carrier is an implementation detail.** Swap a carrier without touching the seat.
 
-**`Docs/` belongs to the Settler.** Pioneer is read-only there. A deviation found during implementation is finished in code first, then written up with its reason for the Settler to review.
+**`Docs/` belongs to the Settler.** The Pioneer writes only to its ticket's branch and its delivery handoff: every other repository, `Docs/` included, and the tickets and PRs are read-only to it. A deviation found during implementation is finished in code first, then written up with its reason for the Settler to review.
 
 **Seats are session-scoped.** One seat per session, held for its lifetime. Changing seat means a new session; carry the context across with a handoff. Code review therefore never shares a session with the implementation it reviews — the session that wrote the code holds Pioneer, and review is the Settler's.
 

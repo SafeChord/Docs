@@ -8,7 +8,7 @@ archetype: script
 
 > **Type**: Script (a mode page: implements the [practice](safechord.kdd.practice.md) §2)
 > **Focus**: Work the human and one agent do together in conversation, and the changes to `Docs/` and the harness that come out of it.
-> **Constraint**: Nothing every mode shares: it is in the practice. No rule for writing a Docs page (`Docs/.ai-rules.md` §3) or for committing through the harness (the workspace `CLAUDE.md` §5).
+> **Constraint**: Nothing every mode shares: it is in the practice. No rule for writing a Docs page (`Docs/.ai-rules.md` §3) or for committing through the harness (the workspace `AGENTS.md` §5).
 
 ## Mode Contract {#mode-contract}
 
