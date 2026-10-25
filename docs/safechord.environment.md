@@ -55,7 +55,7 @@ This is the **heart of CI/CD**. To keep a release candidate's validation from po
 Preview environments are installed via GitHub Actions using manifests in the `infra` path, deploying a "lightweight" suite within an independent namespace:
 *   **Ephemeral Infra**: Uses CNPG to deploy a single Primary cluster without read-write separation. Valkey is deployed with `emptyDir` for faster restarts.
 *   **Shared Kafka Cluster**: Since Kafka is resource-intensive, Preview environments share a platform-level Kafka cluster but maintain logical isolation via the `preview.` topic prefix.
-*   **Disposable Namespaces**: The entire environment is torn down once its candidate is validated ([Delivery](safechord.kdd.practice.delivery.md) B8).
+*   **Disposable Namespaces**: The entire environment is torn down once its candidate is validated ([SafeZone Delivery](safechord.safezone.delivery.md) B8).
 
 ### 2. Configuration Management
 All Preview-specific configurations (e.g., disabling persistence, connecting to shared Kafka) are encapsulated within `SafeZone-Deploy/deploy/preview/infra`. This ensures core logic remains identical to production while significantly reducing operational costs.

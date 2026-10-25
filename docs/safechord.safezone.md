@@ -121,6 +121,6 @@ Supporting components that maintain the simulation's state and operation.
 ## 4. Operational Links
 
 *   **Deployment Architecture**: [Deployment & Operations](safechord.safezone.deployment.md)
-*   **CI/CD Pipeline**: [Unified Delivery Workflow](safechord.kdd.practice.delivery.md)
+*   **CI/CD Pipeline**: [SafeZone Delivery](safechord.safezone.delivery.md)
 *   **Service Standards & Contracts**: [What every service promises, and where each shared contract is defined](safechord.safezone.service.standards.md)
 *   **Decision Log**: [Why SafeZone is built the way it is](safechord.safezone.decisions.md)

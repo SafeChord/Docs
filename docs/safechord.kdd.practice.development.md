@@ -78,7 +78,7 @@ code_paths: []
 *   **Sorting what was left unverified**: before writing the PR, the Settler takes everything left unverified (the review rounds' "Not checked" lines, the delivery handoff's "Unverified / Uncertain", and under `exec:settler` what it did not verify itself) and sorts each item by the harm it can do:
     - no real harm: dropped
     - harm, and it can be checked within the ticket: checked now
-    - harm, and it cannot be checked before merge: stated under **Merge Danger**. A check that can run only once the release is cut or deployed also goes on the milestone's release record ticket (`chore(release): checks held for the vX.Y.Z release`, opened if none exists), with a link back to this ticket
+    - harm, and it cannot be checked before merge: stated under **Merge Danger**. A check that can run only once the release is cut or deployed also goes on the release's record of held checks ([Delivery §3](safechord.kdd.practice.delivery.md#what-development-hands-over)), with a link back to this ticket
     - no danger at merge, but worth doing: a follow-up ticket; see [§3.2](#32-handling-review-findings)
 
     Whether an item can harm often depends on context the Settler lacks, such as what the platform already handles or how much real traffic there is. The Settler then asks whether merge is when the harm would land; if not, the item becomes a ticket or is dropped. When unsure, it opens the ticket and says in its Background that the premise is unverified. The PR carries no list of what was not checked.

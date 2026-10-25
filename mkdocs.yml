@@ -65,6 +65,7 @@ nav:
       - ChangeLog: https://github.com/SafeChord/SafeZone/blob/main/CHANGELOG.md
   - Deployment:
       - Overview: safechord.safezone.deployment.md
+      - Delivery: safechord.safezone.delivery.md
   - Chorde (Platform):
       - Overview: safechord.chorde.md
       - K3han Cluster:

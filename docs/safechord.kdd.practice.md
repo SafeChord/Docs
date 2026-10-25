@@ -27,7 +27,7 @@ SafeChord uses agents in several modes, told apart by what the work is and where
 | :--- | :--- | :--- | :--- |
 | Discussion | Work with no ticket yet, and work that lands in `Docs/` or the harness | Present throughout, deciding together | [Discussion](safechord.kdd.practice.discussion.md) |
 | Development | A code change that lands in a code repository through a branch, a PR and a merge, on a ticket labelled `kdd:forward` or `kdd:spike` | The last gatekeeper, looking once before merge | [Development](safechord.kdd.practice.development.md) |
-| Delivery | Cutting, validating and promoting a SafeZone release: a phase or route of the delivery workflow | Present throughout, signing off every gate | [Delivery](safechord.kdd.practice.delivery.md) |
+| Delivery | Cutting, validating and promoting a release of a product, phase by phase, as its implementation page lays out | Present throughout, signing off every gate | [Delivery](safechord.kdd.practice.delivery.md) |
 | Operations | Running the deployed system: SRE work on the live platform | Not yet defined | — |
 
 ### Finding your mode {#finding-your-mode}

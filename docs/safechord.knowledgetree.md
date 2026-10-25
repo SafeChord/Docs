@@ -42,7 +42,7 @@ SafeChord utilizes a **Decoupled 4-Layer** architecture. Choose your reading pat
         *   [📄 safechord.kdd.practice.md](safechord.kdd.practice.md) ⭐ (Practice: Modes, What Every Mode Declares, Shared Protocols & Templates)
             *   [📄 safechord.kdd.practice.discussion.md](safechord.kdd.practice.discussion.md) (Discussion: Work Decided in Conversation, Docs & Harness Changes)
             *   [📄 safechord.kdd.practice.development.md](safechord.kdd.practice.development.md) (Development: The Two-Engine Model, Dual-Track Flow & Review)
-            *   [📄 safechord.kdd.practice.delivery.md](safechord.kdd.practice.delivery.md) ⭐ (Delivery: SafeZone's Unified Delivery Workflow)
+            *   [📄 safechord.kdd.practice.delivery.md](safechord.kdd.practice.delivery.md) (Delivery: Gates, Floor and Focus, What Development Hands Over)
         *   [📄 safechord.kdd.alignment.md](safechord.kdd.alignment.md) (Standing Task: Internal Alignment of Docs/)
         *   [📄 safechord.kdd.changelog.md](safechord.kdd.changelog.md) (🔄 Collaboration Model History & Superseded Designs)
 
@@ -67,6 +67,7 @@ SafeChord utilizes a **Decoupled 4-Layer** architecture. Choose your reading pat
     *   🟨 **Deployment Layer (Repo: SafeZone-Deploy)**
         *   *Focus: Configuration, Helm, GitOps CD*
         *   [📄 safechord.safezone.deployment.md](safechord.safezone.deployment.md) ⭐ (Deployment Architecture)
+        *   [📄 safechord.safezone.delivery.md](safechord.safezone.delivery.md) ⭐ (SafeZone Delivery: Release Phases, Routes, IssueOps)
 
     *   🟥 **Infrastructure Layer (Repo: Chorde)**
         *   *Focus: Kubernetes, Platform Operators, Scheduling*
