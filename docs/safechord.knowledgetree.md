@@ -44,6 +44,7 @@ SafeChord utilizes a **Decoupled 4-Layer** architecture. Choose your reading pat
             *   [📄 safechord.kdd.practice.development.md](safechord.kdd.practice.development.md) (Development: The Two-Engine Model, Dual-Track Flow & Review)
             *   [📄 safechord.kdd.practice.delivery.md](safechord.kdd.practice.delivery.md) (Delivery: Gates, Floor and Focus, What Development Hands Over)
         *   [📄 safechord.kdd.alignment.md](safechord.kdd.alignment.md) (Standing Task: Internal Alignment of Docs/)
+        *   [📄 safechord.kdd.discovery.md](safechord.kdd.discovery.md) (Standing Task: Discovery of Where the Process Leaks)
         *   [📄 safechord.kdd.changelog.md](safechord.kdd.changelog.md) (🔄 Collaboration Model History & Superseded Designs)
 
     *   🟦 **Application Layer (Repo: SafeZone)**

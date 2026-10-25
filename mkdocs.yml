@@ -87,6 +87,7 @@ nav:
           - Development: safechord.kdd.practice.development.md
           - Delivery: safechord.kdd.practice.delivery.md
       - Internal Alignment: safechord.kdd.alignment.md
+      - Discovery: safechord.kdd.discovery.md
       - ChangeLog: safechord.kdd.changelog.md
 
 markdown_extensions:

@@ -47,6 +47,7 @@ A standing task is work that no ticket and no mode owns. It runs under the mode 
 | Task | What it keeps | Page |
 | :--- | :--- | :--- |
 | Internal alignment | `Docs/` consistent with itself | [Internal Alignment](safechord.kdd.alignment.md) |
+| Discovery | The process's leaks found across runs and put before the human | [Discovery](safechord.kdd.discovery.md) |
 
 ---
 
