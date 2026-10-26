@@ -44,6 +44,11 @@ validation:
   links:
     anchors: warn
 
+# MkDocs always excludes /templates/; the protocol templates are linked from the KDD pages, so they
+# are let back in, and only the page scaffolds stay out.
+exclude_docs: |
+  !/templates/protocol/
+
 nav:
   - Home: index.md
   - Knowledge Tree: safechord.knowledgetree.md

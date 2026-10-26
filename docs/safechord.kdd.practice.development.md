@@ -1,6 +1,6 @@
 ---
 title: 'KDD 2.0: Development'
-last_updated: '2026-10-23'
+last_updated: '2026-10-26'
 status: active
 doc_version: 0.4.0
 archetype: script
@@ -11,9 +11,9 @@ code_paths: []
 
 > **Type**: Script (a mode page: implements the [practice](safechord.kdd.practice.md) §2)
 > **Focus**: How a code change gets from a ticket to a merge on the **"Two-Engine"** model: a Pioneer seat for implementation and a Settler seat for review and solidification.
-> **Constraint**: Nothing every mode shares: it is in the practice. How to dispatch and review is in the `pioneer-dispatch` skill, and how to write the PR body in the `pr-body` skill (`.claude/skills/` in the workspace harness).
+> **Constraint**: Nothing every mode shares: it is in the practice. How to dispatch and review is in the `pioneer-dispatch` skill, and how to write the PR body in the `pr-body` skill (`.claude/skills/` in the workspace harness). No template's skeleton or field meanings: they are in its file under `docs/templates/protocol/`.
 
-> **⚙️ This page shares the practice's [adjustment period](safechord.kdd.practice.md)**: the two-engine seating, the ticket lifecycle and the templates in §4 have not yet been through a full cycle, and its `doc_version` holds at v0.4.0 while the notice stands.
+> **⚙️ This page shares the practice's [adjustment period](safechord.kdd.practice.md)**: the two-engine seating, the ticket lifecycle and its protocol templates have not yet been through a full cycle, and its `doc_version` holds at v0.4.0 while the notice stands.
 
 ## Mode Contract {#mode-contract}
 
@@ -22,7 +22,7 @@ code_paths: []
 - **Seats**: the Pioneer and the Settler, each held for a session's lifetime (§1).
 - **Ends**: when the ticket closes, after merge and reconciliation (§3.1, Solidification).
 - **Landing**: through the ticket's branch, a PR and the human's merge. `Docs/` belongs to the Settler; the Pioneer is read-only there (§1).
-- **Protocols**: **extends** the ticket, the commit and the handoff (§2). Its own: the pull request (§2).
+- **Protocols**: **extends** the ticket, the commit and the handoff (§2). Its own: the pull request (§2). §2 names the template each one uses.
 - **Carried by**: `pioneer-dispatch` (dispatch, review and the round cap, §3.1 and §3.2) and `pr-body` (the PR). Written only on this page: the requirement tests (§3.1), Solidification (§3.1), review findings (§3.2) and `exec:settler` (§3.3).
 
 ---
@@ -65,7 +65,7 @@ code_paths: []
     - `delivery` (Pioneer → Settler, on delivery): describes the branch as it stands. Every round updates it in place instead of adding a file; what has been dealt with is deleted, and the earlier state stays in the harness git history. Its header records which round this is and which commit it describes.
     - `review` (Settler → Pioneer, in review): every round appends a section (`## Round N`) to the same file. Earlier rounds are neither rewritten nor deleted, so it stays visible whether each round's findings narrowed. Every finding has a fixed number (`R<round>-<n>`), and every Blocking finding names its cause; each round opens by settling the findings still open from before, so the Pioneer needs to read only the latest round. Each round closes with its coverage: what the Settler ran, what it probed, and what it left unchecked, so that a round with few findings can be told apart from a round that looked at little.
 *   **Naming**: The three files exchanged between the seats also end in their kind: `-kickoff`, `-delivery`, `-review` (e.g. `2026-09-19-safezone-64-worker-offset-commit-review.md`).
-*   **Required Content**: [see template](#handoffs-between-the-seats-templates)
+*   **Required Content**: a `kickoff` uses the [handoff template](templates/protocol/handoff.md) as it is; a `delivery` uses the [delivery template](templates/protocol/development/delivery.md), which adds to it; a `review` uses the [review template](templates/protocol/development/review.md).
 
 ### 🟣 The Pull Request {#the-pull-request}
 *   **Medium**: a GitHub PR in the repository the work lands in.
@@ -78,7 +78,7 @@ code_paths: []
     - no danger at merge, but worth doing: a follow-up ticket; see [§3.2](#32-handling-review-findings)
 
     An item whose harm would not land at merge becomes a ticket or is dropped. The PR carries no list of what was not checked.
-*   **Required Content**: [see template](#pull-request-template)
+*   **Required Content**: [the pull request template](templates/protocol/development/pull-request.md)
 
 ---
 
@@ -219,133 +219,3 @@ None of these conditions settles the matter on its own. The human and the Settle
 **What was left unverified.** With no review file, what the Settler did not verify itself goes through the same sorting as a review's ([§2, the Pull Request](#the-pull-request)) before the PR is written. Whatever can harm and could not be checked before merge is stated under the PR's Merge Danger, where the human, the only reviewer, reads it.
 
 **Merge is the sign-off.** The human merges after reviewing the change, and the merge is what transfers accountability. No agent merges an `exec:settler` PR.
-
----
-
-## 4. Development Templates {#4-development-templates}
-
-### 🔴 Handoffs Between the Seats {#handoffs-between-the-seats-templates}
-A `kickoff` between the seats uses the [handoff template](safechord.kdd.practice.md#handoff-template) as it is. `delivery` and `review` differ as follows.
-
-**`delivery`** (Pioneer, updated in place every round): the handoff template, with two more header lines and two more sections.
-
-```markdown
-> **Round**: [N, counted from 1]
-> **Head**: [the commit this note describes]
-
-## Response to Review
-[From round 2 on. One line per finding still open in the latest review round.]
-- R1-1: [how it was fixed, or why you disagree]
-
-## Raised for the Settler
-- [A problem that cannot be fixed inside this ticket: what was found, and why]
-- [An objection to a requirement test]
-```
-
-- **Round** is the review round this delivery answers, and **Head** the commit it describes; a delivery whose Head is not the branch head is stale.
-- **Response to Review** answers each finding still open. A disagreement there is an objection the Settler settles in the next round, not a fix.
-- **Raised for the Settler** holds what the Pioneer could not settle inside the ticket; the Settler decides each item ([§3.2](#32-handling-review-findings)). `None` means the Pioneer found nothing to raise.
-
-**`review`** (Settler, appended every round):
-
-```markdown
-# 📝 Review: [Task Name]
-
-> **From**: Settler / [Carrier] / [session id]
-> **Resume**: [command that resumes this session in its tool]
-> **To**: Pioneer / [session id]
-> **Ticket**: [<repo>-<issue_no>]
-> **Branch**: [Branch Name]
-
----
-
-## Round 1 — reviewed [commit]
-**Verdict**: [Returned / Passed]
-
-### Findings
-- **R1-1** [Blocking] [impl / boundary / kickoff] [what is wrong, where, how to reproduce it]
-- **R1-2** [Minor] [...]
-
-### Coverage
-- Ran: [the tests the Settler ran itself, and their result]
-- Probed: [each throwaway experiment: what it varied, what it showed]
-- Not checked: [the paths, conditions and files this round did not examine]
-
-## Round 2 — reviewed [commit]
-**Verdict**: [Returned / Passed]
-
-### Earlier findings
-- R1-1: Resolved
-- R1-2: Open — [what is still missing]
-
-### Findings
-- **R2-1** [Blocking] [impl / boundary / kickoff] [...]
-
-### Coverage
-- [...]
-```
-
-- **Verdict** is `Passed` when no Blocking finding is open, and `Returned` otherwise. A Minor finding left open at `Passed` is a decision made in review, and goes to the PR.
-- **Blocking** must be resolved before the review can pass; **Minor** need not.
-- **Earlier findings** settles every finding still open from before as `Resolved` or `Open`, so the latest round alone says what is open.
-- **Coverage** says what the round ran, probed and left unchecked: a round with few findings and a short Coverage looked at little.
-
-Every Blocking finding carries its cause, and may carry more than one:
-
-| Cause | Meaning |
-| :--- | :--- |
-| `impl` | An error inside the boundary: the ticket, the blueprint or the requirement tests already said what was right, and the implementation did not do it |
-| `boundary` | The boundary moved: nobody had anticipated this case before the work began |
-| `kickoff` | Traced to what the Settler handed over: the ticket, the kickoff, or a requirement test. Marked whenever it applies, also when the implementation is at fault as well |
-
-The cause records where a round came from, so that tickets can be compared by cause and not only by how many rounds they took.
-
-### 🟣 Pull Request Template {#pull-request-template}
-```markdown
-[exec:settler only: the header from §3.3]
-Ticket: #[issue_no]
-
-## Summary
-[The smallest view that makes the change clear]
-
-## Evidence
-- [A contrast per behavior: what failed before and passes now]
-- [The regression run, one line]
-
-## Merge Danger: [low / medium / high]
-[What merging sets off, what a revert would not undo, who is hit if this is wrong]
-Deferred to release: [the check] → #[release record ticket]
-
-## SSOT feedback
-- **Gap**: [requirement or ADR] says nothing about [what]. This PR chose [what].
-- **Requirement test**: [test] added / modified: [what the promise now pins].
-
-- [ ] Tighten the SSOT with the above (unticked at merge: left as is)
-
-## Decisions made in review
-- [A decision the human did not see, Minor findings left open included]
-
-## Follow-up tickets
-- #[issue_no]
-```
-
-The ticket line, Summary, Evidence and Merge Danger are in every PR. The other sections appear only when they have content, and the "Deferred to release" line only when there is such a check. The ticket line uses no closing keyword: the ticket closes after reconciliation, not on merge. Under `exec:settler`, "Decisions made in review" is headed "Decisions made during implementation".
-
-- **Summary** and **Evidence** are the change's shape and the proof that it does what it says: the human reads them to know what merging changes.
-- **Deferred to release** is a check moved to the release's record of held checks ([Delivery §3](safechord.kdd.practice.delivery.md#what-development-hands-over)).
-- **Decisions made in review** are what was decided without the human, Minor findings left open included; the human can overturn each before merging.
-- **Follow-up tickets** are work found outside this ticket; merging does not wait for them.
-
-**Merge Danger** is graded by what it costs if the change is wrong:
-
-| Level | If this is wrong | The human |
-| :--- | :--- | :--- |
-| `low` | A revert puts everything back | Merges |
-| `medium` | A revert puts it back, but someone or something was hit first | Knows where to look after merge |
-| `high` | Something a revert does not undo, or a manual step before or after merge | Reads the description before merging |
-
-A check deferred to release does not raise the level: the release's gates hold it.
-
-**SSOT feedback** reports where the SSOT left room. A Gap is a choice the SSOT left open that something outside the service, an operator or the deployment can observe; a choice visible only inside the code is a decision. A requirement test added or modified after pre-work changes the precise form of a promise. Ticking the box means reconciliation writes every entry into `Docs/`; to write only some, the human says which in a PR comment, and the comment wins.
-
-How to fill each section (the forms for Summary and Evidence, the floors for Merge Danger, the prose rules) is in the `pr-body` skill (`.claude/skills/pr-body/SKILL.md`).

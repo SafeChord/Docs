@@ -1,6 +1,6 @@
 ---
 title: 'KDD 2.0: Practice'
-last_updated: '2026-10-23'
+last_updated: '2026-10-26'
 status: active
 doc_version: 0.4.0
 archetype: interface
@@ -10,10 +10,10 @@ code_paths: []
 # KDD 2.0 Practice
 
 > **Type**: Interface (implemented by every mode page)
-> **Focus**: Which mode a session is in, what holds in every mode, what each mode page must declare, and the protocols and templates the modes share.
-> **Constraint**: No mode's own flow: it is on that mode's page. No standing task's own rules: they are on its page. How a step is carried out lives in the skill or script that runs it (§1.2). The reasons the model took its shape are in the [KDD changelog](safechord.kdd.changelog.md).
+> **Focus**: Which mode a session is in, what holds in every mode, what each mode page must declare, and the protocols the modes share.
+> **Constraint**: No mode's own flow: it is on that mode's page. No standing task's own rules: they are on its page. How a step is carried out lives in the skill or script that runs it (§1.2). No template's skeleton or field meanings: they are in its file under `docs/templates/protocol/`. The reasons the model took its shape are in the [KDD changelog](safechord.kdd.changelog.md).
 
-> **⚙️ This document is in an adjustment period.** The Mode Contract in §2, the ticket lifecycle, and the templates in §4 were all introduced in v0.4.0 and have not yet been through a full cycle. Expect rough edges.
+> **⚙️ This document is in an adjustment period.** The Mode Contract in §2, the ticket lifecycle, and the protocol templates were all introduced in v0.4.0 and have not yet been through a full cycle. Expect rough edges.
 >
 > **If a template or a step does not fit the work in front of you, say so rather than working around it silently.** A mismatch between this document and what actually happens is a defect in the document until it has been argued otherwise — raise it with the human, and it gets fixed here.
 >
@@ -68,7 +68,7 @@ Each kind of fact has one home. Two tests sort a sentence into its home: would i
 | Home | Holds | Read by |
 | :--- | :--- | :--- |
 | Framework docs (the [introduction](safechord.kdd.introduction.md), the [changelog](safechord.kdd.changelog.md)) | Concepts, reasons, what a run looks like | The human and agents |
-| Framework contract (this page, the shared mode pages, their templates) | What must hold, who decides, and what each template field means | The human and agents |
+| Framework contract (this page, the shared mode pages, their templates under `docs/templates/protocol/`) | What must hold, who decides, and what each template field means | The human and agents |
 | Framework skills and scripts (`.claude/skills/` in the workspace harness) | How a step is carried out now: commands, order, parameters | The agent that runs the skill |
 | Project implementation pages | A project page that inherits a shared mode page: the project's own flow, its artifacts and the reasons for its choices, with the skills that carry it | The human and agents in that mode |
 | Project config (a `config.json` beside the skill that reads it, for now) | Values skills and scripts read: carriers, models, base branches, limits | Skills and scripts |
@@ -123,13 +123,13 @@ A ticket is the head of any implementation, and the anchor everything else is tr
 *   **Weight**: a ticket is near-permanent, so it holds only what has trace value for a later reader: the problem, the decisions and their reasons, the scope, and Done When. Context that only aligns the seats for this task (inferred mechanisms, investigation detail, design suggestions, unverified items, implementation order) goes in the handoff. Done When lists only what can be verified before the work lands; a check that can run only after deployment belongs to a gate of the [delivery mode](safechord.kdd.practice.delivery.md).
 *   **Done When states intent, not shape**: write what must hold of the result ("the logger's output is unchanged except for `worker_id`", "no assertion or test input changes"), not what the diff or the names look like ("field names are unchanged", "the diff touches only imports"). A condition written as a shape is met by the wrong change and broken by the right one, and contradicts the Scope the first time it allows a rename.
 *   **Freshness**: a ticket opened before the work starts is checked again before it does, against the pages and the code as they now stand. A reference to a section since rewritten, or a current state that later tickets have changed, is corrected on the ticket first.
-*   **Required Content**: [see template](#github-issue-template)
+*   **Required Content**: [the ticket template](templates/protocol/ticket.md)
 
 ### 🟢 Basic Communication: Git Commit Protocol {#the-commit}
 *   **Medium**: git
 *   **Purpose**: the fine-grained carrier during implementation.
 *   **Format**: strict [Conventional Commits](https://www.conventionalcommits.org/).
-*   **Required Content**: [see template](#git-commit-template)
+*   **Required Content**: [the commit template](templates/protocol/commit.md)
 
 ### 🔴 The Handoff Protocol {#the-handoff-protocol}
 *   **Medium**: Markdown files in the project's handoff directory, which the context file names.
@@ -138,117 +138,9 @@ A ticket is the head of any implementation, and the anchor everything else is tr
 *   **Lifecycle**: a handoff lives with its task. Delete it when the task ends, as the mode page defines the end (§2, **Ends**); the harness git history keeps it recoverable.
 *   **Linking**: the handoff points at the ticket, never the reverse. Anyone who can read a handoff can reach the ticket, but a ticket reader may not see the handoff, and a link on a permanent ticket would dangle once the handoff is deleted.
 *   **Naming**: when a ticket exists, the filename carries `<repo>-<issue_no>` in lowercase (e.g. `2026-09-19-safezone-64-worker-offset-commit.md`).
-*   **Resuming**: a session handed off on a reactive trigger can be resumed with the note's `Resume:` command. A session handed off for context degradation is retired and not resumed.
-*   **Required Content**: [see template](#handoff-template)
+*   **Required Content**: [the handoff template](templates/protocol/handoff.md)
 
 ### ⚪ Design Drafts {#design-drafts}
 *   **Medium**: Markdown files in the project's draft directory, one subdirectory per domain; the context file names both.
 *   **Purpose**: continuity for forward-looking discussion that does not touch the codebase directly. Usually precedes opening a ticket.
-*   **Required Content**: [see template](#draft-template)
-
----
-
-## 4. Operational Templates (Appendices)
-
-### 🎫 GitHub Issue Template {#github-issue-template}
-```markdown
-## Background
-[Why is this needed? What does the current state look like?]
-
-## Scope
-- In: [what this ticket touches]
-- Out: [what is explicitly excluded]
-
-## Done When
-- [ ] [verifiable condition 1]
-- [ ] [verifiable condition 2]
-- [ ] Reconciliation complete (or confirmed with the human that none is needed)
-
-## References
-- [the pages, drafts or tickets this one builds on]
-```
-
-The reconciliation item is the one Done When ticked after the work lands: it is the last step of the flow, not a condition the change itself can show.
-
-### 🟢 Git Commit Template {#git-commit-template}
-```text
-<type>(<scope>): <subject> (50 chars max)
-
-[Body: Why was this change needed?]
-Explain the motivation and logic. Focus on "Why" rather than "How."
-Describe the impact on project architecture or long-term decisions.
-
-Context: [Ticket ID, or link to the Blueprint]
-Impact: [Specific impact on API contracts or infra]
-Test: [Verification executed: the command and its result]
-Agent: [the seat, with a qualifier where its mode page defines one, or the mode where it has no seats]
-Legacy: [Pending issues for the next agent]
-```
-
-### 🔴 Handoff Template {#handoff-template}
-```markdown
-# 📝 Legacy Note: [Task Name]
-
-> **Date**: YYYY-MM-DD
-> **From**: [Seat, or the mode where it has none] / [Carrier] / [session id]
-> **Resume**: [command that resumes this session in its tool]
-> **To**: [Seat, or the mode where it has none] / [new session, or blank if not yet known]
-> **Trigger**: [Reactive: milestone | blocked | human handover] or [Deliberate: context degradation]
-> **Ticket**: [<repo>-<issue_no>, e.g. safezone-64; blank if none]
-> **Branch**: [Branch Name]
-> **Action Required**: [Brief summary]
-
----
-
-## Status / Summary
-[Complete / Partially Complete / Deadlock]
-
-## What Changed
-[Structural changes or architectural adjustments]
-
-## Verified Path (Optional)
-- [x] What has been proven feasible?
-- [ ] Known dead ends or blockers?
-
-## Unverified / Uncertain
-- [ ] What was assumed but never checked?
-- [ ] What is the author unsure of?
-
-## Next Actions
-1. [Specific Instruction 1]
-2. [Specific Instruction 2]
-```
-
-### ⚪ Draft Template {#draft-template}
-```markdown
----
-title: 'Design Draft: [Topic]'
-doc_id: [project id].draft.[slug]
-last_updated: 'YYYY-MM-DD'
-status: draft
-authors: [<the human>, <agent>]
-context_scope: [Methodology | Infrastructure | ...]
-summary: [one paragraph on what this draft decides]
-logical_path: [Project].Draft.[Name]
-related_docs: []
-archetype: script
-doc_version: 0.1.0
----
-
-# Design Draft: [Topic]
-
-## 1. Background
-[What is the problem, and what constrains it?]
-
-## 2. Proposed Solution
-[The proposal, with mock code or schemas where they help]
-
-## 3. Alternatives Considered
-[What else was weighed, and why it lost]
-
-## 4. Trade-offs
-[What cost is being accepted]
-
-## 5. Next Steps
-1. [ ] [next action]
-```
+*   **Required Content**: [the draft template](templates/protocol/draft.md)
