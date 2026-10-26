@@ -52,7 +52,7 @@ code_paths: []
 **Extends** [the ticket](safechord.kdd.practice.md#the-ticket):
 
 *   **Branch**: `<type>/issue-<issue_no>-<slug>`, `<type>` being the commit type of the change. The `refactor/` prefix is reserved for a ticket labelled `mode:refactor`, which the human and the Settler agree on when the ticket is opened: that prefix switches the agents' refactor mode on, under which structural integrity outranks minimal diff while the Scope still binds. A `type:refactor` ticket without the label is cut as `chore/`.
-*   **Reconciliation**: only a `kdd:spike` ticket may have its reconciliation item confirmed as not needed. A `kdd:forward` ticket's References link its blueprint (`- Blueprint: [link to the Docs/ page]`).
+*   **Reconciliation**: only a `kdd:spike` ticket may have its reconciliation item confirmed as not needed. A `kdd:forward` ticket's References link its blueprint (`- Blueprint: [link to the Docs/ page]`), and its Scope names the requirement IDs it changes, or states that it changes none.
 
 ### 🟢 The Commit {#the-commit}
 **Extends** [the commit](safechord.kdd.practice.md#the-commit): `Agent:` is `Pioneer`, `Settler`, `Settler (review fix)` ([§3.2](#32-handling-review-findings)) or `Settler (requirement test)` ([§3.1](#writing-the-requirement-tests), [§3.2](#32-handling-review-findings)).
