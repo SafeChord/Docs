@@ -51,7 +51,7 @@ code_paths: []
 ### 🎫 The Ticket {#the-ticket}
 **Extends** [the ticket](safechord.kdd.practice.md#the-ticket):
 
-*   **Branch**: `<type>/issue-<issue_no>-<slug>`, `<type>` being the commit type of the change. The `refactor/` prefix is reserved for a ticket labelled `mode:refactor`, which the human and the Settler agree on when the ticket is opened: that prefix switches the agents' refactor mode on, under which structural integrity outranks minimal diff while the Scope still binds. A `type:refactor` ticket without the label is cut as `chore/`.
+*   **Branch**: `<type>/issue-<issue_no>-<slug>`, `<type>` being the commit type of the change. The `refactor/` prefix is reserved for a ticket labelled `mode:refactor`, which the human and the Settler agree on when the ticket is opened: that prefix switches the agents' refactor mode on, under which structural integrity outranks minimal diff while the Scope still binds. A `type:refactor` ticket without the label is cut as `chore/`. Where the repository's checkout is on another ticket's branch or another session is working in it, the branch is checked out in a `git worktree` of its own, and Solidification removes it.
 *   **Reconciliation**: only a `kdd:spike` ticket may have its reconciliation item confirmed as not needed. A `kdd:forward` ticket's References link its blueprint (`- Blueprint: [link to the Docs/ page]`), and its Scope names the requirement IDs it changes, or states that it changes none.
 
 ### 🟢 The Commit {#the-commit}
@@ -159,7 +159,7 @@ Applied to new tech integrations, unknown bug fixes, or performance stress tests
 3.  **Solidification** (Settler): once the human has merged the PR
     1. On `kdd:forward`, where the code diverged from the blueprint and the divergence was reviewed, bring the blueprint in line. On `kdd:spike`, discuss with the human whether the result needs settling into a document; if it does, write the document of the type that fits the work. On either path, if the PR's SSOT feedback box is ticked, write its entries into `Docs/` as well
     2. Delete the handoffs the task produced
-    3. Switch the repo's checkout back to its integration branch and update it, then delete the ticket's local branch and its run directory (`.ai-runs/<repo>-<issue_no>/`, where one exists). The remote branch is deleted on merge
+    3. Switch the repo's checkout back to its integration branch and update it, then delete the ticket's local branch, its worktree where it had one, and its run directory (`.ai-runs/<repo>-<issue_no>/`, where one exists). The remote branch is deleted on merge
     4. Close the ticket
 
 ### 3.2 Handling review findings {#32-handling-review-findings}
