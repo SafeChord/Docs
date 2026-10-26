@@ -205,7 +205,13 @@ Review reads the test diff separately from the code diff. A test changed so that
 
 None of these conditions settles the matter on its own. The human and the Settler discuss the case in front of them and decide.
 
-**Label and flow.** A ticket the Settler will execute carries the label `exec:settler`, which combines with `kdd:forward` or `kdd:spike`. The flow is the path from [§3.1](#31-choosing-the-path) with the Settler as the implementer: the handoffs between seats and the review in step 3 are skipped, and the Settler opens the PR once implementation is done, for the human to review. Work outside the ticket that turns up during it still goes to a new ticket, as in [§3.2](#32-handling-review-findings), listed in the PR.
+**Label and flow.** A ticket the Settler will execute carries the label `exec:settler`, which combines with `kdd:forward` or `kdd:spike`. The flow is the path from [§3.1](#31-choosing-the-path) with the Settler as the implementer: the handoffs between seats and the review in step 2 are skipped, and the Settler opens the PR once implementation is done, for the human to review. Work outside the ticket that turns up during it still goes to a new ticket, as in [§3.2](#32-handling-review-findings), listed in the PR.
+
+**What the skipped steps still ask.** Under `exec:settler`:
+
+- before work, the ticket's blockers are closed; an open one stops the work and goes to the human;
+- before the PR, if CI does not cover what the work built or changed, the Settler asks the human whether it should; a yes is a new ticket;
+- the evidence is where the human can rerun it: a planted-failure PR, a command against the repository, or a throwaway harness committed to the harness under `.ai-runs/<repo>-<issue_no>/`, never only in a session's scratchpad.
 
 **Review responsibility.** Separation exists so the session that did the work never reviews it. Under `exec:settler` that independence is gone, so the human takes over review explicitly and is accountable for it.
 
