@@ -21,6 +21,6 @@ The required content of [the ticket](../../safechord.kdd.practice.md#the-ticket)
 
 - **Background** is why the work is needed and the state it starts from, as of when the ticket was written or last checked for freshness. A decision recorded there with its reason binds the work as the Scope does.
 - **Scope** bounds the work: **In** is what it changes, **Out** what it leaves alone though it might look included. Work outside In is not done under this ticket.
-- **Done When** is what the result is checked against before it lands. A ticked item has been verified, not only worked on.
+- **Done When** is what the result is checked against before it lands; an item marked `(after merge)` is checked once it has landed, before the ticket closes. A ticked item has been verified, not only worked on.
 - **The reconciliation item** is ticked after the work lands, as the flow's last step; it is not a condition the change itself can show. Ticked as not needed, it records that the human confirmed so.
 - **References** are what the ticket builds on, read before the work starts.
