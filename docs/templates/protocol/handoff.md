@@ -1,14 +1,16 @@
 # Handoff Template
 
-The required content of [a handoff](../../safechord.kdd.practice.md#the-handoff-protocol).
+The required content of [a handoff](../../safechord.kdd.practice.md#protocols).
+
+A handoff lives with its task: delete it when the task ends, as the mode's page defines the end; the harness git history keeps it recoverable. It points at the ticket, never the reverse: a reader of the ticket may not see the handoff, and a link on the ticket would dangle once the handoff is deleted.
 
 ```markdown
 # 📝 Legacy Note: [Task Name]
 
 > **Date**: YYYY-MM-DD
-> **From**: [Seat, or the mode where it has none] / [Carrier] / [session id]
+> **From**: [Seat, or the mode where it has none; blank outside every mode] / [Carrier] / [session id]
 > **Resume**: [command that resumes this session in its tool]
-> **To**: [Seat, or the mode where it has none] / [new session, or blank if not yet known]
+> **To**: [Seat, or the mode where it has none; blank outside every mode] / [new session, or blank if not yet known]
 > **Trigger**: [Reactive: milestone | blocked | human handover] or [Deliberate: context degradation]
 > **Ticket**: [<repo>-<issue_no>, e.g. safezone-64; blank if none]
 > **Branch**: [Branch Name]

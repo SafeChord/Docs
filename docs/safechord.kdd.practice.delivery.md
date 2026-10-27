@@ -6,7 +6,7 @@ archetype: script
 
 # KDD 2.0 Practice: Delivery
 
-> **Type**: Script (a mode page: implements the [practice](safechord.kdd.practice.md) §2)
+> **Type**: Script (a mode page: takes the [practice](safechord.kdd.practice.md) as given)
 > **Focus**: What every project's delivery holds: how a release passes its gates, how its checks are layered, and what it takes over from Development.
 > **Constraint**: Nothing every mode shares: it is in the practice. Nothing one product's release does (its phases, branches, artifacts and the reasons for them): it is on that product's implementation page.
 

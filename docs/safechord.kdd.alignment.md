@@ -6,7 +6,7 @@ archetype: script
 
 # KDD 2.0: Internal Alignment
 
-> **Type**: Script (a [standing task](safechord.kdd.practice.md#standing-tasks))
+> **Type**: Script (a standing task: work no mode owns)
 > **Focus**: Keeping the en pages of `Docs/` consistent with each other and with the rules in `Docs/.ai-rules.md`: why the task exists, what it covers, what it takes as right, and how its changes land.
 > **Constraint**: No steps, commands, thresholds or tag mechanics. They are in the `align-incremental` and `align-full` skills (`.claude/skills/` in the workspace harness) and in the trigger, `scripts/align-trigger.sh`.
 

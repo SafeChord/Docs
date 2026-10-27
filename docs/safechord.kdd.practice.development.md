@@ -9,7 +9,7 @@ code_paths: []
 
 # KDD 2.0 Practice: Two-Engine Development
 
-> **Type**: Script (a mode page: implements the [practice](safechord.kdd.practice.md) §2)
+> **Type**: Script (a mode page: takes the [practice](safechord.kdd.practice.md) as given)
 > **Focus**: How a code change gets from a ticket to a merge on the **"Two-Engine"** model: a Pioneer seat for implementation and a Settler seat for review and solidification.
 > **Constraint**: Nothing every mode shares: it is in the practice. How to dispatch and review is in the `pioneer-dispatch` skill, and how to write the PR body in the `pr-body` skill (`.claude/skills/` in the workspace harness). No template's skeleton or field meanings: they are in its file under `docs/templates/protocol/`.
 
@@ -40,7 +40,7 @@ code_paths: []
 
 **Seats are session-scoped.** One seat per session, held for its lifetime. Changing seat means a new session; carry the context across with a handoff. Code review therefore never shares a session with the implementation it reviews — the session that wrote the code holds Pioneer, and review is the Settler's.
 
-**A Settler session may start a Pioneer session.** The Pioneer session starts from an empty context and is given only the ticket and the handoffs; what passes between the two is still only what the [handoff protocol](safechord.kdd.practice.md#the-handoff-protocol) lists for each direction. What reports back to a session by another route follows [Sessions and seats](safechord.kdd.practice.md#sessions-and-seats).
+**A Settler session may start a Pioneer session.** The Pioneer session starts from an empty context and is given only the ticket and the handoffs; what passes between the two is still only what [Handoffs Between the Seats](#handoffs-between-the-seats) lists for each direction.
 
 **Exception: the Settler may carry a task in a single session.** After discussing it, the human and the Settler may have the Settler alone execute a task; the ticket then carries the label `exec:settler`. See [§3.3](#33-choosing-the-executor).
 
@@ -49,16 +49,21 @@ code_paths: []
 ## 2. Development Protocols {#2-development-protocols}
 
 ### 🎫 The Ticket {#the-ticket}
-**Extends** [the ticket](safechord.kdd.practice.md#the-ticket):
+**Extends** [the ticket](templates/protocol/ticket.md):
+
+*   **Freshness**: a ticket opened before the work starts is checked again before it does, against the pages and the code as they now stand. A reference to a section since rewritten, or a current state that later tickets have changed, is corrected on the ticket first. It also asks what the tickets it depends on have decided since it was opened (an ADR, a blueprint change), and what its merge will touch that is running now (a release gate, a soak, a live sync).
+*   **Blockers**: recorded as the issue's blocked-by relation on GitHub, where a flow can read them; a blocker named only in the body goes unseen.
 
 *   **Branch**: `<type>/issue-<issue_no>-<slug>`, `<type>` being the commit type of the change. The `refactor/` prefix is reserved for a ticket labelled `mode:refactor`, which the human and the Settler agree on when the ticket is opened: that prefix switches the agents' refactor mode on, under which structural integrity outranks minimal diff while the Scope still binds. A `type:refactor` ticket without the label is cut as `chore/`. Where the repository's checkout is on another ticket's branch or another session is working in it, the branch is checked out in a `git worktree` of its own, and Solidification removes it.
 *   **Reconciliation**: only a `kdd:spike` ticket may have its reconciliation item confirmed as not needed. A `kdd:forward` ticket's References link its blueprint (`- Blueprint: [link to the Docs/ page]`), and its Scope names the requirement IDs it changes, or states that it changes none.
 
 ### 🟢 The Commit {#the-commit}
-**Extends** [the commit](safechord.kdd.practice.md#the-commit): `Agent:` is `Pioneer`, `Settler`, `Settler (review fix)` ([§3.2](#32-handling-review-findings)) or `Settler (requirement test)` ([§3.1](#writing-the-requirement-tests), [§3.2](#32-handling-review-findings)).
+**Extends** [the commit](templates/protocol/commit.md): `Agent:` is `Pioneer`, `Settler`, `Settler (review fix)` ([§3.2](#32-handling-review-findings)) or `Settler (requirement test)` ([§3.1](#writing-the-requirement-tests), [§3.2](#32-handling-review-findings)).
 
 ### 🔴 Handoffs Between the Seats {#handoffs-between-the-seats}
-**Extends** [the handoff protocol](safechord.kdd.practice.md#the-handoff-protocol). Between the seats it adds:
+**Extends** [the handoff](templates/protocol/handoff.md). Between the seats it adds:
+
+*   **Naming**: when a ticket exists, the filename carries `<repo>-<issue_no>` in lowercase (e.g. `2026-09-19-safezone-64-worker-offset-commit.md`).
 
 *   **Between the seats**: one ticket's back-and-forth uses at most three files, each with a single author.
     - `kickoff` (Settler → Pioneer, at the start): the ticket is the basis for starting; the Settler writes this only when it judges the ticket alone leaves the Pioneer short of context, and writes it once. It names the Done When items the Settler has already completed, so that the Pioneer neither redoes them nor raises them again. It hands over constraints and risks, not a mechanism: a case nobody has tried is written as a risk, never as a design to follow.
@@ -166,7 +171,7 @@ Applied to new tech integrations, unknown bug fixes, or performance stress tests
 
 Review reads the test diff separately from the code diff. A test changed so that it passes is the first thing to question.
 
-**Findings go back to the Pioneer in a handoff** (see the [handoff protocol](safechord.kdd.practice.md#the-handoff-protocol)).
+**Findings go back to the Pioneer in a handoff** (see [the handoff](templates/protocol/handoff.md)).
 
 **Review has a round cap**, set in `pioneer-dispatch`'s `config.json`. A review whose last round at the cap ends Returned stops there: the Settler reports to the human the rounds so far and the Blocking findings still open, with their causes, and does nothing more on the ticket. What follows is the human's decision.
 

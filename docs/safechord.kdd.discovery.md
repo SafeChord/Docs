@@ -6,7 +6,7 @@ archetype: script
 
 # KDD 2.0: Discovery
 
-> **Type**: Script (a [standing task](safechord.kdd.practice.md#standing-tasks))
+> **Type**: Script (a standing task: work no mode owns)
 > **Focus**: Finding where the KDD process lets defects through, by reading what its runs recorded and left behind across tickets and releases: why the task exists, what it covers, what it takes as right, and how its outcome lands.
 > **Constraint**: No steps, commands, thresholds, tag mechanics or classification criteria. They are in the `discover` skill (`.claude/skills/` in the workspace harness) and in its reminder, `scripts/discover-trigger.sh`.
 
@@ -37,8 +37,8 @@ A run has two halves, in two sessions.
 
 | | Reading | Deciding |
 | :--- | :--- | :--- |
-| **Who** | A session of its own, with no human present | The human, with a session in [Discussion](safechord.kdd.practice.discussion.md) |
-| **Does** | Reads the records and artifacts since the last review; finds what recurs across them; classifies each escape by the gate it came from, the gate that caught it and the gate that should have; proposes a fix for each finding, with the home the fix would have ([Layers](safechord.kdd.practice.md#layers)) | Goes through the draft and decides each finding: a ticket, a change in Discussion, or dropped |
+| **Who** | A session of its own, with no human present | The human, with a session of their own |
+| **Does** | Reads the records and artifacts since the last review; finds what recurs across them; classifies each escape by the gate it came from, the gate that caught it and the gate that should have; proposes a fix for each finding, with the home the fix would have ([Layers](safechord.kdd.practice.md#layers)) | Goes through the draft and decides each finding: a ticket, a change made in conversation, or dropped |
 | **Leaves** | One draft in the harness's draft directory, and nothing else changed | The decisions, each landed as its own mode lands it |
 
 The reading is long, and holding it in a session of its own keeps the judgment out of the sessions whose work is judged; deciding needs the human, who owns the process. A fix for a mechanical defect goes into a script, a hook or a check, since a written rule holds only while someone remembers it; a fix that needs judgment goes into the wording of a skill or a page.

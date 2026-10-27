@@ -88,9 +88,9 @@ nav:
       - Introduction: safechord.kdd.introduction.md
       - Practice:
           - Overview: safechord.kdd.practice.md
-          - Discussion: safechord.kdd.practice.discussion.md
           - Development: safechord.kdd.practice.development.md
           - Delivery: safechord.kdd.practice.delivery.md
+          - Operations: safechord.kdd.practice.operations.md
       - Internal Alignment: safechord.kdd.alignment.md
       - Discovery: safechord.kdd.discovery.md
       - ChangeLog: safechord.kdd.changelog.md

@@ -1,6 +1,6 @@
 # Draft Template
 
-The required content of [a design draft](../../safechord.kdd.practice.md#design-drafts).
+The required content of [a design draft](../../safechord.kdd.practice.md#protocols).
 
 ```markdown
 ---
