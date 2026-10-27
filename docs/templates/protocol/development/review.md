@@ -1,6 +1,6 @@
 # Review Template
 
-The `review` handoff between the seats ([development §2](../../../safechord.kdd.practice.development.md#handoffs-between-the-seats)), written by the Settler and appended every round.
+The `review` handoff between the seats ([development §2](../../../safechord.kdd.practice.development.md#handoffs-between-the-seats)), written by the Settler and appended every round. Earlier rounds are neither rewritten nor deleted, and a finding keeps its number (`R<round>-<n>`) for the life of the ticket.
 
 ```markdown
 # 📝 Review: [Task Name]

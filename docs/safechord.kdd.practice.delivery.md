@@ -47,5 +47,5 @@ Each validation stage runs in another environment or at a later time, so each on
 
 ## 3. What Development Hands Over {#what-development-hands-over}
 
-- A check that can run only once a release is cut or deployed is not run in its ticket. Development sorts it out there ([the Pull Request](safechord.kdd.practice.development.md#the-pull-request)) and enters it in the release's record of held checks, which the implementation page defines. The release runs it where its environment exists.
+- A check that can run only once a release is cut or deployed is not run in its ticket. Development lists it on the PR ([the pull request template](templates/protocol/development/pull-request.md)) and, at Solidification, enters it in the release's record of held checks, which the implementation page defines. The release runs it where its environment exists.
 - A fix found during a release is a ticket of its own, labelled for Development wherever it was found; the release takes it in through the normal flow.

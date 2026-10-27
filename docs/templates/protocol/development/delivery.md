@@ -1,6 +1,6 @@
 # Delivery Handoff Template
 
-The `delivery` handoff between the seats ([development §2](../../../safechord.kdd.practice.development.md#handoffs-between-the-seats)), written by the Pioneer and updated in place every round. It is the [handoff template](../handoff.md) with two more header lines and two more sections, given here; everything else is as that template writes it.
+The `delivery` handoff between the seats ([development §2](../../../safechord.kdd.practice.development.md#handoffs-between-the-seats)), written by the Pioneer and updated in place every round. It is the [handoff template](../handoff.md) with two more header lines and two more sections, given here; everything else is as that template writes it. What has been dealt with is deleted from it; the earlier state stays in the harness git history.
 
 ```markdown
 > **Round**: [N, counted from 1]

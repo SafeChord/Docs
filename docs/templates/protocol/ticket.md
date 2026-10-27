@@ -2,6 +2,8 @@
 
 The required content of [the ticket](../../safechord.kdd.practice.md#protocols): the body of its GitHub issue.
 
+Its blockers are recorded as the issue's blocked-by relation on GitHub, where a flow can read them; a blocker named only in the body goes unseen.
+
 A ticket is near-permanent, so it holds only what has trace value for a later reader: the problem, the decisions and their reasons, the scope, and Done When. Context that only aligns the seats for this task (inferred mechanisms, investigation detail, design suggestions, unverified items, implementation order) goes in the handoff.
 
 ```markdown
