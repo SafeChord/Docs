@@ -10,16 +10,6 @@ archetype: script
 > **Focus**: What every project's delivery holds: how a release passes its gates, how its checks are layered, and what it takes over from Development.
 > **Constraint**: Nothing every mode shares: it is in the practice. Nothing one product's release does (its phases, branches, artifacts and the reasons for them): it is on that product's implementation page.
 
-## Mode Contract {#mode-contract}
-
-- **Work**: cutting, validating and promoting a release of a product, as its implementation page lays the phases out. A session moves into this mode when it starts a phase or a route of one. A fix found during a release leaves the run as a ticket of its own, which is [Development](safechord.kdd.practice.development.md)'s.
-- **Human**: present throughout, signing off every gate (§1). The implementation page names the gates.
-- **Seats**: declared by the implementation page.
-- **Ends**: declared by the implementation page.
-- **Landing**: declared by the implementation page. What a shipped ticket changed was reconciled by that ticket; a release does not reconcile it again.
-- **Protocols**: the commit and the handoff, as the practice writes them. An implementation adds the issues that take a ticket's place for a release, and the record of the checks Development deferred to it (§3).
-- **Carried by**: each implementation's validation skills and pipelines, which its page lists.
-
 ## Implementations {#implementations}
 
 | Product | Page |
@@ -47,5 +37,5 @@ Each validation stage runs in another environment or at a later time, so each on
 
 ## 3. What Development Hands Over {#what-development-hands-over}
 
-- A check that can run only once a release is cut or deployed is not run in its ticket. Development lists it on the PR ([the pull request template](templates/protocol/development/pull-request.md)) and, at Solidification, enters it in the release's record of held checks, which the implementation page defines. The release runs it where its environment exists.
+- A check that can run only once a release is cut or deployed is not run in its ticket. Development lists it on the PR ([the pull request template](templates/protocol/development/pull-request.md)) and, at Solidification, enters it in the [release record](templates/protocol/delivery/release-record.md). The release runs it where its environment exists.
 - A fix found during a release is a ticket of its own, labelled for Development wherever it was found; the release takes it in through the normal flow.
