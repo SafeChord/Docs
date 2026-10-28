@@ -115,7 +115,6 @@ graph TD
 - **E2.** Confirm all `release: v0.X.Y` checklist items are done.
 - **E3.** Tag `v0.X.Y-staging` on `staging` + PR `staging` → `main` (archive).
 - **E4.** Close the `release: v0.X.Y` issue.
-<這裡好像跟 C 同個症頭 我覺得要思考一下 這些 GIT 操作到底是怎樣呈現>
 
 ## 3. Fixes found during a release
 
