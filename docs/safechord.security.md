@@ -20,6 +20,8 @@ We employ a **GitOps-native** secret management strategy, addressing the challen
 We use Bitnami **SealedSecrets** to implement asymmetric encryption, ensuring that secrets are only decryptable within the target Kubernetes cluster:
 *   **Workflow**: Developers encrypt secrets locally; ArgoCD synchronizes the encrypted `SealedSecret` manifests; the cluster-side controller decrypts them into standard Kubernetes `Secrets` at runtime.
 *   **Dependency Management**: Each sealed secret carries `argocd.argoproj.io/sync-wave: "-1"`, a resource's wave inside its Application, so the secrets are ready before the workloads beside them start.
+*   **Sealing Keys**: Automatic key renewal is disabled, so the controller's key set stays fixed. The set is backed up by hand, so one off-cluster backup has to cover every key a `SealedSecret` in Git may be sealed with. That holds only while renewal stays off. The renewal setting itself lives in the controller's Helm values in Chorde.
+*   **Key Backup & Restore**: The key Secrets (label `sealedsecrets.bitnami.com/sealed-secrets-key` in the `bootstrap` namespace) are backed up in the Architect's Bitwarden vault, off the cluster and out of Git. Whoever holds this backup and can read the repositories can decrypt every secret. A rebuilt cluster gets the backed-up key Secrets applied into `bootstrap` before the controller starts, or the controller is restarted after they are applied. Otherwise it generates a fresh key, and none of the `SealedSecret`s in Git can be unsealed.
 
 ---
 
