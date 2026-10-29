@@ -128,7 +128,7 @@ A fix found during a release is a Development ticket (the shared page's §3). Th
 | B7–C1 | Deploy configuration | `preview/<ver>` | B2 |
 | C1–D2: tagged, staging not yet promoted | App code or schema | `release/0.X.(Y+1)`, cut from the tag `v0.X.Y`, never from `dev`. The tagged `release/0.X.Y` is never reopened | A1 of the patch release Y+1 |
 | C1–D2 | Deploy configuration | `preview/<ver>` | B2, then D1 |
-| D2–E4: soaking | App code or schema | `release/0.X.(Y+1)`, as above | A1 of Y+1. Close the `release: v0.X.Y` issue as `superseded-by v0.X.(Y+1)` |
+| D2–E4: soaking | App code or schema | `release/0.X.(Y+1)`, cut from the tag `v0.X.Y`, never from `dev`. The tagged `release/0.X.Y` is never reopened | A1 of Y+1. Close the `release: v0.X.Y` issue as `superseded-by v0.X.(Y+1)` |
 | D2–E4 | Border configuration (ingress, DNS, NetworkPolicy) | `preview/<ver>`, cut again from `staging` | B2; the soak restarts after D2 |
 | D2–E4 | Chart templates, or per-environment objects (`deploy/<env>/`) | `staging` | No step: read back each changed object on the ticket, then run a scoped re-soak |
 | D2–E4 | A values tweak (a non-critical environment variable, a resource limit, scaling) | None: committed to `staging` directly and logged on the `release` issue | No step: run a scoped re-soak |
