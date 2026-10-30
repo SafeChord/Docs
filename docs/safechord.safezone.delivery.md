@@ -89,8 +89,8 @@ graph TD
 - **B3.** Bring up the preview infrastructure.
 - **B4.** Trigger the `init-deploy.yml` action (env=preview).
 - **B5.** Run `/validate-freight`: the floor and preview's focus.
-- **B6.** Wait for the human to sign off or reject, after their visual check. A rejection ends the gate; the fix returns as a new candidate (§3).
-- **B7.** On sign-off, `/validate-freight` stamps the `validated` label on the freight issue. *Open decision*: whether the agent's verification and the human's sign-off get labels of their own, so the agent's run does not wait on the human. It waits on the rendering check being automated: the gateway log scan needs browser traffic, which today only the human's check makes.
+- **B6.** Wait for the human to sign off or reject, after their visual check of the running product, which the floor's rendering check (F9) does not replace. A rejection ends the gate; the fix returns as a new candidate (§3).
+- **B7.** On sign-off, `/validate-freight` stamps the `validated` label on the freight issue. `validated` is the one stamp, set only on the human's yes; verification and sign-off need no labels of their own, since the agent's run does not wait on the human mid-way: F9's requests are the browser traffic the gateway log scan (F8) needs.
 - **B8.** Teardown the preview environment (app first, then infra).
 
 ### Phase C — Cut the release (`SafeZone`, only after `validated`)
@@ -106,7 +106,7 @@ graph TD
 - **D4.** Bring up the staging infrastructure.
 - **D5.** Trigger the `init-deploy.yml` action (env=staging).
 - **D6.** Run `/validate-release (AI Skill)`. 
-- **D7.** Human verifies (UI + external connectivity).
+- **D7.** Human verifies the running product (UI + external connectivity), which F9 does not replace.
 - **D8.** On the human's yes, `/validate-release` posts its evidence on the `release: v0.X.Y` issue and labels it `soaking`, which starts the soak.
 - **D9.** Soak (3–5 days).
 
