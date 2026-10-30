@@ -11,7 +11,7 @@ code_paths: []
 
 > **Type**: Script (a mode page: takes the [practice](safechord.kdd.practice.md) as given)
 > **Focus**: How a code change gets from a ticket to a merge on the **"Two-Engine"** model: a Pioneer seat for implementation and a Settler seat for review and solidification.
-> **Constraint**: Nothing every mode shares: it is in the practice. How to dispatch and review is in the `pioneer-dispatch` skill, and how to write the PR body in the `pr-body` skill (`.claude/skills/` in the workspace harness). No template's skeleton or field meanings: they are in its file under `docs/templates/protocol/`.
+> **Constraint**: Nothing every mode shares: it is in the practice. How a step runs is in the skill that carries it (Components). No template's skeleton or field meanings: they are in its file under `docs/templates/protocol/`.
 
 > **⚙️ This page shares the practice's [adjustment period](safechord.kdd.practice.md)**: the two-engine seating, the ticket lifecycle and its protocol templates have not yet been through a full cycle, and its `doc_version` holds at v0.4.0 while the notice stands.
 
@@ -39,8 +39,8 @@ What this mode is made of. The sections below use them; how a skill carries out 
 | :--- | :--- | :--- |
 | `pioneer-dispatch` | The Settler, once a labelled ticket is ready for the Pioneer | Checks the ticket's blockers and freshness, hands the ticket to the Pioneer (a headless coding-agent CLI, chosen in its `config.json`) on the ticket's branch, reviews what comes back through the handoffs until review passes or the round cap is reached, then opens the PR |
 | `requirement-tests` | The Settler, on a `kdd:forward` ticket before dispatch, or on an `exec:settler` ticket that changes a requirement | Writes the tests that enforce the changed requirements, by checks drawn from the gaps earlier tickets fell through |
-| `pr` | The Settler, once review passes, or once an `exec:settler` ticket's implementation is done | Writes the PR body from its template, opens the PR and waits for its CI. **Not built yet**: until it is, `pr-body` writes the body and `pioneer-dispatch` step 5 opens the PR |
-| `solidification` | The Settler, once the human has merged | Reconciles as the path does (verifies the blueprint on `kdd:forward`, writes the result back on `kdd:spike`), writes the PR's SSOT feedback into `Docs/`, hands the checks deferred to release over to it, deletes the task's handoffs and local branch, checks the `(after merge)` Done When items and closes the ticket. **Not built yet**: until it is, the Settler does these by hand |
+| `pr` | The Settler, once review passes, or once an `exec:settler` ticket's implementation is done | Writes the PR body from its template, opens the PR and waits for its CI |
+| `solidification` | The Settler, once the human has merged | Reconciles as the path does (verifies the blueprint on `kdd:forward`, writes the result back on `kdd:spike`), writes the PR's SSOT feedback into `Docs/`, hands the checks deferred to release over to it, deletes the task's handoffs and local branch, checks the `(after merge)` Done When items and closes the ticket |
 
 Steps no skill carries yet, written only on this page: review findings (§3.2) and `exec:settler` (§3.3).
 

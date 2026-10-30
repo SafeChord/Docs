@@ -62,4 +62,4 @@ A check deferred to release does not raise the level: the release's gates hold i
 
 **SSOT feedback** reports where the SSOT left room. A Gap is a choice the SSOT left open that something outside the service, an operator or the deployment can observe; a choice visible only inside the code is a decision. A requirement test added or modified after pre-work changes the precise form of a promise. Ticking the box means reconciliation writes every entry into `Docs/`; to write only some, the human says which in a PR comment, and the comment wins.
 
-How to fill each section (the forms for Summary and Evidence, the floors for Merge Danger, the prose rules) is in the `pr-body` skill (`.claude/skills/pr-body/SKILL.md` in the workspace harness).
+How to fill each section (the forms for Summary and Evidence, the floors for Merge Danger, the prose rules) is in the `pr` skill (`.claude/skills/pr/SKILL.md` in the workspace harness).
