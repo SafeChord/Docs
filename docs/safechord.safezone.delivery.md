@@ -73,15 +73,15 @@ graph TD
 | :--- | :--- | :--- |
 | `validate-freight` | B5 | Verifies a preview candidate; on the human's yes, stamps its freight issue `validated` (B5–B7) |
 | `validate-release` | D6 | Verifies staging after promotion; on the human's yes, stamps the `release` issue (D6–D8) |
-| `validate-soak` | E1, and a scoped re-soak (§3) | Certifies the soak window; on the human's yes, ticks the soak item on the `release` issue |
-| `issueops` | Once a candidate is pushed, and once a release is tagged | Opens the `freight` and `release` issues under the titles and labels the release pipeline reads, and links the release record ticket to the `release` issue. **Not built yet**: until it is, `publish-candidate.yml` and `release.yml` open them |
+| `validate-soak` | E1, and a scoped re-soak (§3) | Certifies the soak window; on the human's yes, posts its evidence on the `release` issue |
+| `issueops` | Once a candidate is pushed, and once a release is tagged | Places the release record's held checks, and opens the [freight](templates/protocol/delivery/freight.md) and [release](templates/protocol/delivery/release-issue.md) issues from their templates. Until `publish-candidate.yml` and `release.yml` stop opening them, a workflow opens each issue first and `issueops` rewrites its body |
 
 ## 2. The pipeline — Phase A–E
 
 ### Phase A — App integration (`SafeZone`)
 - **A1.** Confirm that `main` is an ancestor of `dev`: a release started before the prior version is back-merged would leave its fixes orphaned. Cut `release/0.X.Y` from `dev`, bump the App `VERSION` file to the target version on the release branch, add the version's section to `CHANGELOG.md`, and commit the change (e.g., `chore(release): open v0.X.Y`).
 - **A2.** Push `release/0.X.Y` to remote. This push triggers `publish-candidate (GitHub Action)` to build and push the OCI images.
-- **A3.** Open the `freight: 0.X.Y-<sha>` issue with `issueops`.
+- **A3.** With `issueops`, place the release record's held checks and open the `freight: 0.X.Y-<sha>` issue.
 
 ### Phase B — Preview validation (`SafeZone-Deploy`)
 - **B1.** Pick up the `freight: 0.X.Y-<sha>` issue. Cut `preview/0.X.Y` from `staging` and push it before any Deploy ticket triaged from the freight issue starts: the ticket branches from it.
@@ -112,7 +112,7 @@ graph TD
 
 ### Phase E — Archive (`SafeZone-Deploy`)
 - **E1.** Run `/validate-soak` (soak data freshness check pending design).
-- **E2.** Confirm all `release: v0.X.Y` checklist items are done.
+- **E2.** Close the release record ticket once every entry has a result.
 - **E3.** Tag `v0.X.Y-staging` on `staging` + PR `staging` → `main` (archive).
 - **E4.** Close the `release: v0.X.Y` issue.
 
