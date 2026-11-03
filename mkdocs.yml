@@ -81,6 +81,7 @@ nav:
           - Scheduling: safechord.chorde.k3han.scheduling.md
           - Storage: safechord.chorde.k3han.storage.md
           - Monitoring: safechord.chorde.k3han.monitoring.md
+          - Operations: safechord.chorde.k3han.operations.md
           - ChangeLog: safechord.chorde.k3han.changelog.md
   - Environment: safechord.environment.md
   - Security: safechord.security.md
