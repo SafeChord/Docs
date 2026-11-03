@@ -89,6 +89,8 @@ Each finding of the component leaves as one of:
 
 Each triage writes a record in `.ai-security/` in the workspace harness, which is private: the components triaged, the findings each covers and the outcome of each. The records mark the last triage: a finding is new when no record lists it. A triage also removes the VEX statements pinned to versions that no longer run.
 
+Triage takes components in no particular order: on the first scan nearly every image carried a critical finding, so severity sorts nothing, and the urgent lane (§3.3) carries what cannot wait. Upgrades go bottom-up along their dependencies: k3s before the components it bundles and the operators whose supported Kubernetes versions it moves, an operator before its operands. Each dependency is the upgrade ticket's blocked-by relation on GitHub.
+
 The triage skill does not exist yet.
 
 ### 3.3 Urgent Lane
