@@ -13,7 +13,7 @@ code_paths:
 > **Focus**: How the K3han platform is kept running: which work is proactive or reactive, cluster or host, and what carries each step of detection and triage.
 > **Constraint**: A fix is a Development ticket and follows the [Development](safechord.kdd.practice.development.md) page. Alert routing is on the [monitoring page](safechord.chorde.k3han.monitoring.md); values stay in the manifests.
 
-> **🚧 Draft.** Nothing on this page runs yet. It holds what the Architect has decided, and marks the rest as open decisions. This is Chorde's operations implementation page: the [Operations](safechord.kdd.practice.operations.md) mode page draws up what holds for both SafeZone and Chorde once both run.
+> **🚧 Draft.** Only the scanner (§3.1) runs, since 2026-11-03 (Chorde#40); the rest of the page holds what the Architect has decided, and marks the rest as open decisions. This is Chorde's operations implementation page: the [Operations](safechord.kdd.practice.operations.md) mode page draws up what holds for both SafeZone and Chorde once both run.
 
 ---
 
@@ -55,20 +55,20 @@ flowchart LR
 
 ### 3.1 Detection
 
-- **The scanner runs inside K3han**, unattended, on a fixed schedule, and scans the images that are running rather than those declared in `gitops/`: what runs is what is exposed. It never runs on `gce-agent-tw`, whose allocatable memory is about 1 GiB. It leaves out the `safezone` namespace: SafeZone's operations is a block of its own, and its images are private on ghcr, so scanning them takes a pull credential and a findings repository that are SafeZone's to choose. SafeZone may join later.
+- **The scanner runs inside K3han**, unattended, on a fixed schedule, and scans the images that are running rather than those declared in `gitops/`: what runs is what is exposed. It takes every pod the API lists, init containers and completed CronJob pods included, and scans each image by the digest its node resolved, so a tag that moved is not scanned in its place. It never runs on `gce-agent-tw`, whose allocatable memory is about 1 GiB. It leaves out the `safezone` namespace: SafeZone's operations is a block of its own, and its images are private on ghcr, so scanning them takes a pull credential and a findings repository that are SafeZone's to choose. SafeZone may join later.
 - **It is a CronJob running the trivy CLI at a pinned version**, in `Chorde/gitops/k3han/manifests/vuln-scan/` under the platform stage. The CLI reads VEX and writes SARIF itself; trivy-operator does neither, and would need a converter larger than the CronJob. The vulnerability database is fetched at each run, so the pin holds the scanner's behaviour still without holding back new CVEs.
 - **Its logic and the VEX statements are plain files in that directory**, packed into ConfigMaps by kustomize's `configMapGenerator`: the script stays testable on its own, needs no image build, and a VEX statement takes effect at the next scan after its PR syncs.
 - **Findings go to GitHub Code Scanning as SARIF**, which keeps each finding's state across scans: an alert closes when a scan no longer reports it, reopens when it returns, and keeps its dismissal. Its alerts are not readable by the public on a public repository (tested on Chorde, 2026-09-09).
 - **One alert is one CVE in one package of one image repository.** The rule is the CVE ID; the location is `<image repo>/<package>`, with no registry, tag or version, rewritten from trivy's, which carries a Python package's version in its path. An upgrade that leaves the CVE in place keeps the alert: re-assessment on upgrade is the job of a VEX statement pinned to a version. Two tags of one repository running at once share an alert.
 - **It runs once a week and keeps HIGH and CRITICAL findings, those without a fix included.** A finding without a fix leaves triage as a VEX statement (§3.2), so dropping it would hide the decision it needs.
 - **The scanner uploads as a GitHub App**, installed on Chorde alone with write access to code scanning alerts. Each run mints an installation token, valid for an hour, from the App's private key, stored as a SealedSecret ([Security](safechord.security.md)): no credential expires between runs.
-- **An image the scanner cannot analyse becomes a `vuln-scan/not-covered` alert** in Code Scanning, at the image repository, never a clean result.
+- **An image the scanner cannot analyse becomes a `vuln-scan/not-covered` alert** in Code Scanning, at the image repository, never a clean result. The alert closes once a scan covers the image.
 
 Open decisions:
 
 - Detection at change (a gate on a Chorde PR that changes an image tag) and the support-window trigger (a component leaving its vendor's support).
 
-Not established: whether alerts dismissed during the 2026-09-09 test return, still dismissed, on the first upload. In that test a dismissal survived the deletion of every analysis.
+No alert from the 2026-09-09 test came back on the first upload (2026-11-03): their rule and location differ from the scanner's.
 
 ### 3.2 Triage
 
