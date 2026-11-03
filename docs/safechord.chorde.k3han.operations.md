@@ -55,17 +55,16 @@ flowchart LR
 
 ### 3.1 Detection
 
-- **The scanner runs inside K3han**, unattended, on a fixed schedule, and scans the images that are running rather than those declared in `gitops/`: what runs is what is exposed. It never runs on `gce-agent-tw`, whose allocatable memory is about 1 GiB.
+- **The scanner runs inside K3han**, unattended, on a fixed schedule, and scans the images that are running rather than those declared in `gitops/`: what runs is what is exposed. It never runs on `gce-agent-tw`, whose allocatable memory is about 1 GiB. It leaves out the `safezone` namespace: SafeZone's operations is a block of its own, and its images are private on ghcr, so scanning them takes a pull credential and a findings repository that are SafeZone's to choose. SafeZone may join later.
 - **It is a CronJob running the trivy CLI at a pinned version**, in `Chorde/gitops/k3han/manifests/vuln-scan/` under the platform stage. The CLI reads VEX and writes SARIF itself; trivy-operator does neither, and would need a converter larger than the CronJob. The vulnerability database is fetched at each run, so the pin holds the scanner's behaviour still without holding back new CVEs.
 - **Its logic and the VEX statements are plain files in that directory**, packed into ConfigMaps by kustomize's `configMapGenerator`: the script stays testable on its own, needs no image build, and a VEX statement takes effect at the next scan after its PR syncs.
 - **Findings go to GitHub Code Scanning as SARIF**, which keeps each finding's state across scans: an alert closes when a scan no longer reports it, reopens when it returns, and keeps its dismissal. Its alerts are not readable by the public on a public repository (tested on Chorde, 2026-09-09).
+- **One alert is one CVE in one package of one image repository.** The rule is the CVE ID; the location is `<image repo>/<package>`, with no registry, tag or version, rewritten from trivy's, which carries a Python package's version in its path. An upgrade that leaves the CVE in place keeps the alert: re-assessment on upgrade is the job of a VEX statement pinned to a version. Two tags of one repository running at once share an alert.
 - **The scanner uploads with a GitHub token**, stored as a SealedSecret ([Security](safechord.security.md)).
 
 Open decisions:
 
 - The scanner's schedule.
-- **SARIF identity.** Code Scanning keys an alert on a rule and a file location in the repository; a triage unit is one component version, which may carry several CVEs and one fix. A running image may have no file declaring it in Chorde: SafeZone's tags are declared in SafeZone-Deploy.
-- Which repository's Code Scanning receives the findings for SafeZone's images.
 - The token's scope and renewal.
 - Detection at change (a gate on a Chorde PR that changes an image tag) and the support-window trigger (a component leaving its vendor's support).
 
