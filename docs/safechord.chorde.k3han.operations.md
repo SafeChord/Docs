@@ -36,7 +36,7 @@ Open decision: the reactive side (triage entry, mitigation runbooks) and host-la
 | **GitHub Code Scanning** | Holds each finding's state (open, fixed, dismissed) across scans | Service |
 | **Alertmanager → Slack** | Carries the urgent lane (§3.3) | Automation, unattended |
 | **SessionStart hook** | Summarises open findings when a Claude Code session starts | Automation, human-woken |
-| **The Architect**, with a triage skill | Decides each new finding (§3.2) | Human, attended session |
+| **The Architect**, with a triage skill | Decides, one component at a time, what its new findings call for (§3.2) | Human, attended session |
 | **Development** | Fixes, through a ticket | Mode |
 
 ## 3. Proactive Detection and Triage
@@ -74,12 +74,14 @@ No alert from the 2026-09-09 test came back on the first upload (2026-11-03): th
 
 Triage is human-woken. The SessionStart hook reads Code Scanning with `gh api` and prints one line: how many findings are new since the last triage, and how many of them are critical. It prints no list, because it runs at the start of every session, whatever the session is for.
 
-The Architect triages in an attended session, with a triage skill. Each finding leaves as one of:
+The Architect triages in an attended session, with a triage skill, one component at a time: an application in `gitops/` whose images run in the cluster. The component is the unit because K3han builds none of these images, so the only fix within reach is a move of the component's version, and one move can close findings across several of its images. trivy's fixed version is the package's, not the component's: whether a release of the component drops a finding is learned by scanning that release.
+
+Each finding of the component leaves as one of:
 
 | Outcome | When | Next |
 | :--- | :--- | :--- |
-| **Ticket** | A fixed version exists | A Chorde ticket, through Development |
-| **VEX statement** | No fix exists upstream, or the flaw is not reachable here | An OpenVEX statement in `vuln-scan/`, applied at scan time. A statement pinned to a version expires when the component is upgraded, which forces a fresh assessment |
+| **Ticket** | A release of the component no longer carries the finding | A Chorde ticket to move the component to that release, through Development |
+| **VEX statement** | No release of the component carries a fix, or the flaw is not reachable here | An OpenVEX statement in `vuln-scan/`, applied at scan time. A statement pinned to a version expires when the component is upgraded, which forces a fresh assessment |
 | **Reactive** | Exploited against an exposed component | §3.3 |
 | **Not covered** | The scanner cannot analyse the image | Recorded as not covered, never as clean. `busybox:1.33` reports zero findings because trivy detects no packages in it |
 
