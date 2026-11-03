@@ -13,7 +13,7 @@ code_paths:
 > **Focus**: How the K3han platform is kept running: which work is proactive or reactive, cluster or host, and what carries each step of detection and triage.
 > **Constraint**: A fix is a Development ticket and follows the [Development](safechord.kdd.practice.development.md) page. Alert routing is on the [monitoring page](safechord.chorde.k3han.monitoring.md); values stay in the manifests.
 
-> **🚧 Draft.** Only the scanner (§3.1) runs, since 2026-11-03 (Chorde#40); the rest of the page holds what the Architect has decided, and marks the rest as open decisions. This is Chorde's operations implementation page: the [Operations](safechord.kdd.practice.operations.md) mode page draws up what holds for both SafeZone and Chorde once both run.
+> **🚧 Draft.** Only the scanner (§3.1) runs, since 2026-11-03 (Chorde#40). The page holds what the Architect has decided, and marks the rest as open decisions. This is Chorde's operations implementation page: the [Operations](safechord.kdd.practice.operations.md) mode page draws up what holds for both SafeZone and Chorde once both run.
 
 ---
 
