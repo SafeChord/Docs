@@ -56,12 +56,14 @@ flowchart LR
 ### 3.1 Detection
 
 - **The scanner runs inside K3han**, unattended, on a fixed schedule, and scans the images that are running rather than those declared in `gitops/`: what runs is what is exposed. It never runs on `gce-agent-tw`, whose allocatable memory is about 1 GiB.
+- **It is a CronJob running the trivy CLI at a pinned version**, in `Chorde/gitops/k3han/manifests/vuln-scan/` under the platform stage. The CLI reads VEX and writes SARIF itself; trivy-operator does neither, and would need a converter larger than the CronJob. The vulnerability database is fetched at each run, so the pin holds the scanner's behaviour still without holding back new CVEs.
+- **Its logic and the VEX statements are plain files in that directory**, packed into ConfigMaps by kustomize's `configMapGenerator`: the script stays testable on its own, needs no image build, and a VEX statement takes effect at the next scan after its PR syncs.
 - **Findings go to GitHub Code Scanning as SARIF**, which keeps each finding's state across scans: an alert closes when a scan no longer reports it, reopens when it returns, and keeps its dismissal. Its alerts are not readable by the public on a public repository (tested on Chorde, 2026-09-09).
 - **The scanner uploads with a GitHub token**, stored as a SealedSecret ([Security](safechord.security.md)).
 
 Open decisions:
 
-- The scanner's form (trivy-operator, or a CronJob running trivy) and its schedule.
+- The scanner's schedule.
 - **SARIF identity.** Code Scanning keys an alert on a rule and a file location in the repository; a triage unit is one component version, which may carry several CVEs and one fix. A running image may have no file declaring it in Chorde: SafeZone's tags are declared in SafeZone-Deploy.
 - Which repository's Code Scanning receives the findings for SafeZone's images.
 - The token's scope and renewal.
@@ -78,7 +80,7 @@ The Architect triages in an attended session, with a triage skill. Each finding 
 | Outcome | When | Next |
 | :--- | :--- | :--- |
 | **Ticket** | A fixed version exists | A Chorde ticket, through Development |
-| **VEX statement** | No fix exists upstream, or the flaw is not reachable here | An OpenVEX statement in Chorde, applied at scan time. A statement pinned to a version expires when the component is upgraded, which forces a fresh assessment |
+| **VEX statement** | No fix exists upstream, or the flaw is not reachable here | An OpenVEX statement in `vuln-scan/`, applied at scan time. A statement pinned to a version expires when the component is upgraded, which forces a fresh assessment |
 | **Reactive** | Exploited against an exposed component | §3.3 |
 | **Not covered** | The scanner cannot analyse the image | Recorded as not covered, never as clean. `busybox:1.33` reports zero findings because trivy detects no packages in it |
 
