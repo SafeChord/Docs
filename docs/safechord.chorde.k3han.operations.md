@@ -60,12 +60,12 @@ flowchart LR
 - **Its logic and the VEX statements are plain files in that directory**, packed into ConfigMaps by kustomize's `configMapGenerator`: the script stays testable on its own, needs no image build, and a VEX statement takes effect at the next scan after its PR syncs.
 - **Findings go to GitHub Code Scanning as SARIF**, which keeps each finding's state across scans: an alert closes when a scan no longer reports it, reopens when it returns, and keeps its dismissal. Its alerts are not readable by the public on a public repository (tested on Chorde, 2026-09-09).
 - **One alert is one CVE in one package of one image repository.** The rule is the CVE ID; the location is `<image repo>/<package>`, with no registry, tag or version, rewritten from trivy's, which carries a Python package's version in its path. An upgrade that leaves the CVE in place keeps the alert: re-assessment on upgrade is the job of a VEX statement pinned to a version. Two tags of one repository running at once share an alert.
-- **The scanner uploads with a GitHub token**, stored as a SealedSecret ([Security](safechord.security.md)).
+- **It runs once a week and keeps HIGH and CRITICAL findings, those without a fix included.** A finding without a fix leaves triage as a VEX statement (§3.2), so dropping it would hide the decision it needs.
+- **The scanner uploads as a GitHub App**, installed on Chorde alone with write access to code scanning alerts. Each run mints an installation token, valid for an hour, from the App's private key, stored as a SealedSecret ([Security](safechord.security.md)): no credential expires between runs.
+- **An image the scanner cannot analyse becomes a `vuln-scan/not-covered` alert** in Code Scanning, at the image repository, never a clean result.
 
 Open decisions:
 
-- The scanner's schedule.
-- The token's scope and renewal.
 - Detection at change (a gate on a Chorde PR that changes an image tag) and the support-window trigger (a component leaving its vendor's support).
 
 Not established: whether alerts dismissed during the 2026-09-09 test return, still dismissed, on the first upload. In that test a dismissal survived the deletion of every analysis.
@@ -101,4 +101,4 @@ Open decision: how "exposed" is derived, and which Slack channel the lane uses.
 ## 4. Convergence & Resilience
 
 - **Automation boundary.** Detection and the urgent lane run unattended. Triage waits for the Architect. The fix goes through Development.
-- **A detection that stops reads as a quiet week.** A failed scan, an expired token or a rejected upload leaves Code Scanning looking clean. Open decision: how a failed scan or upload raises an alert.
+- **A detection that stops reads as a quiet week.** A failed scan, an expired credential or a rejected upload leaves Code Scanning looking clean. So any of them fails the scanner's Job, and kube-prometheus-stack's `KubeJobFailed` reaches Slack through Alertmanager's default route ([Monitoring](safechord.chorde.k3han.monitoring.md)). The finished Job is removed after a day, so the alert resolves rather than repeating until the next run. A channel of its own waits until this route proves too noisy.
