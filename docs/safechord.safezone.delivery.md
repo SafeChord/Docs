@@ -95,7 +95,7 @@ graph TD
 
 ### Phase C — Cut the release (`SafeZone`, only after `validated`)
 - **C1.** Merge the PR from `release/0.X.Y` into `main` (a merge commit, no squash: `release.yml` takes the validated sha from its second parent) and tag `v0.X.Y`.
-- **C2.** The tag runs `release.yml`, which refuses a candidate without a `validated` freight issue, copies its images to `0.X.Y` by digest, and opens the back-merge PR. Copying the digest instead of rebuilding ships exactly what preview validated; a rebuild can pick up a floating base tag or a newer upstream package.
+- **C2.** The tag runs `release.yml`, which refuses a candidate without a `validated` freight issue, copies its images to `0.X.Y` by digest, and opens the back-merge PR. Copying the digest instead of rebuilding ships exactly what preview validated; a rebuild can pick up a newer upstream package.
 - **C3.** Open the `release: v0.X.Y` issue with `issueops`.
 - **C4.** Merge the back-merge PR into `dev` before the next `release/*` is cut, so that no release fix is orphaned.
 
