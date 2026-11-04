@@ -23,7 +23,7 @@ Standard K8s scheduling is insufficient as it ignores "Bill risk" and "Home-lab 
 ## 2. Core Principles
 1.  **Control Plane Locality**: Operators (CNPG, Strimzi, KEDA) must stay on Cloud nodes (<1ms API latency).
 2.  **Data Locality**: Replicas and high-throughput brokers (Kafka/Valkey) stay on Local nodes to save egress costs.
-3.  **Edge Isolation**: The GCE node is restricted to traffic forwarding ONLY.
+3.  **Edge Isolation**: The GCE node is restricted to traffic forwarding ONLY. Infrastructure every node runs, such as kubelet and the log collector ([Monitoring](safechord.chorde.k3han.monitoring.md)), is not a workload and does not count against this.
 4.  **Reliability Tiering**: Use Taints to soft-reject critical production pods from landing on home-lab hardware unless tolerated.
 
 ---
