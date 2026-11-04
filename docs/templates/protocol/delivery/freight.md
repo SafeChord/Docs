@@ -1,6 +1,6 @@
 # Freight Issue Template
 
-SafeZone's freight issue: the record of one release candidate, in `SafeZone-Deploy`, opened by `issueops` once the candidate's images are published (A3), one per candidate sha. Preview validates the candidate against it, and the release gate reads its sign-off ([SafeZone Delivery](../../../safechord.safezone.delivery.md)). It is not a ticket: it carries none of the ticket's sections.
+SafeZone's freight issue: the record of one release candidate, in `SafeZone-Deploy`, opened by `publish-candidate.yml` once the candidate's images are published, its body rewritten by `issueops` (A3), one per candidate sha. Preview validates the candidate against it, and the release gate reads its sign-off ([SafeZone Delivery](../../../safechord.safezone.delivery.md)). It is not a ticket: it carries none of the ticket's sections.
 
 - **Title**: `freight: <VERSION>-<sha7>`, the candidate's image tag. `release.yml` matches it exactly, never parsed.
 - **Labels**: `freight` when opened; `validated` added by `/validate-freight` on the human's sign-off (B7). The release gate requires both.

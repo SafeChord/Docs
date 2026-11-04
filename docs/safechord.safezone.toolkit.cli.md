@@ -42,7 +42,7 @@ Unlike standard microservices, `szcli` is divided into three functional layers:
 *   **Propagation**: All requests to the Relay must include the `X-Trace-ID` header.
 
 ### 3.2 Command Paradigm
-For the comprehensive list of commands, flags, and intent-driven instruction sets, please refer to the **[CLI Command Reference (Instruction Set)](safechord.safezone.toolkit.cli.reference.md)**. This manual serves as the primary authority for both human operators and AI agents.
+For the comprehensive list of commands, flags, and intent-driven instruction sets, please refer to the **[CLI Command Reference (Instruction Set)](safechord.safezone.toolkit.cli.reference.md)**. Where the manual and the code disagree, the code holds.
 
 ## 4. Dependencies & Control
 

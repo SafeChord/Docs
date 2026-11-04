@@ -52,7 +52,7 @@ docker compose --profile infra up -d
 This is the **heart of CI/CD**. To keep a release candidate's validation from polluting Staging with test data, the Preview environment adopts a **"Self-Contained"** isolation strategy, supplemented by shared resource mechanisms where necessary.
 
 ### 1. Downgrade & Isolation Strategy
-Preview environments are installed via GitHub Actions using manifests in the `infra` path, deploying a "lightweight" suite within an independent namespace:
+Preview's infrastructure is installed from the ApplicationSet in the `infra` path, which ArgoCD syncs in waves ([SafeZone Delivery](safechord.safezone.delivery.md) §4), deploying a "lightweight" suite within an independent namespace:
 *   **Ephemeral Infra**: Uses CNPG to deploy a single Primary cluster without read-write separation. Valkey is deployed with `emptyDir` for faster restarts.
 *   **Shared Kafka Cluster**: Since Kafka is resource-intensive, Preview environments share a platform-level Kafka cluster but maintain logical isolation via the `preview.` topic prefix.
 *   **Disposable Namespaces**: The entire environment is torn down once its candidate is validated ([SafeZone Delivery](safechord.safezone.delivery.md) B8).

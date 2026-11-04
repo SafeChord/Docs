@@ -1,6 +1,6 @@
 # Release Issue Template
 
-SafeZone's release issue: the record of one release on staging, in `SafeZone-Deploy`, opened by `issueops` once `release.yml` has promoted the tag's images (C3). Phases D and E post their evidence on it ([SafeZone Delivery](../../../safechord.safezone.delivery.md)). It is not a ticket: it carries none of the ticket's sections, and it is not the [release record](release-record.md).
+SafeZone's release issue: the record of one release on staging, in `SafeZone-Deploy`, opened by `release.yml` once it has promoted the tag's images, its body rewritten by `issueops` (C3). Phases D and E post their evidence on it ([SafeZone Delivery](../../../safechord.safezone.delivery.md)). It is not a ticket: it carries none of the ticket's sections, and it is not the [release record](release-record.md).
 
 - **Title**: `release: v<VERSION>`.
 - **Labels**: `release` when opened; `soaking` added by `/validate-release` on the human's yes (D8), which starts the soak.

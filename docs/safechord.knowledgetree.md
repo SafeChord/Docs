@@ -64,6 +64,7 @@ SafeChord utilizes a **Decoupled 4-Layer** architecture. Choose your reading pat
         *   **Toolkit & Workflow**
             *   [📄 safechord.safezone.toolkit.timeserver.md](safechord.safezone.toolkit.timeserver.md) (Time Server: Virtual Clock Controller)
             *   [📄 safechord.safezone.toolkit.cli.md](safechord.safezone.toolkit.cli.md) (SZCLI: Operations Tooling & CLI Relay)
+                *   [📄 safechord.safezone.toolkit.cli.reference.md](safechord.safezone.toolkit.cli.reference.md) (SZCLI Command Reference: Commands, Output Envelope, Runbooks)
 
     *   🟨 **Deployment Layer (Repo: SafeZone-Deploy)**
         *   *Focus: Configuration, Helm, GitOps CD*
@@ -80,4 +81,5 @@ SafeChord utilizes a **Decoupled 4-Layer** architecture. Choose your reading pat
             *   [📄 safechord.chorde.k3han.scheduling.md](safechord.chorde.k3han.scheduling.md) ⭐ (Scheduler: Reliability Tiers & Taints Policy)
             *   [📄 safechord.chorde.k3han.storage.md](safechord.chorde.k3han.storage.md) (Persistent Storage: Node-Local Volumes & Durability)
             *   [📄 safechord.chorde.k3han.monitoring.md](safechord.chorde.k3han.monitoring.md) (Observability: Loki & Prometheus Operator)
+            *   [📄 safechord.chorde.k3han.operations.md](safechord.chorde.k3han.operations.md) 🚧 (Operations: Detection & Triage, draft)
             *   [📄 safechord.chorde.k3han.changelog.md](safechord.chorde.k3han.changelog.md) (🔄 Platform Version Evolution)
