@@ -1,7 +1,7 @@
 ---
 title: 'SafeZone Service Standards'
-doc_version: 0.2.0
-app_version: 0.3.8
+doc_version: 0.2.1
+app_version: 0.3.9
 status: active
 archetype: blueprint
 code_paths:
