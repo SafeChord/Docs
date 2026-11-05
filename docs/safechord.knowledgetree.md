@@ -1,7 +1,7 @@
 ---
 title: SafeChord Knowledge Tree
 status: active
-archetype: map
+archetype: tree
 ---
 
 # SafeChord Knowledge Map
