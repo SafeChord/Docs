@@ -19,6 +19,10 @@ A ticket is near-permanent, so it holds only what has trace value for a later re
 - [ ] [verifiable condition 2]
 - [ ] Reconciliation complete (or confirmed with the human that none is needed)
 
+[exec:settler only:]
+## Executor
+[The condition of development §3.3 the Settler executes on, and what in this task meets it]
+
 ## References
 - [the pages, drafts or tickets this one builds on]
 ```
@@ -27,4 +31,5 @@ A ticket is near-permanent, so it holds only what has trace value for a later re
 - **Scope** bounds the work: **In** is what it changes, **Out** what it leaves alone though it might look included. Work outside In is not done under this ticket.
 - **Done When** is what the result is checked against before it lands; an item marked `(after merge)` is checked once it has landed, before the ticket closes. A ticked item has been verified, not only worked on. An item states intent, not shape: what must hold of the result ("the logger's output is unchanged except for `worker_id`"), not what the diff or the names look like ("field names are unchanged"). A condition written as a shape is met by the wrong change and broken by the right one.
 - **The reconciliation item** is ticked after the work lands, as the flow's last step; it is not a condition the change itself can show. Ticked as not needed, it records that the human confirmed so.
+- **Executor**, on an `exec:settler` ticket only, is why the Settler executes it rather than the Pioneer: the condition of [development §3.3](../../safechord.kdd.practice.development.md#33-choosing-the-executor) the human and the Settler decided on, and what in this task meets it ("1.2: Done When is shown only against the live staging cluster"). A condition number alone does not count. It is written when the label is set, before the work starts.
 - **References** are what the ticket builds on, read before the work starts.

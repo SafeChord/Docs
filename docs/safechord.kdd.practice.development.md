@@ -1,6 +1,6 @@
 ---
 title: 'KDD 2.0: Development'
-last_updated: '2026-10-27'
+last_updated: '2026-11-07'
 status: active
 doc_version: 0.4.0
 archetype: script
@@ -173,7 +173,7 @@ Applied to new tech integrations, unknown bug fixes, or performance stress tests
     3. the Pioneer's ability is judged certain to fall short
 2. The task is mostly thinking and little implementation: for example, work that comes down to a few lines of code once the discussion is over
 
-None of these conditions settles the matter on its own. The human and the Settler discuss the case in front of them and decide.
+None of these conditions settles the matter on its own. The human and the Settler discuss the case in front of them and decide. Under `exec:settler`, the ticket records the condition and the reason, under Executor ([the ticket template](templates/protocol/ticket.md)).
 
 **What turns up during the work.** Under `exec:settler` there is no review, but [§3.2](#32-handling-review-findings) still governs what turns up during implementation: a requirement test that does not match the blueprint, and a decision still to be made or work outside the ticket. Its round cap and its review-fix exception do not apply.
 
