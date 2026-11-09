@@ -160,11 +160,15 @@ Policy survives this for two structural reasons:
 | Peer-route gate | Final tasks of `privision.yaml` | Prefs match; every peer CIDR resolves to `dev tailscale0 table 52`. Fails the play |
 | `node-routing-test.sh` | `Chorde/scripts/test/pod-path/` | The same gate on the live cluster, plus `bridge-nf-call-iptables` and `flannel.1` RX = 0. Read-only; first thing to run when cross-node traffic looks wrong |
 | `netpol-matrix-test.sh` | `Chorde/scripts/test/pod-path/` | 27 probes across all node pairs: policy verdicts and real source IPs. Creates and deletes a namespace |
+| `netpol-timing-test.sh` | `Chorde/scripts/test/pod-path/` | On every node pair, through a named port, each within 30 s: a policy takes hold while allowed clients never lose a server; a new allowed client is admitted from its container's start; a new server refuses denied clients from its Ready; traffic flows again once the policy is deleted. Creates and deletes a namespace |
 
-**Untested**: how long a policy takes to hold once applied, and whether traffic flows again once
-it is removed. The matrix checks verdicts at steady state only. The data path before Chorde#16
-showed both problems (slow to take effect, still blocking after removal); this one has not been
-tried. Test both before NetworkPolicy is first relied on, for instance to cut a dependency in a drill.
+The matrix checks verdicts at steady state; the timing test checks how soon kube-router acts on
+a change. The data path before Chorde#16 was slow to enforce a policy and kept blocking after one
+was removed; this one acts within a second on both (§4). Run both before a change that makes
+something rely on a policy.
+
+**Relied on by**: the Argo CD chart's policies in `argocd` (Chorde#51), the first on K3han that a
+running service depends on.
 
 Watch `flannel.1` **RX**, never TX. TX is nonzero everywhere: tailscaled's disco probes to
 peers' `10.42.x.0/.1` addresses carry the bypass fwmark, fall through to the main table
@@ -276,7 +280,8 @@ and leave via `flannel.1`.
 
 ## 4. Reference Snapshots
 
-> Point-in-time, **not SSOT**. Verified 2026-09-21 (throughput) and 2026-09-25 (the rest).
+> Point-in-time, **not SSOT**. Verified 2026-09-21 (throughput), 2026-11-09 (NetworkPolicy timing)
+> and 2026-09-25 (the rest).
 
 | Observation | Value | Backs |
 | :--- | :--- | :--- |
@@ -286,6 +291,7 @@ and leave via `flannel.1`.
 | `flannel.1` RX, all nodes | 0 B since boot | §2.3: fallback never used |
 | `IpFragCreates` / `IpFragFails`, `ct-serv-jp` since boot | 0 / 5353 | §2.4: drop-and-report, never fragmentation |
 | NetworkPolicy matrix, 3 nodes × 3 clients × 3 servers | 27/27 | §2.5 |
+| NetworkPolicy timing, all node pairs, named port | Hold ≤ 0.7 s; new allowed client admitted ≤ 1.6 s from container start; new server refuses from Ready; release ≤ 0.9 s | §2.6 |
 | Source IP seen after NoSNAT everywhere | Real client pod IP, all pairs | D2 |
 
 ---
