@@ -51,6 +51,6 @@ Select a specialized node for deep-dive specifications:
 *   **Source Paths**:
     *   Cluster Provisioning: `Chorde/cluster/k3han/` (Ansible & systemd units)
     *   GitOps Entry: `Chorde/gitops/k3han/root.yaml` (Points to stages/)
-    *   Service Inventory: `Chorde/gitops/k3han/manifests/` (Multiple Sources Pattern)
+    *   Service Inventory: `Chorde/gitops/k3han/manifests/`, with the wrapped upstream charts in `Chorde/gitops/k3han/charts/` ([Chorde map](safechord.chorde.md) §4, item 1)
 *   **Access**:
     *   Refer to the [Ingress Policy](safechord.chorde.k3han.ingress.md) to understand how to access management interfaces via authorized tunnels.
