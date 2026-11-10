@@ -4,9 +4,13 @@ status: active
 archetype: brain
 code_paths:
   - Chorde/gitops/k3han/manifests/prometheus
+  - Chorde/gitops/k3han/charts/prometheus
   - Chorde/gitops/k3han/manifests/loki
+  - Chorde/gitops/k3han/charts/loki
   - Chorde/gitops/k3han/manifests/alloy
+  - Chorde/gitops/k3han/charts/alloy
   - Chorde/gitops/k3han/manifests/fluent-bit
+  - Chorde/gitops/k3han/charts/fluent-bit
 ---
 
 # Observability & Monitoring Policy (Brain)
