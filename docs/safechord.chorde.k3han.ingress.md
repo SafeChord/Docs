@@ -83,6 +83,11 @@ The public data plane accepts traffic from the public internet but operates unde
     - **Constraint**: TLS termination occurs strictly at the Gateway listener level. Individual application manifests should not contain certificates, establishing a centralized boundary for ingress SSL configurations.
 4.  **Edge Defense Policies**:
     - **Constraint**: Rate-limiting and path rewrites (stripping server details) must be enforced at the gateway boundaries to protect upstream applications.
+5.  **Unattended Rollout**:
+    - The public data plane is a single replica bound to host ports `80/443` on the only `chorde.io/purpose=proxy-only` node, so a new pod cannot start while the old one holds the ports. Under a rolling update the new pod stays Pending and the rollout never finishes; the NGF 2.8.1 upgrade (Chorde#47) completed only after the old pod was deleted by hand.
+    - **Constraint**: A change to the public data plane's pod template (an NGF version move, an edit to NginxProxy `public-proxy`) *must* complete its rollout with no manual step, and the public routes *must* serve again once it has.
+    - **Mechanism**: The provisioned Deployment rolls with the `Recreate` strategy, set through a patch in NginxProxy `public-proxy` (NginxProxy has no strategy field): the old pod stops before the new one starts. A surge-free rolling update was rejected, because it creates the new pod while the old one is still terminating and holding the ports; so was provisioning a DaemonSet, because NGF's handling of a change of kind is undocumented.
+    - **Cost**: The public routes are down on every such rollout, from the old pod stopping until the new one is Ready. How long is **Not established** on the live data plane. A version move adds the pull of the new image on `gce-agent-tw` to that window. `Chorde/scripts/test/public-roll/rollout-test.sh` restarts the data plane and measures the window from outside.
 
 ### 2.2 Private Channel: Structural Zero-Trust Isolation
 The private channel handles administrative resources (ArgoCD, Grafana). It eliminates the traditional host-network exposure risk by shifting to a purely structural isolation model.
