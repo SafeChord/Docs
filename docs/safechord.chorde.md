@@ -54,6 +54,22 @@ Chorde/
 └── legacy/                  # [Archive] Historical configurations (v0.1.x / v0.2.x)
 ```
 
+**Argo CD deploys itself from the bootstrap stage** (Chorde#68). `00-bootstrap.yaml` lists `argocd`, at wave 2, after sealed-secrets, whose CRD its SealedSecrets need. The generated `bootstrap-argocd` syncs `manifests/argocd/` with the stage's prune and self-heal: the `argocd` Application, whose one source is the wrapper `charts/argocd/` (§4, item 1), and the SealedSecrets holding Argo CD's repository credentials. A merged change to either directory reaches K3han with no hand step.
+
+- **`argocd` never leaves the bootstrap list.** `bootstrap-argocd` carries the ApplicationSet's resources finalizer and its stage prunes, so taking `argocd` out deletes the `argocd` Application and the SealedSecrets, and with them the repository Secrets.
+- **The `argocd` Application carries no resources finalizer.** Deleted with one, it would take Argo CD down with it; deleted without, it leaves Argo CD running.
+- A script in `scripts/test/` checks both.
+- The stage sets no progressive sync, so the waves of its generated Applications order nothing. Not tested: whether, on a fresh cluster, `bootstrap-argocd` syncs on its own once the sealed-secrets CRD exists, if its first sync ran before it.
+
+**A from-scratch bootstrap** starts Argo CD by hand and leaves the rest to `root.yaml`:
+
+1. Install Argo CD from the wrapper, as a Helm release named `argocd` in the namespace `argocd`, the names the `argocd` Application renders with.
+2. Create the AppProjects the Applications use (`chorde`, `safezone`): they are not in Git.
+3. Give the sealed-secrets controller K3han's sealing keys before it starts, or no SealedSecret in Chorde decrypts. Not established: where the keys' backup lives.
+4. Run `scripts/ops/bootstrap-cluster.sh k3han`: it waits for `argocd-server` and applies `root.yaml`. `bootstrap-argocd` then applies the `argocd` Application, which takes over the resources the Helm release installed, and the repository Secrets.
+
+Not tested end to end on a fresh cluster.
+
 ---
 
 ## 3. Core Component Navigation
