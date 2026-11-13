@@ -62,7 +62,7 @@ Chorde/
 - A script in `scripts/test/` checks all three.
 - The stage sets no progressive sync, so the waves of its generated Applications order nothing. Not tested: whether, on a fresh cluster, `bootstrap-argocd` syncs on its own once the sealed-secrets CRD exists, if its first sync ran before it.
 
-**No Helm release owns Argo CD** (Chorde#94). Argo CD is rendered from the wrapper and applied, never installed as a release, and its resources carry no `meta.helm.sh/release-name` annotation, so `helm install argocd` refuses to adopt them and no `helm upgrade`, `rollback` or `uninstall` reaches them. A Helm release `argocd` would write its chart version over what the `argocd` Application syncs.
+**No Helm release owns Argo CD** (Chorde#94). Argo CD is rendered from the wrapper and applied, never installed as a release, and the resources the wrapper renders carry no `meta.helm.sh/release-name` annotation, so `helm install argocd` refuses to adopt them and no `helm upgrade`, `rollback` or `uninstall` reaches them. A Helm release `argocd` would write its chart version over what the `argocd` Application syncs.
 
 **A from-scratch bootstrap** starts Argo CD by hand and leaves the rest to `root.yaml`:
 
