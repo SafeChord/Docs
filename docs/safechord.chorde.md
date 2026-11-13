@@ -54,19 +54,22 @@ Chorde/
 └── legacy/                  # [Archive] Historical configurations (v0.1.x / v0.2.x)
 ```
 
-**Argo CD deploys itself from the bootstrap stage** (Chorde#68). `00-bootstrap.yaml` lists `argocd`, at wave 2, after sealed-secrets, whose CRD its SealedSecrets need. The generated `bootstrap-argocd` syncs `manifests/argocd/` with the stage's prune and self-heal: the `argocd` Application, whose one source is the wrapper `charts/argocd/` (§4, item 1), and the SealedSecrets holding Argo CD's repository credentials. A merged change to either directory reaches K3han with no hand step.
+**Argo CD deploys itself from the bootstrap stage** (Chorde#68). `00-bootstrap.yaml` lists `argocd`, at wave 2, after sealed-secrets, whose CRD its SealedSecrets need. The generated `bootstrap-argocd` syncs `manifests/argocd/` with the stage's prune and self-heal: the `argocd` Application, whose one source is the wrapper `charts/argocd/` (§4, item 1), the SealedSecrets holding Argo CD's repository credentials, and the AppProjects every Application names (`chorde`, `safezone`). A merged change to the directory or the wrapper reaches K3han with no hand step.
 
 - **`argocd` never leaves the bootstrap list.** `bootstrap-argocd` carries the ApplicationSet's resources finalizer and its stage prunes, so taking `argocd` out deletes the `argocd` Application and the SealedSecrets, and with them the repository Secrets.
 - **The `argocd` Application carries no resources finalizer.** Deleted with one, it would take Argo CD down with it; deleted without, it leaves Argo CD running.
-- A script in `scripts/test/` checks both.
+- **The AppProjects are neither pruned nor deleted by Argo CD** (Chorde#94): each carries the sync options `Prune=false` and `Delete=false`. Without them, removing one from Git, or deleting `bootstrap-argocd`, would delete it and leave every Application that names it unable to sync. Removing an AppProject therefore takes a hand step.
+- A script in `scripts/test/` checks all three.
 - The stage sets no progressive sync, so the waves of its generated Applications order nothing. Not tested: whether, on a fresh cluster, `bootstrap-argocd` syncs on its own once the sealed-secrets CRD exists, if its first sync ran before it.
+
+**No Helm release owns Argo CD** (Chorde#94). Argo CD is rendered from the wrapper and applied, never installed as a release, and its resources carry no `meta.helm.sh/release-name` annotation, so `helm install argocd` refuses to adopt them and no `helm upgrade`, `rollback` or `uninstall` reaches them. A Helm release `argocd` would write its chart version over what the `argocd` Application syncs.
 
 **A from-scratch bootstrap** starts Argo CD by hand and leaves the rest to `root.yaml`:
 
-1. Install Argo CD from the wrapper, as a Helm release named `argocd` in the namespace `argocd`, the names the `argocd` Application renders with.
-2. Create the AppProjects the Applications use (`chorde`, `safezone`): they are not in Git.
+1. Apply Argo CD rendered from the wrapper: `kubectl create namespace argocd`, `helm dependency build gitops/k3han/charts/argocd`, then `helm template argocd gitops/k3han/charts/argocd -n argocd | kubectl apply --server-side -f -`. The release name `argocd` and the namespace are the ones the `argocd` Application renders with.
+2. Apply the AppProjects from Git: `kubectl apply -f gitops/k3han/manifests/argocd/appprojects.yaml`. `root.yaml` and every Application name one of them, so none syncs before they exist.
 3. Give the sealed-secrets controller K3han's sealing keys before it starts, or no SealedSecret in Chorde decrypts. Not established: where the keys' backup lives.
-4. Run `scripts/ops/bootstrap-cluster.sh k3han`: it waits for `argocd-server` and applies `root.yaml`. `bootstrap-argocd` then applies the `argocd` Application, which takes over the resources the Helm release installed, and the repository Secrets.
+4. Run `scripts/ops/bootstrap-cluster.sh k3han`: it waits for `argocd-server` and applies `root.yaml`, and applies nothing if either check fails. `bootstrap-argocd` then applies the `argocd` Application, which takes over the resources step 1 applied, the AppProjects and the repository Secrets.
 
 Not tested end to end on a fresh cluster.
 
