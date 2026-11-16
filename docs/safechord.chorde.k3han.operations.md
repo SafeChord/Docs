@@ -22,7 +22,7 @@ code_paths:
 Two criteria sort K3han operations work.
 
 - **Proactive or reactive: is something wrong now?** Proactive work keeps the platform from breaking while nothing is broken; reactive work starts when something is. A CVE is proactive unless there is evidence that it is exploited against an exposed component, when it becomes reactive (§3.2).
-- **Cluster or host: where is the desired state declared?** Cluster: in `Chorde/gitops/`, applied by ArgoCD. k3s is cluster work, because its upgrade is a System Upgrade Controller Plan there. Host: in `Chorde/cluster/k3han/ansible/`, applied by the playbook or the node's package manager: OS packages, kernel, sysctl, Tailscale. An item is classified by where its action lands, not where its detection runs: node patch state is measured in the cluster and is host work.
+- **Cluster or host: where does the action land?** Cluster: on objects in the cluster, declared in `Chorde/gitops/` and applied by ArgoCD. Host: on a node: OS packages, kernel, sysctl and Tailscale, declared in `Chorde/cluster/k3han/ansible/` and applied by the playbook or the node's package manager; and k3s. k3s is host work although its target version is declared in `Chorde/gitops/` as a System Upgrade Controller Plan: the Plan's Job replaces the binary on the node and restarts k3s there, the node leaves service while it does, and k3s does not go back to an earlier version. Neither where an item is declared nor where its detection runs classifies it: node patch state is measured in the cluster and is host work.
 
 The workstation toolchain (argocd, helm, kubeseal, promtool, logcli) is in neither layer; its versions follow the cluster's.
 
@@ -148,6 +148,8 @@ The update bot does not exist: Chorde has no update bot and no CI, and its check
 | :--- | :--- |
 | Cluster | ArgoCD syncs `main` |
 | Host | The playbook runs; a live action by the Architect may follow, such as a reboot |
+
+k3s is host work that a sync applies: ArgoCD syncs its Plan, and the System Upgrade Controller upgrades the nodes. How that run is attended is an open decision (Chorde#64).
 
 ## 4. Convergence & Resilience
 
