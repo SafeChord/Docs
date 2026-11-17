@@ -108,7 +108,7 @@ The thresholds were set by replaying the rule on the four scans up to 2026-11-13
 
 **The record.** A triage that had a hit or a decision writes one record in `.ai-security/` in the workspace harness, which is private. A hit is handled once a record names its ticket, statement or review date, and the join reads the records to tell handled hits from unhandled ones. A day with no hit writes nothing. A Chorde ticket for a hit states the finding as `Chorde/.ai-rules.md` §5 asks; the reachability evidence stays in the record, since Chorde is public.
 
-Open decision: whether a `vuln-scan/not-covered` alert (§3.1) counts as a hit. The join reads CVEs, and that alert carries none.
+**A `vuln-scan/not-covered` alert (§3.1) is not a hit** (Architect, 2026-11-17): the join reads CVEs, and that alert carries none. It stays open in Code Scanning until a scan covers the image, and nothing wakes anyone for it. None was open on 2026-11-17.
 
 **An unattended path for hits** (the scanner flags a KEV-listed finding on an exposed component, and Slack wakes the Architect) is an open decision, settled with the scanner once the zot registry runs (Chorde#102): whether the scanner changes is decided then.
 
