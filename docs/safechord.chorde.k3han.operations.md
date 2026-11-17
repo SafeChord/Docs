@@ -125,14 +125,16 @@ A component moves by one of two lanes, sorted by what its roll costs, not by any
 
 What puts each attended component there:
 
-- **cnpg-operator, cnpg-postgresql**: a move restarts both Postgres clusters, about three minutes, and SafeZone's analytics-api answers one 500 while SafeZone#127 is open.
+- **cnpg-operator, cnpg-postgresql**: a move restarts both Postgres clusters, about three minutes, and SafeZone's analytics-api answers one 500 while SafeZone#127 is open. A PostgreSQL major version does not go back; whether the operator goes back to an earlier release is not established.
 - **nginx-gateway-fabric, Gateway API CRDs**: a move rolls the public data plane, and public routes are down for about 22 seconds ([Ingress](safechord.chorde.k3han.ingress.md)). The CRDs move with the controller.
-- **strimzi-operator, strimzi-kafka**: Kafka's metadata version does not go back.
-- **k3s**: its upgrade drains nodes (Chorde#64).
+- **strimzi-operator, strimzi-kafka**: raising Kafka's `metadataVersion` does not go back; a Kafka version move that leaves it unchanged does.
+- **k3s**: its upgrade takes nodes out of service, and k3s does not go back to an earlier version (Chorde#64).
 - **argocd**: it deploys itself, so a failed move takes the way back with it.
 - **kube-prometheus-stack**: a roll drops Alertmanager's silences while it keeps them in an `emptyDir`.
-- **loki**: one replica, and its ruler stops evaluating while it rolls.
-- **valkey**: SafeZone staging's cache.
+- **loki**: one replica, and its ruler stops evaluating while it rolls. A new schema period cannot be undone.
+- **valkey**: SafeZone staging's cache. A newer release's RDB and AOF files do not load in an earlier one, so going back empties the cache, which is accepted.
+
+**A one-way step is its own change.** Raising Kafka's `metadataVersion` and adding a Loki schema period cannot be reverted through Git, so each is a change of its own, never in the same move as a version. A move that makes a different version of a CRD its storage version cannot be reverted either: the API server rejects the earlier CRD while objects are stored in a version it omits. Such a move takes the attended lane whatever the component, and its ticket states the way back before it syncs. sealed-secrets' keys (renewed on a timer, never by a move, and kept) and Grafana's database (no volume) were checked and are not one-way. Prometheus's TSDB from 3.x reads back to 2.55; changes to it within 3.x, argocd's state beyond its CRDs and zot's storage were not checked.
 
 alloy, keda and system-upgrade-controller are on the automatic lane by inference; their roll costs are not established one by one.
 
